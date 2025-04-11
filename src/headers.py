@@ -1,0 +1,6 @@
+MISSING_FIELDS="Missing required field(s)"
+COURSE_CREATED="Course created successfully"
+INTERNAL_SERVER_ERROR="Internal Server Error"
+COURSE_NOT_FOUND="Course not found"
+COURSE_DELETED="Course deleted successfully"
+UNAUTHORIZED="Unauthorized"
