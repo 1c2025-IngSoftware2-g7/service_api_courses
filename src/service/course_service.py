@@ -1,7 +1,8 @@
 
-from headers import COURSE_CREATED, COURSE_DELETED, COURSE_NOT_FOUND, INTERNAL_SERVER_ERROR, MISSING_FIELDS, UNAUTHORIZED
+from headers import COURSE_CREATED, COURSE_DELETED, COURSE_IS_FULL, COURSE_NOT_FOUND, INTERNAL_SERVER_ERROR, MISSING_FIELDS, UNAUTHORIZED
 from error.error import error_generator
 from models.course import Course
+from models.module import Module
 
 
 class CourseService:
@@ -225,8 +226,18 @@ class CourseService:
                     403,
                     "enroll_student"
                 )
+                
+            # then we check if the course still has a place to enroll an user 
+            still_has_place = self.course_repository.check_if_course_has_place(course_id)
             
-            # Then we check if the course exists
+            if not still_has_place:
+                return error_generator(
+                    COURSE_IS_FULL,
+                    f"Course with ID {course_id} is full",
+                    403,
+                    "enroll_student"
+                )
+
             enrolled = self.course_repository.enroll_student_in_course(course_id, student_id)
             if enrolled:
                 return {
@@ -252,4 +263,87 @@ class CourseService:
                 f"An error occurred while enrolling the student in the course: {str(e)}",
                 500,
                 "enroll_student"
+            )
+            
+    def get_enrolled_courses(self, student_id):
+        try:
+            courses = self.course_repository.get_enrolled_courses(student_id)
+            if courses:
+                # we make a fix to _id since isn't serializable
+                courses = [ Course.from_dict(course).to_dict() for course in courses ]
+                    
+                return {
+                    "response": courses,
+                    "code_status": 200
+                }
+            else:
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    f"No courses found for student with ID {student_id}",
+                    404,
+                    "get_enrolled_courses"
+                )
+        except Exception as e:
+            return error_generator(
+                INTERNAL_SERVER_ERROR,
+                f"An error occurred while getting the enrolled courses: {str(e)}",
+                500,
+                "get_enrolled_courses"
+            )
+    
+    def add_module_to_course(self, course_id, data):
+        data_required = ["title", "description", "url", "type"]
+        for field in data_required:
+            if field not in data:
+                return error_generator(
+                    MISSING_FIELDS,
+                    f"Field {field} is required",
+                    400,
+                    "add_module_to_course"
+                )
+                
+        # Lets drop other fields that we don't want to update
+        for field in list(data.keys()):
+            if field not in data_required:
+                del data[field]
+        
+        try:
+            new_module = Module(data["title"], data["description"], data["url"], data["type"])
+            module_dict = new_module.to_dict()
+            
+            # Lets check beforehand if the course exists 
+            course = self.course_repository.get_course_by_id(course_id)
+            if not course:
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    f"Course with ID {course_id} not found",
+                    404,
+                    "add_module_to_course"
+                )
+            
+            module_added = self.course_repository.add_module_to_course(course_id, module_dict)
+            if module_added:
+                return {
+                    "response": {
+                        "type": "about:blank",
+                        "title": COURSE_CREATED,
+                        "status": 200,
+                        "detail": f"Module added to course with ID {course_id}",
+                        "instance": f"/courses/modules/{course_id}"
+                    },
+                    "code_status": 200
+                }
+            else:
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    f"Course with ID {course_id} not found",
+                    404,
+                    "add_module_to_course"
+                )
+        except Exception as e:
+            return error_generator(
+                INTERNAL_SERVER_ERROR,
+                f"An error occurred while adding the module to the course: {str(e)}",
+                500,
+                "add_module_to_course"
             )

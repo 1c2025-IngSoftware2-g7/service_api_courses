@@ -68,20 +68,17 @@ def update_course(course_id):
 def delete_course(course_id):
     """
     Delete a course by ID.
-    """
-    data = request.json
+    """    
+    owner_id = request.args.get("owner_id")
     
-    # Check if the owner_id is in the request
-    if "owner_id" not in data:
+    if not owner_id:
         return error_generator(
             MISSING_FIELDS,
             "Owner ID is required",
             400,
             "delete_course"
         )
-        
-    # Get the owner_id from the request
-    owner_id = data["owner_id"]
+                
     # Call the service to delete the course
     result = service.delete_course(course_id, owner_id)
     
@@ -163,5 +160,36 @@ def enroll_student(course_id):
     
     # Call the service to enroll the student
     result = service.enroll_student_in_course(course_id, student_id)
+    
+    return result["response"], result["code_status"]
+
+# This method is for list all the courses an user is enrolled
+@courses_app.route("/courses/enrolled_courses/<student_id>", methods=["GET"])
+def get_enrolled_courses(student_id):
+    """
+    Get all courses a student is enrolled in.
+    """
+    # Call the service to get all courses
+    result = service.get_enrolled_courses(student_id)
+    
+    return result["response"], result["code_status"]
+
+# This method is for adding a module to a course
+@courses_app.route("/courses/<course_id>/modules", methods=["POST"])
+def add_module(course_id):
+    """
+    Add a module to a course.
+    Module comes as a json with 
+    title = title
+    description = description
+    url = url
+    type = type # mp4? pdf?
+    date_created = datetime.now()
+    """
+    # Get data from request
+    data = request.json
+
+    # Call the service to add the module
+    result = service.add_module_to_course(course_id, data)
     
     return result["response"], result["code_status"]

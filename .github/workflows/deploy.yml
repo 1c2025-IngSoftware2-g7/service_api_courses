@@ -1,4 +1,4 @@
-name: Deploy API Users
+name: Deploy API Courses
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: Test API Users
+name: Test API Courses
 
 on:
   push:

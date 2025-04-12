@@ -94,3 +94,21 @@ class CoursesRepository:
     def get_all_courses(self):
         courses = self.collection.find()
         return list(courses)
+    
+    def get_enrolled_courses(self, student_id):
+        courses = self.collection.find({"students": student_id})
+        return list(courses)
+    
+    def course_still_have_slots(self, course_id):
+        course = self.get_course_by_id(course_id)
+        if course:
+            return len(course.get("students", [])) < course.get("max_students", 0)
+        else:
+            return False
+        
+    def add_module_to_course(self, course_id, module):
+        result = self.collection.update_one(
+            {"_id": ObjectId(course_id)},
+            {"$addToSet": {"resources": module}}
+        )
+        return result.modified_count > 0
