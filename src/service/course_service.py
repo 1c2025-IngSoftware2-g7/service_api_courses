@@ -11,22 +11,47 @@ class CourseService:
         self.logger = logger
 
     def create_course(self, data):
-        data_required = ["name", "description", "creator_id", "start_date", "end_date", "max_students"]
+        data_required = ["name", 
+                         "description", 
+                         "creator_id", 
+                         "course_start_date",
+                         "course_end_date", 
+                         "max_students",
+                         "creator_name",
+                         ]
+        optional_data = [ "enroll_date_end" ]
+        
         for field in data_required:
             if field not in data:
+                self.logger.debug(f"[SERVICE] CREATE: field {field} not found in data, so we throw error")
                 return error_generator(
                     MISSING_FIELDS,
                     f"Field {field} is required",
                     400,
-                    None
+                    "create_course"
                 )
+        
+        # lets drop other fields that doesn't exists either on data or optional_data
+        for field in list(data.keys()):
+            if field not in data_required and field not in optional_data:
+                self.logger.debug(f"[SERVICE] CREATE: field {field} not found in data, so we drop it")
+                del data[field]
 
-        course = Course(data["name"], data["description"], data["max_students"], data["start_date"], data["end_date"], creator_id=data["creator_id"])
+        course = Course(data["name"], 
+                        data["description"], 
+                        data["max_students"], 
+                        data["course_start_date"], 
+                        data["course_end_date"], 
+                        data["creator_id"], 
+                        data["creator_name"], 
+                        enroll_date_end=data["enroll_date_end"] if "enroll_date_end" in data else None)
+        
         
         dict_course = course.to_dict()
         
         try :
             course_id = self.course_repository.create_course(dict_course)
+            self.logger.debug(f"[SERVICE] CREATE: course created with ID: {course_id}")
             return {
                 "response": {
                     "type": "about:blank",
@@ -45,26 +70,47 @@ class CourseService:
                 "create_course"
             )
         
-    def update_course(self, course_id, data):
-        data_required = ["name", "description", "start_date", "end_date", "max_students"]
+    def update_course(self, course_id, data, owner_id):
+        optional_data = [ "name", 
+                         "description", 
+                         "course_start_date",
+                         "course_end_date", 
+                         "max_students"
+                        ]
         
-        for field in data_required:
-            if field not in data:
-                return error_generator(
-                    MISSING_FIELDS,
-                    f"Field {field} is required",
-                    400,
-                    "update_course"
-                )
+        if len(data.keys()) == 0:
+            self.logger.debug(f"[SERVICE] UPDATE data is empty, so we throw error")
+            return error_generator(
+                MISSING_FIELDS,
+                f"At least one field is required",
+                400,
+                "update_course"
+            )
 
         # Lets drop other fields that we don't want to update
         for field in list(data.keys()):
-            if field not in data_required:
+            if field not in optional_data:
+                self.logger.debug(f"[SERVICE] UPDATE: field {field} not found in data, so we drop it")
                 del data[field]
         
-        self.logger.debug(f"[DEBUG] data_required: {data_required}")
+        self.logger.debug(f"[SERVICE] Update data_required: {optional_data}")
         try:
+            
+            # Lets check beforehand if the creator of the course is the same as the one who is trying to update it
+            owner_from_db = self.course_repository.get_course_owner(course_id)
+            
+            if owner_from_db != owner_id:
+                self.logger.debug(f"[SERVICE] Update: owner with id {owner_from_db} is not the same as {owner_id}, return error")
+                return error_generator(
+                    UNAUTHORIZED,
+                    f"User {owner_id} is not authorized to update this course",
+                    403,
+                    "update_course"
+                )
+                
             updated = self.course_repository.update_course(course_id, data)
+            
+            self.logger.debug(f"[SERVICE] Update: course updated: {updated}")
             if updated:
                 return {
                     "response": {
@@ -97,6 +143,7 @@ class CourseService:
             course_owner_from_db = self.course_repository.get_course_owner(course_id)
             
             if course_owner_from_db != owner_id:
+                self.logger.debug(f"[SERVICE] Delete: owner with id {course_owner_from_db} is not the same as {owner_id}, return error")
                 return error_generator(
                     UNAUTHORIZED,
                     f"User {owner_id} is not authorized to delete this course",
@@ -104,9 +151,25 @@ class CourseService:
                     "delete_course"
                 )
             
+            # Lets check if the course exists 
+            course_exists = self.course_repository.get_course_by_id(course_id)
+            
+            self.logger.debug(f"[SERVICE] Delete: course exists: {course_exists}")
+            if not course_exists:
+                self.logger.debug(f"[SERVICE] Delete: course with id {course_id} not found, return error")
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    f"Course with ID {course_id} not found",
+                    404,
+                    "delete_course"
+                )
+            
+            
             deleted = self.course_repository.delete_course(course_id)
             
             if deleted:
+                
+                self.logger.debug(f"[SERVICE] Delete: course deleted: {deleted}")
                 return {
                     "response": {
                         "type": "about:blank",
@@ -193,6 +256,7 @@ class CourseService:
             courses = self.course_repository.get_all_courses()
             if courses:
                 # we make a fix to _id since isn't serializable
+                self.logger.debug(f"[DEBUG] courses searched: {courses}")
                 courses = [ Course.from_dict(course).to_dict() for course in courses ]
                     
                 return {
@@ -216,10 +280,25 @@ class CourseService:
             
     def enroll_student_in_course(self, course_id, student_id):
         try:
+            # We check if the course inscription is still open
+            inscription_available = self.course_repository.check_if_course_inscription_is_available(course_id)
+            
+            if not inscription_available:
+                
+                self.logger.debug(f"[SERVICE] Enroll: inscription is not available for course with ID {course_id}")
+                return error_generator(
+                    UNAUTHORIZED,
+                    f"Course with ID {course_id} inscription is no longer available",
+                    403,
+                    "enroll_student"
+                )
+            
             # First we check if the user is already enrolled in the course
             is_already_enrolled = self.course_repository.is_student_enrolled_in_course(course_id, student_id)
             
             if is_already_enrolled:
+                
+                self.logger.debug(f"[SERVICE] Enroll: student with ID {student_id} is already enrolled in course with ID {course_id}")
                 return error_generator(
                     UNAUTHORIZED,
                     f"Student with ID {student_id} is already enrolled in course with ID {course_id}",
@@ -231,6 +310,8 @@ class CourseService:
             still_has_place = self.course_repository.check_if_course_has_place(course_id)
             
             if not still_has_place:
+                
+                self.logger.debug(f"[SERVICE] Enroll: course with ID {course_id} is full")
                 return error_generator(
                     COURSE_IS_FULL,
                     f"Course with ID {course_id} is full",
@@ -240,6 +321,7 @@ class CourseService:
 
             enrolled = self.course_repository.enroll_student_in_course(course_id, student_id)
             if enrolled:
+                self.logger.debug(f"[DEBUG] Enroll: student with ID {student_id} enrolled in course with ID {course_id}")
                 return {
                     "response": {
                         "type": "about:blank",
@@ -271,7 +353,8 @@ class CourseService:
             if courses:
                 # we make a fix to _id since isn't serializable
                 courses = [ Course.from_dict(course).to_dict() for course in courses ]
-                    
+                
+                self.logger.debug(f"[DEBUG] courses searched: {courses}")
                 return {
                     "response": courses,
                     "code_status": 200
@@ -305,6 +388,7 @@ class CourseService:
         # Lets drop other fields that we don't want to update
         for field in list(data.keys()):
             if field not in data_required:
+                self.logger.debug(f"[SERVICE] ADD MODULE: field {field} not found in data, so we drop it")
                 del data[field]
         
         try:
@@ -346,4 +430,30 @@ class CourseService:
                 f"An error occurred while adding the module to the course: {str(e)}",
                 500,
                 "add_module_to_course"
+            )
+            
+    def get_paginated_courses(self, offset, max_per_page):
+        try:
+            courses = self.course_repository.get_paginated_courses(offset, max_per_page)
+            if courses:
+                # we make a fix to _id since isn't serializable
+                courses = [ Course.from_dict(course).to_dict() for course in courses ]
+                    
+                return {
+                    "response": courses,
+                    "code_status": 200
+                }
+            else:
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    f"No courses found",
+                    404,
+                    "get_paginated_courses"
+                )
+        except Exception as e:
+            return error_generator(
+                INTERNAL_SERVER_ERROR,
+                f"An error occurred while getting the paginated courses: {str(e)}",
+                500,
+                "get_paginated_courses"
             )

@@ -1,6 +1,7 @@
 import os
 from bson import ObjectId
 from models.course import Course
+from datetime import datetime
 
 class CoursesRepository:
     def __init__(self, collection, logger):
@@ -11,14 +12,18 @@ class CoursesRepository:
         course_dict["students"] = []
         course_dict["modules"] = []
         result = self.collection.insert_one(course_dict)
+        
+        self.logger.debug(f"[REPOSITORY] CREATE: New course created with ID: {result.inserted_id}")
         return str(result.inserted_id)
     
     def update_course(self, course_id, course_dict):
         result = self.collection.update_one({"_id": ObjectId(course_id)}, {"$set": course_dict})
+        self.logger.debug(f"[REPOSITORY] UPDATE: Course with ID: {course_id} updated")
         return result.modified_count > 0
     
     def delete_course(self, course_id):
         result = self.collection.delete_one({"_id": ObjectId(course_id)})
+        self.logger.debug(f"[REPOSITORY] DELETE: Course with ID: {course_id} deleted")
         return result.deleted_count > 0
     
     def get_course_by_id(self, course_id):
@@ -41,7 +46,10 @@ class CoursesRepository:
         courses = self.collection.find({
             "$or": [
                 {"name": regex},
-                {"description": regex}
+                {"description": regex},
+                {"course_start_date": regex},
+                {"course_end_date": regex},
+                {"creator_name": regex}
             ]
         })
         
@@ -61,6 +69,7 @@ class CoursesRepository:
             {"_id": ObjectId(course_id)},
             {"$addToSet": {"students": student_id}}
         )
+        self.logger.debug(f"[DEBUG] Enroll student {student_id} in course {course_id}")
         return result.modified_count > 0
     
     def remove_student_from_course(self, course_id, student_id):
@@ -111,4 +120,24 @@ class CoursesRepository:
             {"_id": ObjectId(course_id)},
             {"$addToSet": {"resources": module}}
         )
+        
+        self.logger.debug(f"[DEBUG] Add module {module} to course {course_id}")
         return result.modified_count > 0
+
+    def get_paginated_courses(self, offset, max_per_page):
+        courses = self.collection.find().skip(offset).limit(max_per_page)
+        return list(courses)
+    
+    def check_if_course_inscription_is_available(self, course_id):
+        course = self.get_course_by_id(course_id)
+        if course:
+            # In case enroll_date_end is None, we assume the course is open for enrollment
+            # So in that case, the enrollment is available, else, we check if the enroll_date_end is greater than now
+            if course.get("enroll_date_end") is None:
+                self.logger.debug(f"[DEBUG] Course {course_id} has no end date for enrollment, so it is available")
+                return True
+            else:
+                self.logger.debug(f"[DEBUG] Course {course_id} has an end date for enrollment, so we check if it is available")
+                return course.get("enroll_date_start") <= datetime.now() <= course.get("enroll_date_end")
+        else:
+            return False
