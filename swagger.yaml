@@ -1,0 +1,253 @@
+openapi: 3.0.0
+info:
+  title: Course API
+  version: 1.0.0
+
+servers:
+  - url: https://service-api-courses.onrender.com
+
+paths:
+  /courses/health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+
+  /courses:
+    get:
+      summary: Get all courses
+      responses:
+        '200':
+          description: A list of courses
+    post:
+      summary: Create a new course
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseCreate'
+      responses:
+        '201':
+          description: Course created
+
+  /courses/{course_id}:
+    get:
+      summary: Get a course by ID
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Course retrieved
+    put:
+      summary: Update a course by ID
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: owner_id
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseUpdate'
+      responses:
+        '200':
+          description: Course updated
+    delete:
+      summary: Delete a course by ID
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: owner_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Course deleted
+
+  /courses/search:
+    get:
+      summary: Search for a course
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Search results
+
+  /courses/{course_id}/enroll:
+    post:
+      summary: Enroll a student in a course
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - student_id
+              properties:
+                student_id:
+                  type: string
+      responses:
+        '200':
+          description: Student enrolled
+
+  /courses/enrolled_courses/{student_id}:
+    get:
+      summary: Get courses a student is enrolled in
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of enrolled courses
+
+  /courses/{course_id}/modules:
+    post:
+      summary: Add a module to a course
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseModule'
+      responses:
+        '200':
+          description: Module added
+
+  /courses/paginated:
+    get:
+      summary: Get courses with pagination
+      parameters:
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: max_page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Paginated courses
+
+components:
+  schemas:
+    CourseCreate:
+      type: object
+      required:
+        - name
+        - description
+        - max_students
+        - course_start_date
+        - course_end_date
+        - creator_id
+        - creator_name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        max_students:
+          type: integer
+        course_start_date:
+          type: string
+          format: date
+        course_end_date:
+          type: string
+          format: date
+        enroll_date_end:
+          type: string
+          format: date
+          description: Optional end date for enrollment
+        creator_id:
+          type: string
+        creator_name:
+          type: string
+
+    CourseUpdate:
+      type: object
+      description: "Anything is optional, but at least one should be sent to make an update"
+      properties:
+        name:
+          type: string
+          description: Optional
+        description:
+          type: string
+          description: Optional
+        max_students:
+          type: integer
+          description: Optional
+        course_start_date:
+          type: string
+          format: date
+          description: Optional
+        course_end_date:
+          type: string
+          format: date
+          description: Optional
+        enroll_date_end:
+          type: string
+          format: date
+          description: Optional
+
+    CourseModule:
+      type: object
+      required:
+        - title
+        - description
+        - url
+        - type
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        url:
+          type: string
+        type:
+          type: string
+        date_created:
+          type: string
+          format: date-time
