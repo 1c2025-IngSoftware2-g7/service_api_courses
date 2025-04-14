@@ -21,17 +21,17 @@ services:
       - network_
     env_file:
       - .env
-      
+
   test:
     build: .
     environment:
       - FLASK_ENV=testing
       - PYTHONPATH=/src
     depends_on:
-      - db
-      - app
+      - mongo
+      - courses
     networks:
-      - users_network
+      - network_
     command: pytest -v -s --cov=src --cov-report=xml:/coverage/coverage.xml tests/
     volumes:
       - ./coverage:/coverage
