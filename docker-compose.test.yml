@@ -1,0 +1,48 @@
+services:
+  mongo:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - network_
+
+  courses:
+    build: .
+    environment:
+      - FLASK_ENV=development
+      - PYTHONPATH=/src
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo
+    networks:
+      - network_
+    env_file:
+      - .env
+      
+  test:
+    build: .
+    environment:
+      - FLASK_ENV=testing
+      - PYTHONPATH=/src
+    depends_on:
+      - db
+      - app
+    networks:
+      - users_network
+    command: pytest -v -s --cov=src --cov-report=xml:/coverage/coverage.xml tests/
+    volumes:
+      - ./coverage:/coverage
+      - ./src:/src
+    env_file:
+      - .env
+
+
+networks:
+  network_:
+    driver: bridge
+
+volumes:
+  mongo_data:
