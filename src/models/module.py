@@ -6,23 +6,23 @@ class Module:
         self.title = title
         self.description = description
         self.url = url
-        self.type = type # mp4? pdf?
+        self.type = type  # mp4? pdf?
         self.date_created = datetime.now()
-        
+
     def to_dict(self):
         return {
             "title": self.title,
             "description": self.description,
             "url": self.url,
             "type": self.type,
-            "date_created": self.date_created
+            "date_created": self.date_created,
         }
-    
+
     @staticmethod
     def from_dict(data):
         return Module(
             title=data.get("title"),
             description=data.get("description"),
             url=data.get("url"),
-            type=data.get("type")
+            type=data.get("type"),
         )

@@ -29,7 +29,7 @@ def bad_body_in_post_users():
 # In order, the following are executed:
 #    1) Initialize the database with a test user.
 #    2) Run the test.
-#    3) Delete the test user.  
+#    3) Delete the test user.
 
 @pytest.fixture
 def setup_and_cleanup_test_data(user):
