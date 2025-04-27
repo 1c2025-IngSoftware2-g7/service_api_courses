@@ -5,6 +5,7 @@ from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from headers import MISSING_FIELDS
 from models.course import Course
+from flask_cors import CORS
 from repository.courses_repository import CoursesRepository
 from service.course_service import CourseService
 from pymongo import MongoClient
@@ -13,6 +14,7 @@ load_dotenv()
 
 
 courses_app = Flask(__name__)
+CORS(courses_app, origins=["*"])
 
 # Session config
 courses_app.secret_key = os.getenv("SECRET_KEY_SESSION")
