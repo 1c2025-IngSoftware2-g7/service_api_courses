@@ -325,8 +325,8 @@ class CourseService:
                 )
 
             # then we check if the course still has a place to enroll an user
-            still_has_place = self.course_repository.check_if_course_has_place(
-                course_id
+            still_has_place = (
+                self.course_repository.check_if_course_has_place_to_enroll(course_id)
             )
 
             if not still_has_place:

@@ -116,7 +116,7 @@ class CoursesRepository:
         courses = self.collection.find({"students": student_id})
         return list(courses)
 
-    def course_still_have_slots(self, course_id):
+    def check_if_course_has_place_to_enroll(self, course_id):
         course = self.get_course_by_id(course_id)
         if course:
             return len(course.get("students", [])) < course.get("max_students", 0)
