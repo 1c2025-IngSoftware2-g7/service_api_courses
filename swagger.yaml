@@ -171,6 +171,49 @@ paths:
       responses:
         '200':
           description: Paginated courses
+  
+  /courses/favourites/:
+    post:
+      summary: Add a course to a student's favourites
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FavouriteCourseInput'
+      responses:
+        '200':
+          description: Course added to favourites
+          
+    delete:
+      summary: Remove a course from favourites
+      parameters:
+        - in: query
+          name: student_id
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: course_id
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Course removed
+  
+  /courses/favourites/{student_id}:
+    get:
+      summary: Get all favourite courses for a student
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of favourite courses
 
 components:
   schemas:
@@ -251,3 +294,15 @@ components:
         date_created:
           type: string
           format: date-time
+
+
+    FavouriteCourseInput:
+      type: object
+      required:
+        - student_id
+        - course_id
+      properties:
+        student_id:
+          type: string
+        course_id:
+          type: string
