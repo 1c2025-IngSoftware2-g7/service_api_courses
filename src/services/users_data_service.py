@@ -1,5 +1,5 @@
-from src.error.error import error_generator
-from src.headers import (
+from error.error import error_generator
+from headers import (
     COURSE_ADDED_TO_FAVOURITES,
     COURSE_ALREADY_IN_FAVOURITES,
     COURSE_NOT_FOUND,

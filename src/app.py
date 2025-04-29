@@ -1,5 +1,4 @@
 import os
-from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
 
@@ -8,8 +7,6 @@ from endpoints.courses import courses_bp
 from endpoints.modules import modules_bp
 from endpoints.enrollment import courses_enrollment_bp
 from endpoints.favourite_courses import courses_favourites
-
-load_dotenv()
 
 
 # Lets start the courses app by default on /courses

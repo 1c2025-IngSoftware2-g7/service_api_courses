@@ -1,6 +1,5 @@
 from bson import ObjectId
-from src.error.error import error_generator
-from src.headers import MISSING_FIELDS
+from headers import MISSING_FIELDS
 
 
 class UsersDataRepository:

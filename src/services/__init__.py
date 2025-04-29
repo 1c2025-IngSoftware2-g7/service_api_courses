@@ -1,10 +1,14 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import logging
 import os
 from pymongo import MongoClient
-from src.repository.courses_repository import CoursesRepository
-from src.repository.users_data_repository import UsersDataRepository
-from src.services.users_data_service import UsersDataService
+from repository.courses_repository import CoursesRepository
+from repository.users_data_repository import UsersDataRepository
+from services.users_data_service import UsersDataService
 from .course_service import CourseService
+
 
 client = MongoClient(os.getenv("MONGO_URI"))
 db = client[os.getenv("COURSE_DATABASE")]
