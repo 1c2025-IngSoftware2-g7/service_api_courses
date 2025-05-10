@@ -504,9 +504,11 @@ class CourseService:
                 "get_course_by_id",
             )
 
-    def get_courses_owned_by_user(self, user_id):
+    def get_courses_owned_by_user(self, user_id, offset, max_per_page):
         try:
-            courses = self.course_repository.get_courses_owned_by_user(user_id)
+            courses = self.course_repository.get_courses_owned_by_user(
+                user_id, offset, max_per_page
+            )
             if courses:
                 # we make a fix to _id since isn't serializable
                 courses = [Course.from_dict(course).to_dict() for course in courses]
