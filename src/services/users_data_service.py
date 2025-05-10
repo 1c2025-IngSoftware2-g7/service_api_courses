@@ -108,7 +108,7 @@ class UsersDataService:
             "code_status": 200,
         }
 
-    def get_favourites_from_student_id(self, student_id):
+    def get_favourites_from_student_id(self, student_id, offset, max_per_page):
         """
         Get the favourites list for a student.
         """
@@ -126,5 +126,24 @@ class UsersDataService:
                 404,
                 "get_favourites_from_student_id",
             )
+        
+        # lets apply the pagionation 
+        start = offset * max_per_page
+        end = start + max_per_page
+        paginated_favourites = favourites[start:end]
 
-        return {"response": favourites, "code_status": 200}
+        # Now i have the favourites as an list, now i should get the course data from the courses
+        favourites_as_course_dict = [] 
+        
+        for course in paginated_favourites:
+            course_data = self.service_courses.get_course_by_id(course)
+            if course_data["code_status"] != 200:
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    "Error converting a favourite course to a course, the data doesn't exists",
+                    404,
+                    "get_favourites_from_student_id",
+                )
+            favourites_as_course_dict.append(course_data["response"])
+            
+        return {"response": favourites_as_course_dict, "code_status": 200}

@@ -480,3 +480,26 @@ class CourseService:
                 500,
                 "get_paginated_courses",
             )
+
+    def get_course_by_id(self, course_id):
+        try:
+            course = self.course_repository.get_course_by_id(course_id)
+            if course:
+                # we make a fix to _id since isn't serializable
+                course = Course.from_dict(course).to_dict()
+
+                return {"response": course, "code_status": 200}
+            else:
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    f"Course with ID {course_id} not found",
+                    404,
+                    "get_course_by_id",
+                )
+        except Exception as e:
+            return error_generator(
+                INTERNAL_SERVER_ERROR,
+                f"An error occurred while getting the course by ID: {str(e)}",
+                500,
+                "get_course_by_id",
+            )
