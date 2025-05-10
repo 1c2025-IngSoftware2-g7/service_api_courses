@@ -6,6 +6,7 @@ from headers import (
     COURSE_REMOVED_FROM_FAVOURITES,
     MISSING_FIELDS,
 )
+from src.models.course import Course
 
 
 class UsersDataService:
@@ -147,3 +148,49 @@ class UsersDataService:
             favourites_as_course_dict.append(course_data["response"])
             
         return {"response": favourites_as_course_dict, "code_status": 200}
+
+    def search_favourite_courses(self, student_id, query, offset, max_per_page):
+        """
+        Search for favourite courses.
+        """
+        self.logger.debug(
+            f"[REPOSITORY] Searching favourite courses for student with ID: {student_id}"
+        )
+
+        # Check if the student has any favourites, we force 1 page (starts from zero) and 999 max per page
+        favourites = self.get_favourites_from_student_id(student_id, 0, 1337)
+
+        if not favourites:
+            return error_generator(
+                MISSING_FIELDS,
+                "No favourites found",
+                404,
+                "search_favourite_courses",
+            )
+
+        # Filter the favourites list based on the query
+        # To be helpful, lets convert it to a Instance of Courses then return as dict
+        filtered_favourites = [ Course.from_dict(course) for course in favourites["response"] ]
+        self.logger.debug(f"[REPOSITORY] Favourites list: {filtered_favourites}")
+        filtered_favourites = [
+            course.to_dict()
+            for course in filtered_favourites
+            if query.lower() in course.name.lower() or
+            query.lower() in course.description.lower() or
+            query.lower() in course.creator_name.lower()
+        ]
+        '''filtered_favourites = [
+            course
+            for course in favourites
+            if query.lower() in course[4].lower() or
+            query.lower() in course[5].lower() or
+            query.lower() in course[9].lower()
+        ]'''
+
+        # lets apply the pagionation 
+        start = offset * max_per_page
+        end = start + max_per_page
+        paginated_favourites = filtered_favourites[start:end]
+
+        return {"response": paginated_favourites, "code_status": 200} 
+        
