@@ -156,3 +156,7 @@ class CoursesRepository:
                 )
         else:
             return False
+
+    def get_courses_owned_by_user(self, user_id):
+        courses = self.collection.find({"creator_id": user_id})
+        return list(courses)

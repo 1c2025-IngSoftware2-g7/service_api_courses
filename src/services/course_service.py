@@ -503,3 +503,26 @@ class CourseService:
                 500,
                 "get_course_by_id",
             )
+
+    def get_courses_owned_by_user(self, user_id):
+        try:
+            courses = self.course_repository.get_courses_owned_by_user(user_id)
+            if courses:
+                # we make a fix to _id since isn't serializable
+                courses = [Course.from_dict(course).to_dict() for course in courses]
+
+                return {"response": courses, "code_status": 200}
+            else:
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    f"No courses found for user with ID {user_id}",
+                    404,
+                    "get_courses_owned_by_user",
+                )
+        except Exception as e:
+            return error_generator(
+                INTERNAL_SERVER_ERROR,
+                f"An error occurred while getting the courses owned by user: {str(e)}",
+                500,
+                "get_courses_owned_by_user",
+            )
