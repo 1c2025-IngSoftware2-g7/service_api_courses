@@ -18,6 +18,7 @@ def add_module(course_id=None):
     url = url
     type = type # mp4? pdf?
     date_created = datetime.now()
+    owner_course = id of the attempt creator
     """
 
     if not course_id:
@@ -28,7 +29,7 @@ def add_module(course_id=None):
 
     # Get data from request
     data = request.json
-
+        
     logger.debug(f"[APP] Adding module to course with ID: {course_id} and data: {data}")
     # Call the service to add the module
     result = service_courses.add_module_to_course(course_id, data)

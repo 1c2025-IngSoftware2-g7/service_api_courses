@@ -17,6 +17,7 @@ class Course:
         resources: list = None,
         enroll_date_start: datetime = datetime.now(),
         enroll_date_end: str = None,
+        assistants: list = None,
     ):
         self._id = str(_id) if _id else ObjectId()
         self.name = course_name
@@ -33,6 +34,7 @@ class Course:
         self.creator_name = creator_name
         self.students = students
         self.resources = resources if resources else []
+        self.assistants = assistants if assistants else []
 
     def to_dict(self):
         return {
@@ -48,6 +50,7 @@ class Course:
             "creator_name": self.creator_name,
             "students": self.students,
             "resources": self.resources,
+            "assistants": self.assistants,
         }
 
     @staticmethod
@@ -65,4 +68,5 @@ class Course:
             creator_name=data.get("creator_name"),
             students=data.get("students", []),
             resources=data.get("resources", []),
+            assistants=data.get("assistants", []),
         )
