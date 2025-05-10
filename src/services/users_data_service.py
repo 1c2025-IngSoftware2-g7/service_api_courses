@@ -127,15 +127,15 @@ class UsersDataService:
                 404,
                 "get_favourites_from_student_id",
             )
-        
-        # lets apply the pagionation 
+
+        # lets apply the pagionation
         start = offset * max_per_page
         end = start + max_per_page
         paginated_favourites = favourites[start:end]
 
         # Now i have the favourites as an list, now i should get the course data from the courses
-        favourites_as_course_dict = [] 
-        
+        favourites_as_course_dict = []
+
         for course in paginated_favourites:
             course_data = self.service_courses.get_course_by_id(course)
             if course_data["code_status"] != 200:
@@ -146,7 +146,7 @@ class UsersDataService:
                     "get_favourites_from_student_id",
                 )
             favourites_as_course_dict.append(course_data["response"])
-            
+
         return {"response": favourites_as_course_dict, "code_status": 200}
 
     def search_favourite_courses(self, student_id, query, offset, max_per_page):
@@ -170,27 +170,28 @@ class UsersDataService:
 
         # Filter the favourites list based on the query
         # To be helpful, lets convert it to a Instance of Courses then return as dict
-        filtered_favourites = [ Course.from_dict(course) for course in favourites["response"] ]
+        filtered_favourites = [
+            Course.from_dict(course) for course in favourites["response"]
+        ]
         self.logger.debug(f"[REPOSITORY] Favourites list: {filtered_favourites}")
         filtered_favourites = [
             course.to_dict()
             for course in filtered_favourites
-            if query.lower() in course.name.lower() or
-            query.lower() in course.description.lower() or
-            query.lower() in course.creator_name.lower()
+            if query.lower() in course.name.lower()
+            or query.lower() in course.description.lower()
+            or query.lower() in course.creator_name.lower()
         ]
-        '''filtered_favourites = [
+        """filtered_favourites = [
             course
             for course in favourites
             if query.lower() in course[4].lower() or
             query.lower() in course[5].lower() or
             query.lower() in course[9].lower()
-        ]'''
+        ]"""
 
-        # lets apply the pagionation 
+        # lets apply the pagionation
         start = offset * max_per_page
         end = start + max_per_page
         paginated_favourites = filtered_favourites[start:end]
 
-        return {"response": paginated_favourites, "code_status": 200} 
-        
+        return {"response": paginated_favourites, "code_status": 200}
