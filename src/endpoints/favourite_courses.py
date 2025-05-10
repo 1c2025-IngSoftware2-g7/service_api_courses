@@ -2,7 +2,7 @@ from flask import Blueprint, request
 
 from src.error.error import error_generator
 from src.headers import MISSING_FIELDS
-from services import service_users, logger
+from services import service_users, logger, service_courses
 
 courses_favourites = Blueprint(
     "courses_favourites", __name__, url_prefix="/courses/favourites"
@@ -88,9 +88,47 @@ def get_favourite_courses(student_id=None):
         )
         return error["response"], error["code_status"]
 
+    offset = request.args.get("offset", default=0, type=int)
+    max_per_page = request.args.get("max_per_page", default=10, type=int)
+
     logger.debug(f"[APP] Getting favourite courses for student with ID: {student_id}")
 
     # Call the service to get the favourite courses
-    result = service_users.get_favourites_from_student_id(student_id)
+    result = service_users.get_favourites_from_student_id(
+        student_id, offset, max_per_page
+    )
+
+    return result["response"], result["code_status"]
+
+
+@courses_favourites.get("/search_favourite_for_id/<string:student_id>")
+def search_favourite_courses(student_id=None):
+    """
+    Search for favourite courses.
+    """
+
+    query = request.args.get("q", None)
+    query = query.replace('"', "")
+    offset = request.args.get("offset", default=0, type=int)
+    max_per_page = request.args.get("max_per_page", default=10, type=int)
+
+    if not student_id:
+        error = error_generator(
+            MISSING_FIELDS, "Student ID is required", 400, "search_favourite_courses"
+        )
+        return error["response"], error["code_status"]
+
+    if not query:
+        error = error_generator(
+            MISSING_FIELDS, "Query is required", 400, "search_favourite_courses"
+        )
+        return error["response"], error["code_status"]
+
+    logger.debug(f"[APP] Searching favourite courses for student with ID: {student_id}")
+
+    # Call the service to search for favourite courses
+    result = service_users.search_favourite_courses(
+        student_id, query, offset, max_per_page
+    )
 
     return result["response"], result["code_status"]
