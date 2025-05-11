@@ -8,6 +8,7 @@ from endpoints.modules import modules_bp
 from endpoints.enrollment import courses_enrollment_bp
 from endpoints.favourite_courses import courses_favourites
 from endpoints.assistants import courses_assistants
+from endpoints.feedbacks import feedbacks_bp
 
 
 # Lets start the courses app by default on /courses
@@ -29,5 +30,6 @@ courses_app.register_blueprint(modules_bp)
 courses_app.register_blueprint(courses_enrollment_bp)
 courses_app.register_blueprint(courses_favourites)
 courses_app.register_blueprint(courses_assistants)
+courses_app.register_blueprint(feedbacks_bp)
 
 print(courses_app.url_map)
