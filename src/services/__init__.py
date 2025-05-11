@@ -33,7 +33,9 @@ collection_users_data.create_index(["student_id"], unique=True)
 
 repository_courses_data = CoursesRepository(collection_courses_data, logger)
 repository_users_data = UsersDataRepository(collection_users_data, logger)
-repository_feedbacks = FeedBackRepository(collection_feedback_courses, collection_feedback_students, logger)
+repository_feedbacks = FeedBackRepository(
+    collection_feedback_courses, collection_feedback_students, logger
+)
 
 
 service_courses = CourseService(repository_courses_data, logger)

@@ -1,4 +1,3 @@
-
 import datetime
 
 
@@ -17,13 +16,14 @@ class FeedbackCourse:
             "feedback": self.feedback,
             "feedback_created": self.feedback_created,
         }
-        
+
     def from_dict(self, data):
         self.course_id = data.get("course_id")
         self.feedback = data.get("feedback")
         self.feedback_created = data.get("feedback_created")
         return self
-    
+
+
 class FeedbackStudent:
     def __init__(self, student_id: str, course_id: str, teacher_id: str, feedback: str):
         self.student_id = student_id
@@ -34,7 +34,7 @@ class FeedbackStudent:
 
     def __repr__(self):
         return f"FeedbackStudent(student_id={self.student_id}, course_id={self.course_id}, teacher_id={self.teacher_id}, feedback={self.feedback})"
-    
+
     def to_dict(self):
         return {
             "student_id": self.student_id,
@@ -43,7 +43,7 @@ class FeedbackStudent:
             "feedback": self.feedback,
             "feedback_created": self.feedback_created,
         }
-        
+
     def from_dict(self, data):
         self.student_id = data.get("student_id")
         self.course_id = data.get("course_id")
