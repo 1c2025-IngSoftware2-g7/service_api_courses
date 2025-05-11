@@ -344,6 +344,7 @@ components:
         - description
         - url
         - type
+        - owner_course
       properties:
         title:
           type: string
@@ -352,6 +353,8 @@ components:
         url:
           type: string
         type:
+          type: string
+        owner_course:
           type: string
         date_created:
           type: string

@@ -1,5 +1,8 @@
 MISSING_FIELDS = "Missing required field(s)"
 COURSE_CREATED = "Course created successfully"
+MODULE_CREATED = "Module created successfully"
+ASSISTANT_REMOVED = "Assistant removed successfully"
+ASSISTANT_ADDED = "Assistant added successfully"
 INTERNAL_SERVER_ERROR = "Internal Server Error"
 COURSE_NOT_FOUND = "Course not found"
 COURSE_DELETED = "Course deleted successfully"
