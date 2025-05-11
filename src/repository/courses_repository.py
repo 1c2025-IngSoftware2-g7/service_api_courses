@@ -158,8 +158,10 @@ class CoursesRepository:
             return False
 
     def get_courses_owned_by_user(self, user_id, offset, max_per_page):
-        courses = self.collection.find({"creator_id": user_id}).skip(offset).limit(
-            max_per_page
+        courses = (
+            self.collection.find({"creator_id": user_id})
+            .skip(offset)
+            .limit(max_per_page)
         )
         return list(courses)
 
@@ -167,29 +169,27 @@ class CoursesRepository:
         result = self.collection.update_one(
             {"_id": ObjectId(course_id)}, {"$addToSet": {"assistants": assistant_id}}
         )
-        self.logger.debug(
-            f"[DEBUG] Add assistant {assistant_id} to course {course_id}"
-        )
+        self.logger.debug(f"[DEBUG] Add assistant {assistant_id} to course {course_id}")
         return result.modified_count > 0
-    
+
     def is_user_allowed_to_create_module(self, course_id, user_id):
         # A user is allowed to create a module if he is the owner of the course or if he is an assistant
-        
+
         course = self.get_course_by_id(course_id)
-        
+
         if course:
             # Check if the user is the owner of the course
             if course.get("creator_id") == user_id:
                 return True
-            
+
             # Check if the user is an assistant
             if user_id in course.get("assistants", []):
                 return True
-            
+
             return False
         else:
             return False
-        
+
     def remove_assistant_from_course(self, course_id, assistant_id):
         result = self.collection.update_one(
             {"_id": ObjectId(course_id)}, {"$pull": {"assistants": assistant_id}}

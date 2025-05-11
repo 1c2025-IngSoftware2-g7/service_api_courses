@@ -1,4 +1,4 @@
-'''import pytest
+"""import pytest
 from unittest.mock import MagicMock
 
 
@@ -113,4 +113,4 @@ def test_search_course_by_query(course_service):
     course_service.course_repository.search_course_by_partial_information.assert_called_once_with(
         mock_query
     )
-'''
+"""

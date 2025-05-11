@@ -169,10 +169,10 @@ def get_courses_owned_by_user(user_id=None):
     """
     Get all courses owned by a user.
     """
-    
+
     offset = request.args.get("offset", default=0, type=int)
     max_per_page = request.args.get("max_per_page", default=10, type=int)
-    
+
     if not user_id:
         error = error_generator(
             MISSING_FIELDS, "User ID is required", 400, "get_courses_owned_by_user"
