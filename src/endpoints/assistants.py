@@ -11,9 +11,7 @@ courses_assistants = Blueprint(
 )
 
 
-courses_assistants.route("/<course_id>", methods=["POST"])
-
-
+@courses_assistants.post("/<course_id>")
 def add_assistant_to_course(course_id=None):
     """Add assistant to course"""
     """ Sending though POST the owner id and the assistant id to be added"""
@@ -52,9 +50,7 @@ def add_assistant_to_course(course_id=None):
     return result["response"], result["code_status"]
 
 
-courses_assistants.route("/<course_id>/delete_assistant", methods=["POST"])
-
-
+@courses_assistants.post("/<course_id>/delete_assistant")
 def remove_assistant_from_course(course_id=None):
     """Remove assistant from course"""
     """ Sending though POST the owner id and the assistant id to be removed"""

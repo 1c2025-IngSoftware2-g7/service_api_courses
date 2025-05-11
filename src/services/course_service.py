@@ -9,6 +9,9 @@ from headers import (
     MISSING_FIELDS,
     MODULE_CREATED,
     UNAUTHORIZED,
+    USER_IS_ALREADY_AN_ASSISTANT,
+    USER_NOT_ALLOWED_TO_ADD_ASSISTANT,
+    USER_NOT_AN_ASSISTANT,
 )
 from error.error import error_generator
 from models.course import Course
@@ -558,32 +561,29 @@ class CourseService:
         course_id = self.course_repository.get_course_by_id(course_id)
 
         if not course:
-            error = error_generator(
-                "Course not found", MISSING_FIELDS, 404, "add_assistant_to_course"
+            return error_generator(
+                "Course not found", COURSE_NOT_FOUND, 404, "add_assistant_to_course"
             )
-            return error["response"], error["code_status"]
 
         # Check if the user is the owner of the course
         course = Course.from_dict(course)
 
         if course.creator_id != owner_id:
-            error = error_generator(
+            return error_generator(
                 "User is not the owner of the course",
-                MISSING_FIELDS,
+                USER_NOT_ALLOWED_TO_ADD_ASSISTANT,
                 403,
                 "add_assistant_to_course",
             )
-            return error["response"], error["code_status"]
 
         # Check if the assistant is already in the course
         if assistant_id in course.assistants:
-            error = error_generator(
-                "Assistant already in the course",
-                MISSING_FIELDS,
+            return error_generator(
+                "Assistant already in course",
+                USER_IS_ALREADY_AN_ASSISTANT,
                 400,
                 "add_assistant_to_course",
             )
-            return error["response"], error["code_status"]
 
         # now lets add it to the course
         self.course_repository.add_assistant_to_course(course_id, assistant_id)
@@ -604,32 +604,32 @@ class CourseService:
         course = self.course_repository.get_course_by_id(course_id)
 
         if not course:
-            error = error_generator(
-                "Course not found", MISSING_FIELDS, 404, "remove_assistant_from_course"
+            return error_generator(
+                "Course not found",
+                COURSE_NOT_FOUND,
+                404,
+                "remove_assistant_from_course",
             )
-            return error["response"], error["code_status"]
 
         # Check if the user is the owner of the course
         course = Course.from_dict(course)
 
         if course.creator_id != owner_id:
-            error = error_generator(
+            return error_generator(
                 "User is not the owner of the course",
-                MISSING_FIELDS,
+                USER_NOT_ALLOWED_TO_ADD_ASSISTANT,
                 403,
                 "remove_assistant_from_course",
             )
-            return error["response"], error["code_status"]
 
         # Check if the assistant is already in the course
         if assistant_id not in course.assistants:
-            error = error_generator(
-                "Assistant not in the course",
-                MISSING_FIELDS,
+            return error_generator(
+                "Assistant not in course",
+                USER_NOT_AN_ASSISTANT,
                 400,
                 "remove_assistant_from_course",
             )
-            return error["response"], error["code_status"]
 
         # now lets remove it from the course
         self.course_repository.remove_assistant_from_course(course_id, assistant_id)

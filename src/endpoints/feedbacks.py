@@ -4,15 +4,14 @@ from src.error.error import error_generator
 from src.headers import MISSING_FIELDS
 
 
-feedbacks_bp = Blueprint("feedbacks", __name__, url_prefix="/feedback")
+feedbacks_bp = Blueprint("feedbacks", __name__, url_prefix="/courses/feedback")
 
 ##############################
 # Feedbacks for courses
 ##############################
 
-feedbacks_bp.route("/add_feedback_to_course", methods=["POST"])
 
-
+@feedbacks_bp.post("/add_feedback_to_course")
 def add_feedback_to_course():
     """Add feedback to course"""
     """ Sending though POST the owner id and the assistant id to be added """
@@ -43,13 +42,14 @@ def add_feedback_to_course():
     feedback = data["feedback"]
 
     result = service_feedbacks.create_course_feedback(course_id, feedback)
+    logger.debug(f"[Feedbacks] Feedback created for course {course_id}")
+    logger.debug(f"[Feedbacks] Feedback: {feedback}")
+    logger.debug(f"[Feedbacks] Result: {result}")
 
     return result["response"], result["code_status"]
 
 
-feedbacks_bp.route("/get_course_feedback/<str:course_id>", methods=["GET"])
-
-
+@feedbacks_bp.get("/get_course_feedback/<string:course_id>")
 def get_course_feedback(course_id=None):
     """Get feedback for a course"""
     """ Sending though GET the course id to get the feedbacks """
@@ -69,9 +69,8 @@ def get_course_feedback(course_id=None):
 # Feedbacks for students
 ###############################
 
-feedbacks_bp.route("/add_feedback_to_student", methods=["POST"])
 
-
+@feedbacks_bp.post("/add_feedback_to_student")
 def add_feedback_to_student():
     """Add feedback to student"""
     """ Sending though POST the owner id and the assistant id to be added """
@@ -104,17 +103,16 @@ def add_feedback_to_student():
     student_id = data["student_id"]
     feedback = data["feedback"]
     teacher_id = data["teacher_id"]
+    course_id = data["course_id"]
 
-    result = service_feedbacks.create_student_feedback(student_id, teacher_id, feedback)
+    result = service_feedbacks.create_student_feedback(
+        student_id, course_id, teacher_id, feedback
+    )
 
     return result["response"], result["code_status"]
 
 
-feedbacks_bp.route(
-    "/get_student_feedback/<str:student_id>/<str:course_id>", methods=["GET"]
-)
-
-
+@feedbacks_bp.get("/get_student_feedback/<string:student_id>/<string:course_id>")
 def get_student_feedback(student_id=None, course_id=None):
     """Get feedback for a student"""
     """ Sending though GET the course id to get the feedbacks """

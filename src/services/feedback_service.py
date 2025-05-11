@@ -1,11 +1,16 @@
 import datetime
+
+from flask import jsonify
 from error.error import error_generator
-from src.headers import FEEDBACK_CREATED
+from src.headers import COURSE_NOT_FOUND, FEEDBACK_CREATED, INTERNAL_SERVER_ERROR
 from src.models.feedback import FeedbackCourse, FeedbackStudent
+from src.repository.feedback_repository import FeedBackRepository
 
 
 class FeedbackService:
-    def __init__(self, repository_feedbacks, service_courses, logger):
+    def __init__(
+        self, repository_feedbacks: FeedBackRepository, service_courses, logger
+    ):
         self.repository_feedbacks = repository_feedbacks
         self.service_courses = service_courses
         self.logger = logger
@@ -13,25 +18,26 @@ class FeedbackService:
     def create_course_feedback(self, course_id, feedback):
         try:
             # Check if the course exists
-            course = self.service_courses.get_course_by_id(course_id)
-            if not course:
-                error = error_generator(
-                    "Course not found",
-                    "COURSE_NOT_FOUND",
-                    404,
-                    "create_course_feedback",
-                )
-                return error["response"], error["code_status"]
-
-            # Create the feedback object
-            feedback_object = FeedbackCourse(
-                course_id=course_id,
-                feedback=feedback,
-                created_at=datetime.datetime.utcnow(),
+            self.logger.debug(
+                f"[FeedbackService] Creating feedback for course {course_id}"
             )
+            course = self.service_courses.get_course_by_id(course_id)
+            if course["code_status"] != 200:
+                self.logger.debug(f"[FeedbackService] Course {course_id} not found")
+                return error_generator(
+                    "Course not found", COURSE_NOT_FOUND, 404, "create_course_feedback"
+                )
+
+            self.logger.debug(f"[FeedbackService] Course {course_id} found")
+            # Create the feedback object
+            feedback_object = FeedbackCourse(course_id=course_id, feedback=feedback)
+
+            self.logger.debug(f"[FeedbackService] Feedback object: {feedback_object}")
 
             # Insert the feedback into the repository
             self.repository_feedbacks.insert_course_feedback(feedback_object)
+
+            self.logger.debug(f"[FeedbackService] Feedback inserted successfully")
 
             return {
                 "response": {
@@ -44,53 +50,53 @@ class FeedbackService:
                 "code_status": 201,
             }
         except Exception as e:
-            err = error_generator(
+            return error_generator(
                 "Internal server error",
-                "INTERNAL_SERVER_ERROR",
+                INTERNAL_SERVER_ERROR,
                 500,
                 "create_course_feedback",
             )
-            return err["response"], err["code_status"]
 
     def get_course_feedback(self, course_id):
         try:
             # Lets check if the course exists
             course_exists = self.service_courses.get_course_by_id(course_id)
 
-            if not course_exists:
-                error = error_generator(
-                    "Course not found", "COURSE_NOT_FOUND", 404, "get_course_feedback"
+            if course_exists["code_status"] != 200:
+                return error_generator(
+                    "Course not found", COURSE_NOT_FOUND, 404, "get_course_feedback"
                 )
-                return error["response"], error["code_status"]
 
+            self.logger.debug(f"[FeedbackService] Course {course_id} found")
             # Get feedback for the course
-            feedback = self.repository_feedbacks.get_course_feedback(course_id)
+            feedback_result = self.repository_feedbacks.get_course_feedback(course_id)
 
-            if not feedback:
-                error = error_generator(
-                    "No feedback found", "NO_FEEDBACK_FOUND", 404, "get_course_feedback"
-                )
-                return error["response"], error["code_status"]
-
+            self.logger.debug(f"[FeedbackService] Feedback result: {feedback_result}")
             return {
-                "response": [feedback.to_dict() for feedback in feedback],
-                "status": 200,
+                "response": [
+                    FeedbackCourse.from_dict(feedback).to_dict()
+                    for feedback in feedback_result
+                ],
+                "code_status": 200,
             }
 
         except Exception as e:
-            err = error_generator(
+            self.logger.debug(f"[FeedbackService] Error: {e}")
+            return error_generator(
                 "Internal server error",
-                "INTERNAL_SERVER_ERROR",
+                INTERNAL_SERVER_ERROR,
                 500,
                 "get_course_feedback",
             )
-            return err["response"], err["code_status"]
 
-    def create_student_feedback(self, student_id, teacher_id, feedback):
+    def create_student_feedback(self, student_id, course_id, teacher_id, feedback):
         try:
             # Check if the student exists
             feedback_object = FeedbackStudent(
-                student_id=student_id, teacher_id=teacher_id, feedback=feedback
+                student_id=student_id,
+                course_id=course_id,
+                teacher_id=teacher_id,
+                feedback=feedback,
             )
 
             # Insert the feedback into the repository
@@ -107,23 +113,22 @@ class FeedbackService:
                 "code_status": 201,
             }
         except Exception as e:
-            err = error_generator(
+            self.logger.debug(f"[FeedbackService] Create Student Feedback Error: {e}")
+            return error_generator(
                 "Internal server error",
-                "INTERNAL_SERVER_ERROR",
+                INTERNAL_SERVER_ERROR,
                 500,
                 "create_student_feedback",
             )
-            return err["response"], err["code_status"]
 
     def get_student_feedback(self, student_id, course_id):
         try:
             course_exists = self.service_courses.get_course_by_id(course_id)
 
-            if not course_exists:
-                error = error_generator(
-                    "Course not found", "COURSE_NOT_FOUND", 404, "get_student_feedback"
+            if course_exists["code_status"] != 200:
+                return error_generator(
+                    "Course not found", COURSE_NOT_FOUND, 404, "get_student_feedback"
                 )
-                return error["response"], error["code_status"]
 
             # Get feedback for the student
             feedback = self.repository_feedbacks.get_student_feedback(
@@ -131,24 +136,32 @@ class FeedbackService:
             )
 
             if not feedback:
-                error = error_generator(
-                    "No feedback found",
-                    "NO_FEEDBACK_FOUND",
-                    404,
-                    "get_student_feedback",
-                )
-                return error["response"], error["code_status"]
+                return {
+                    "response": {
+                        "type": "about:blank",
+                        "title": "No feedback found",
+                        "status": 404,
+                        "detail": f"No feedback found for student {student_id} in course {course_id}.",
+                        "instance": f"/feedback/student/{student_id}",
+                    },
+                    "code_status": 404,
+                }
 
             return {
-                "response": [feedback.to_dict() for feedback in feedback],
-                "status": 200,
+                "response": (
+                    [
+                        FeedbackStudent.from_dict(feedback).to_dict()
+                        for feedback in feedback
+                    ]
+                ),
+                "code_status": 200,
             }
 
         except Exception as e:
-            err = error_generator(
+            self.logger.debug(f"[FeedbackService] Get Student Feedback Error: {e}")
+            return error_generator(
                 "Internal server error",
-                "INTERNAL_SERVER_ERROR",
+                INTERNAL_SERVER_ERROR,
                 500,
                 "get_student_feedback",
             )
-            return err["response"], err["code_status"]

@@ -1,4 +1,5 @@
-from src.models.feedback import FeedbackCourse
+from bson import ObjectId
+from src.models.feedback import FeedbackCourse, FeedbackStudent
 
 
 class FeedBackRepository:
@@ -15,7 +16,12 @@ class FeedBackRepository:
         """
         feedback_course_id = feedback_obj.course_id
 
-        self.collection_courses_feedback.insert_one(feedback_obj.to_dict())
+        self.logger.debug(f"feedback_obj: {feedback_obj.to_dict()}")
+        result = self.collection_courses_feedback.insert_one(feedback_obj.to_dict())
+
+        self.logger.debug(
+            f"[REPOSITORY] Inserted feedback with ID: {result.inserted_id}"
+        )
 
         self.logger.debug(
             f"[REPOSITORY] Inserted feedback for course with ID: {feedback_course_id}"
@@ -25,13 +31,18 @@ class FeedBackRepository:
         """
         Get all feedback for a course from the database.
         """
-        feedback_result = self.collection_courses_feedback.find(
-            {"course_id": course_id}
+        feedback_result = list(
+            self.collection_courses_feedback.find({"course_id": course_id})
         )
 
-        return [FeedbackCourse.from_dict(feedback) for feedback in feedback_result]
+        self.logger.debug(
+            f"[REPOSITORY] Retrieved feedback for course with ID: {course_id}"
+        )
 
-    def insert_student_feedback(self, feedback_obj):
+        self.logger.debug(f"[REPOSITORY] Feedback result: {feedback_result}")
+        return feedback_result
+
+    def insert_student_feedback(self, feedback_obj: FeedbackStudent):
         """
         Insert feedback for a student into the database.
         """
@@ -47,8 +58,10 @@ class FeedBackRepository:
         """
         Get all feedback for a student from the database.
         """
-        feedback_result = self.collection_students_feedback.find(
-            {"student_id": student_id, "course_id": course_id}
+        feedback_result = list(
+            self.collection_students_feedback.find(
+                {"student_id": student_id, "course_id": course_id}
+            )
         )
 
-        return [FeedbackCourse.from_dict(feedback) for feedback in feedback_result]
+        return feedback_result
