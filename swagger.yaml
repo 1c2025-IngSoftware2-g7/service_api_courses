@@ -158,6 +158,30 @@ paths:
         '200':
           description: List of enrolled courses
 
+  /courses/{course_id}/approve:
+    post:
+      summary: Approve a course
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - student_id
+              properties:
+                student_id:
+                  type: string
+      responses:
+        '200':
+          description: Course approved
+    
   /courses/{course_id}/modules:
     post:
       summary: Add a module to a course
@@ -216,7 +240,7 @@ paths:
           schema:
             type: string
         - name: owner_id
-          in: query
+          in: path
           required: true
           schema:
             type: string
@@ -384,6 +408,7 @@ paths:
       responses:
         '200':
           description: Feedback added
+
 
 
 components:

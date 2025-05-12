@@ -7,10 +7,12 @@ from headers import (
     MISSING_FIELDS,
 )
 from src.models.course import Course
+from src.repository.courses_repository import CoursesRepository
+from src.repository.users_data_repository import UsersDataRepository
 
 
 class UsersDataService:
-    def __init__(self, repository_users, service_courses, logger):
+    def __init__(self, repository_users: UsersDataRepository, service_courses: CoursesRepository, logger):
         self.repository = repository_users
         self.service_courses = service_courses
         self.logger = logger
@@ -195,3 +197,42 @@ class UsersDataService:
         paginated_favourites = filtered_favourites[start:end]
 
         return {"response": paginated_favourites, "code_status": 200}
+
+    def approve_student_in_courses(self, student_id):
+        try:
+            # Check if the student is already enrolled in the course
+            student_enrolled = self.repository.check_student_enrollment(
+                student_id
+            )
+
+            if not student_enrolled:
+                return error_generator(
+                    MISSING_FIELDS,
+                    "Student not enrolled in any course",
+                    400,
+                    "approve_student_in_courses",
+                )
+
+            # Approve the student in the course
+            self.repository.approve_student(student_id)
+
+            return {
+                "response": {
+                    "type": "about:blank",
+                    "title": "Student Approved",
+                    "status": 200,
+                    "detail": f"Student with ID {student_id} has been approved in all courses",
+                    "instance": f"/courses/approve/{student_id}",
+                },
+                "code_status": 200,
+            }
+        except Exception as e:
+            self.logger.error(
+                f"[REPOSITORY] Error approving student in courses: {e}"
+            )
+            return error_generator(
+                MISSING_FIELDS,
+                "Error approving student in courses",
+                500,
+                "approve_student_in_courses",
+            )
