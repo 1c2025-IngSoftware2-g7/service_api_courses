@@ -12,7 +12,12 @@ from src.repository.users_data_repository import UsersDataRepository
 
 
 class UsersDataService:
-    def __init__(self, repository_users: UsersDataRepository, service_courses: CoursesRepository, logger):
+    def __init__(
+        self,
+        repository_users: UsersDataRepository,
+        service_courses: CoursesRepository,
+        logger,
+    ):
         self.repository = repository_users
         self.service_courses = service_courses
         self.logger = logger
@@ -198,12 +203,10 @@ class UsersDataService:
 
         return {"response": paginated_favourites, "code_status": 200}
 
-    def approve_student_in_courses(self, student_id):
+    def approve_student_in_course(self, course_id, student_id):
         try:
             # Check if the student is already enrolled in the course
-            student_enrolled = self.repository.check_student_enrollment(
-                student_id
-            )
+            student_enrolled = self.repository.check_student_enrollment(student_id)
 
             if not student_enrolled:
                 return error_generator(
@@ -214,7 +217,10 @@ class UsersDataService:
                 )
 
             # Approve the student in the course
-            self.repository.approve_student(student_id)
+            self.repository.approve_student(course_id, student_id)
+
+            # now we remove the student from the course list
+            self.service_courses.remove_student_from_course(course_id, student_id)
 
             return {
                 "response": {
@@ -227,9 +233,7 @@ class UsersDataService:
                 "code_status": 200,
             }
         except Exception as e:
-            self.logger.error(
-                f"[REPOSITORY] Error approving student in courses: {e}"
-            )
+            self.logger.error(f"[REPOSITORY] Error approving student in courses: {e}")
             return error_generator(
                 MISSING_FIELDS,
                 "Error approving student in courses",

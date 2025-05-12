@@ -36,7 +36,9 @@ class Course:
         self.students = students
         self.resources = resources if resources else []
         self.assistants = assistants if assistants else []
-        self.correlatives_required_id = correlatives_required_id if correlatives_required_id else []
+        self.correlatives_required_id = (
+            correlatives_required_id if correlatives_required_id else []
+        )
 
     def to_dict(self):
         return {

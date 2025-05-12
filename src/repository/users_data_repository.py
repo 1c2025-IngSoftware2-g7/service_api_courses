@@ -100,9 +100,7 @@ class UsersDataRepository:
 
         return user["favourite_courses"] if user else None
 
-    def check_student_enrollment(
-        self, student_id, course_id
-    ):
+    def check_student_enrollment(self, student_id, course_id):
         """
         Check if a student is enrolled in a course.
         """
@@ -119,7 +117,7 @@ class UsersDataRepository:
             return False
 
         return False
-    
+
     def approve_student(self, course_id, student_id):
         """
         Approve a student in a course.
@@ -128,7 +126,9 @@ class UsersDataRepository:
             f"[REPOSITORY] Approving student with ID: {student_id} in course with ID: {course_id}"
         )
 
-        user = self.user_approved_courses_collection.find_one({"student_id": student_id})
+        user = self.user_approved_courses_collection.find_one(
+            {"student_id": student_id}
+        )
 
         if not user:
             # If it isn't we add it.
@@ -147,3 +147,17 @@ class UsersDataRepository:
         )
 
         return True
+
+    def get_student_approved_courses(self, student_id):
+        """
+        Get the approved courses for a student.
+        """
+        self.logger.debug(
+            f"[REPOSITORY] Getting approved courses for student with ID: {student_id}"
+        )
+
+        user = self.user_approved_courses_collection.find_one(
+            {"student_id": student_id}
+        )
+
+        return user["approved_courses"] if user else None

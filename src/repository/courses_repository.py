@@ -71,19 +71,6 @@ class CoursesRepository:
         else:
             return None
 
-    def enroll_student_in_course(self, course_id, student_id):
-        result = self.collection.update_one(
-            {"_id": ObjectId(course_id)}, {"$addToSet": {"students": student_id}}
-        )
-        self.logger.debug(f"[DEBUG] Enroll student {student_id} in course {course_id}")
-        return result.modified_count > 0
-
-    def remove_student_from_course(self, course_id, student_id):
-        result = self.collection.update_one(
-            {"_id": course_id}, {"$pull": {"students": student_id}}
-        )
-        return result.modified_count > 0
-
     """ This method is used to find all courses that a student is enrolled in. """
 
     def find_by_student_id(self, student_id):
@@ -219,3 +206,26 @@ class CoursesRepository:
             {"_id": ObjectId(course_id)},
             {"$pull": {"resources": {"_id": module_id}}},
         )
+
+    def get_course_correlatives(self, course_id):
+        course = self.get_course_by_id(course_id)
+        if course:
+            return course.get("correlatives_required_id", [])
+        else:
+            return None
+
+    def remove_student_from_course(self, course_id, student_id):
+        result = self.collection.update_one(
+            {"_id": ObjectId(course_id)}, {"$pull": {"students": student_id}}
+        )
+        self.logger.debug(
+            f"[DEBUG] Remove student {student_id} from course {course_id}"
+        )
+        return result.modified_count > 0
+
+    def get_course_correlatives_by_id(self, course_id):
+        course = self.get_course_by_id(course_id)
+        if course:
+            return course.get("correlatives_required_id", [])
+        else:
+            return None

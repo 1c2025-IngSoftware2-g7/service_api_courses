@@ -17,12 +17,13 @@ from headers import (
 from error.error import error_generator
 from models.course import Course
 from models.module import Module
+from repository.courses_repository import CoursesRepository
 
 
 class CourseService:
-    def __init__(self, course_repository, logger):
+    def __init__(self, course_repository: CoursesRepository, course_logger):
         self.course_repository = course_repository
-        self.logger = logger
+        self.logger = course_logger
 
     def create_course(self, data):
         data_required = [
@@ -293,7 +294,7 @@ class CourseService:
                 "get_all_courses",
             )
 
-    def enroll_student_in_course(self, course_id, student_id):
+    """def enroll_student_in_course(self, course_id, student_id):
         try:
             # We check if the course inscription is still open
             inscription_available = (
@@ -347,6 +348,11 @@ class CourseService:
                     403,
                     "enroll_student",
                 )
+                
+            # In order an user to be able to enroll in a course, the user MUST have the correlatives signatures approved.
+            # We check if the user has the correlatives signatures approved
+            courses_correlatives = self.course_repository.get_course_correlatives(course_id)
+            
 
             enrolled = self.course_repository.enroll_student_in_course(
                 course_id, student_id
@@ -402,7 +408,7 @@ class CourseService:
                 f"An error occurred while getting the enrolled courses: {str(e)}",
                 500,
                 "get_enrolled_courses",
-            )
+            )"""
 
     def add_module_to_course(self, course_id, data):
         data_required = ["title", "description", "url", "type", "owner_id"]

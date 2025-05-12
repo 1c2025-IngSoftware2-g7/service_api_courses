@@ -63,6 +63,7 @@ def get_enrolled_courses(student_id=None):
 
 users_approvation_bp = Blueprint("users_approve", __name__, url_prefix="/courses")
 
+
 # This method is for setting a user as approved
 @courses_enrollment_bp.route("/<string:course_id>/approve", methods=["POST"])
 def approve_student(course_id=None):
