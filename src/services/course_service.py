@@ -8,6 +8,7 @@ from headers import (
     INTERNAL_SERVER_ERROR,
     MISSING_FIELDS,
     MODULE_CREATED,
+    MODULE_MODIFIED,
     UNAUTHORIZED,
     USER_IS_ALREADY_AN_ASSISTANT,
     USER_NOT_ALLOWED_TO_ADD_ASSISTANT,
@@ -404,7 +405,7 @@ class CourseService:
             )
 
     def add_module_to_course(self, course_id, data):
-        data_required = ["title", "description", "url", "type", "owner_course"]
+        data_required = ["title", "description", "url", "type", "owner_id"]
         for field in data_required:
             if field not in data:
                 return error_generator(
@@ -422,8 +423,17 @@ class CourseService:
                 )
                 del data[field]
 
-        owner_course = data["owner_course"]
+        owner_course = data["owner_id"]
 
+        # Lets check if the course exists
+        course = self.course_repository.get_course_by_id(course_id)
+        if not course:
+            return error_generator(
+                COURSE_NOT_FOUND,
+                f"Course with ID {course_id} not found",
+                404,
+                "add_module_to_course",
+            )
         # Lets check beforehand if the user is the owner of the course
         is_user_allowed_to_add_module = (
             self.course_repository.is_user_allowed_to_create_module(
@@ -448,16 +458,6 @@ class CourseService:
                 data["title"], data["description"], data["url"], data["type"]
             )
             module_dict = new_module.to_dict()
-
-            # Lets check beforehand if the course exists
-            course = self.course_repository.get_course_by_id(course_id)
-            if not course:
-                return error_generator(
-                    COURSE_NOT_FOUND,
-                    f"Course with ID {course_id} not found",
-                    404,
-                    "add_module_to_course",
-                )
 
             module_added = self.course_repository.add_module_to_course(
                 course_id, module_dict
@@ -486,6 +486,146 @@ class CourseService:
                 f"An error occurred while adding the module to the course: {str(e)}",
                 500,
                 "add_module_to_course",
+            )
+
+    def modify_module_in_course(self, course_id, module_id, owner_id, data):
+        try:
+
+            # Lets check beforehand if the course exists
+            course = self.course_repository.get_course_by_id(course_id)
+            if not course:
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    f"Course with ID {course_id} not found",
+                    404,
+                    "modify_module_in_course",
+                )
+
+            # Lets check beforehand if the module exists
+            module = self.course_repository.get_module_by_id(course_id, module_id)
+            if not module:
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    f"Module with ID {module_id} not found in course with ID {course_id}",
+                    404,
+                    "modify_module_in_course",
+                )
+
+            is_allowed_to_update = (
+                self.course_repository.is_user_allowed_to_create_module(
+                    course_id, owner_id
+                )
+            )
+
+            if not is_allowed_to_update:
+                self.logger.debug(
+                    f"[SERVICE] MODIFY MODULE: user with id {owner_id} is not the owner of the course with id {course_id}, return error"
+                )
+                return error_generator(
+                    UNAUTHORIZED,
+                    f"User with ID {owner_id} is not authorized to modify this module",
+                    403,
+                    "modify_module_in_course",
+                )
+
+            module_from_database = Module.from_dict(module)
+
+            optional_modification_parameters = ["title", "description", "url", "type"]
+
+            for field in list(data.keys()):
+                if field not in optional_modification_parameters:
+                    self.logger.debug(
+                        f"[SERVICE] MODIFY MODULE: field {field} not found in data, so we drop it"
+                    )
+                    del data[field]
+                else:  # if the data is present, we modify the module
+                    module_from_database.__setattr__(field, data[field])
+
+            self.logger.debug(
+                f"[SERVICE] MODIFY MODULE: module from database: {module_from_database.to_dict()}"
+            )
+
+            self.course_repository.modify_module_in_course(
+                module_from_database.to_dict(), course_id, module_id
+            )
+            self.logger.debug(f"[SERVICE] MODIFY MODULE: module modified")
+
+            return {
+                "response": {
+                    "type": "about:blank",
+                    "title": MODULE_MODIFIED,
+                    "status": 200,
+                    "detail": f"Module with ID {module_id} modified in course with ID {course_id}",
+                    "instance": f"/courses/modules/{course_id}",
+                },
+                "code_status": 200,
+            }
+        except Exception as e:
+            self.logger.debug(f"[ERROR] MODIFY MODULE: error: {e}")
+            return error_generator(
+                INTERNAL_SERVER_ERROR,
+                f"An error occurred while modifying the module in the course: {str(e)}",
+                500,
+                "modify_module_in_course",
+            )
+
+    def delete_module_from_course(self, course_id, module_id, owner_id):
+        try:
+            # Lets check beforehand if the course exists
+            course = self.course_repository.get_course_by_id(course_id)
+            if not course:
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    f"Course with ID {course_id} not found",
+                    404,
+                    "delete_module_from_course",
+                )
+
+            # Lets check beforehand if the module exists
+            module = self.course_repository.get_module_by_id(course_id, module_id)
+            if not module:
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    f"Module with ID {module_id} not found in course with ID {course_id}",
+                    404,
+                    "delete_module_from_course",
+                )
+
+            is_allowed_to_update = (
+                self.course_repository.is_user_allowed_to_create_module(
+                    course_id, owner_id
+                )
+            )
+
+            if not is_allowed_to_update:
+                self.logger.debug(
+                    f"[SERVICE] DELETE MODULE: user with id {owner_id} is not the owner of the course with id {course_id}, return error"
+                )
+                return error_generator(
+                    UNAUTHORIZED,
+                    f"User with ID {owner_id} is not authorized to delete this module",
+                    403,
+                    "delete_module_from_course",
+                )
+
+            self.course_repository.delete_module_from_course(course_id, module_id)
+
+            return {
+                "response": {
+                    "type": "about:blank",
+                    "title": MODULE_MODIFIED,
+                    "status": 200,
+                    "detail": f"Module with ID {module_id} deleted from course with ID {course_id}",
+                    "instance": f"/courses/modules/{course_id}",
+                },
+                "code_status": 200,
+            }
+        except Exception as e:
+            return error_generator(
+                INTERNAL_SERVER_ERROR,
+                f"An error occurred while deleting the module from the course: {str(e)}",
+                500,
+                "delete_module_from_course",
             )
 
     def get_paginated_courses(self, offset, max_per_page):

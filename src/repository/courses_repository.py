@@ -198,3 +198,24 @@ class CoursesRepository:
             f"[DEBUG] Remove assistant {assistant_id} from course {course_id}"
         )
         return result.modified_count > 0
+
+    def get_module_by_id(self, course_id, module_id):
+        course = self.get_course_by_id(course_id)
+        if course:
+            for module in course.get("resources", []):
+                if module.get("_id") == module_id:
+                    return module
+
+        return None
+
+    def modify_module_in_course(self, module_modified_as_dict, course_id, module_id):
+        self.collection.update_one(
+            {"_id": ObjectId(course_id), "resources._id": module_id},
+            {"$set": {"resources.$": module_modified_as_dict}},
+        )
+
+    def delete_module_from_course(self, course_id, module_id):
+        self.collection.update_one(
+            {"_id": ObjectId(course_id)},
+            {"$pull": {"resources": {"_id": module_id}}},
+        )

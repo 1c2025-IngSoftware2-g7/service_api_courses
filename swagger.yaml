@@ -129,13 +129,13 @@ paths:
           required: true
           schema:
             type: string
-        - offset:
+        - name: offset
           in: query
           required: false
           schema:
             type: integer
             default: 0
-        - max_per_page:
+        - name: max_per_page
           in: query
           required: false
           schema:
@@ -176,6 +176,53 @@ paths:
       responses:
         '200':
           description: Module added
+
+  /courses/{course_id}/modules/{module_id}:
+    put:
+      summary: Update a module in a course
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: module_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModuleUpdate'
+      responses:
+        '200':
+          description: Module updated
+  
+  /courses/{course_id}/modules/{module_id}/{owner_id}:
+    delete:
+      summary: Delete a module from a course
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: module_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: owner_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Module deleted
 
   /courses/paginated:
     get:
@@ -277,6 +324,68 @@ paths:
         '200':
           description: Course search results as paginated
 
+  /courses/feedback/add_feedback_to_course:
+    post:
+      summary: Add feedback to a course
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - course_id
+                - feedback
+              properties:
+                course_id:
+                  type: string
+                feedback:
+                  type: string
+      responses:
+        '200':
+          description: Feedback added
+  
+  /courses/feedback/get_course_feedback/{course_id}:
+    get:
+      summary: Get feedback for a course
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Feedback retrieved
+
+  /courses/feedback/add_feedback_to_student:
+    post:
+      summary: Add feedback to a student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - course_id
+                - teacher_id
+                - student_id
+                - feedback
+              properties:
+                course_id:
+                  type: string
+                teacher_id:
+                  type: string
+                student_id:
+                  type: string
+                feedback:
+                  type: string
+      responses:
+        '200':
+          description: Feedback added
+
+
 components:
   schemas:
     CourseCreate:
@@ -344,7 +453,7 @@ components:
         - description
         - url
         - type
-        - owner_course
+        - owner_id
       properties:
         title:
           type: string
@@ -354,12 +463,27 @@ components:
           type: string
         type:
           type: string
-        owner_course:
+        owner_id:
           type: string
         date_created:
           type: string
           format: date-time
 
+    ModuleUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Optional
+        description:
+          type: string
+          description: Optional
+        url:
+          type: string
+          description: Optional
+        type:
+          type: string
+          description: Optional
 
     FavouriteCourseInput:
       type: object
