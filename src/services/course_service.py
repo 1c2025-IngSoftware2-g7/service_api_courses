@@ -223,8 +223,8 @@ class CourseService:
     def get_course(self, course_id):
         try:
             course = self.course_repository.get_course_by_id(course_id)
-            self.logger.debug(f"[DEBUG] course searched: {course}")
-            self.logger.debug(f"[DEBUG] course_id: [{course_id}]")
+            self.logger.debug(f"[SERVICE] course searched: {course}")
+            self.logger.debug(f"[SERVICE] course_id: [{course_id}]")
             if course:
                 # we change the _id to str since isn't serializable
                 course_as_json_response = Course.from_dict(course).to_dict()
@@ -249,8 +249,8 @@ class CourseService:
             courses = self.course_repository.search_course_by_partial_information(
                 string_to_find
             )
-            self.logger.debug(f"[DEBUG] courses searched: {courses}")
-            self.logger.debug(f"[DEBUG] string_to_find: {string_to_find}")
+            self.logger.debug(f"[SERVICE] courses searched: {courses}")
+            self.logger.debug(f"[SERVICE] string_to_find: {string_to_find}")
             if courses:
 
                 # We do this to print it propertly in the response
@@ -277,7 +277,7 @@ class CourseService:
             courses = self.course_repository.get_all_courses()
             if courses:
                 # we make a fix to _id since isn't serializable
-                self.logger.debug(f"[DEBUG] courses searched: {courses}")
+                self.logger.debug(f"[SERVICE] courses searched: {courses}")
                 courses = [Course.from_dict(course).to_dict() for course in courses]
 
                 return {"response": courses, "code_status": 200}
@@ -353,7 +353,7 @@ class CourseService:
             )
             if enrolled:
                 self.logger.debug(
-                    f"[DEBUG] Enroll: student with ID {student_id} enrolled in course with ID {course_id}"
+                    f"[SERVICE] Enroll: student with ID {student_id} enrolled in course with ID {course_id}"
                 )
                 return {
                     "response": {
@@ -387,7 +387,7 @@ class CourseService:
                 # we make a fix to _id since isn't serializable
                 courses = [Course.from_dict(course).to_dict() for course in courses]
 
-                self.logger.debug(f"[DEBUG] courses searched: {courses}")
+                self.logger.debug(f"[SERVICE] courses searched: {courses}")
                 return {"response": courses, "code_status": 200}
             else:
                 return error_generator(
@@ -561,7 +561,7 @@ class CourseService:
                 "code_status": 200,
             }
         except Exception as e:
-            self.logger.debug(f"[ERROR] MODIFY MODULE: error: {e}")
+            self.logger.error(f"[SERVICE] MODIFY MODULE: error: {e}")
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while modifying the module in the course: {str(e)}",
@@ -698,7 +698,7 @@ class CourseService:
 
     def add_assistant_to_course(self, course_id, assistant_id, owner_id):
         # Check if the course exists
-        course_id = self.course_repository.get_course_by_id(course_id)
+        course = self.course_repository.get_course_by_id(course_id)
 
         if not course:
             return error_generator(

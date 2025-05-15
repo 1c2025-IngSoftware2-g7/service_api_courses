@@ -20,7 +20,7 @@ class UsersDataService:
         Set a course as favourite for a student.
         """
         self.logger.debug(
-            f"[REPOSITORY] Setting course with ID: {course_id} as favourite for student with ID: {student_id}"
+            f"[UsersDataService] Setting course with ID: {course_id} as favourite for student with ID: {student_id}"
         )
 
         # Check if the course exists
@@ -46,7 +46,7 @@ class UsersDataService:
         self.repository.set_favourite_course(course_id, student_id)
 
         self.logger.debug(
-            f"[REPOSITORY] Course with ID: {course_id} set as favourite for student with ID: {student_id}"
+            f"[UsersDataService] Course with ID: {course_id} set as favourite for student with ID: {student_id}"
         )
 
         return {
@@ -65,7 +65,7 @@ class UsersDataService:
         Remove a course from the favourites list.
         """
         self.logger.debug(
-            f"[REPOSITORY] Removing course with ID: {course_id} from favourites for student with ID: {student_id}"
+            f"[UsersDataService] Removing course with ID: {course_id} from favourites for student with ID: {student_id}"
         )
 
         # Check if the course exists
@@ -95,7 +95,7 @@ class UsersDataService:
         self.repository.remove_course_from_favourites(course_id, student_id)
 
         self.logger.debug(
-            f"[REPOSITORY] Course with ID: {course_id} removed from favourites for student with ID: {student_id}"
+            f"[UsersDataService] Course with ID: {course_id} removed from favourites for student with ID: {student_id}"
         )
 
         return {
@@ -114,7 +114,7 @@ class UsersDataService:
         Get the favourites list for a student.
         """
         self.logger.debug(
-            f"[REPOSITORY] Getting favourites for student with ID: {student_id}"
+            f"[UsersDataService] Getting favourites for student with ID: {student_id}"
         )
 
         # Get the favourites list
@@ -154,7 +154,7 @@ class UsersDataService:
         Search for favourite courses.
         """
         self.logger.debug(
-            f"[REPOSITORY] Searching favourite courses for student with ID: {student_id}"
+            f"[UsersDataService] Searching favourite courses for student with ID: {student_id}"
         )
 
         # Check if the student has any favourites, we force 1 page (starts from zero) and 999 max per page
@@ -173,7 +173,7 @@ class UsersDataService:
         filtered_favourites = [
             Course.from_dict(course) for course in favourites["response"]
         ]
-        self.logger.debug(f"[REPOSITORY] Favourites list: {filtered_favourites}")
+        self.logger.debug(f"[UsersDataService] Favourites list: {filtered_favourites}")
         filtered_favourites = [
             course.to_dict()
             for course in filtered_favourites
