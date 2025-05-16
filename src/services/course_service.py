@@ -89,6 +89,7 @@ class CourseService:
                 "code_status": 201,
             }
         except Exception as e:
+            self.logger.error(f"[Course Service Error] Error creating course: {e}")
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while creating the course: {str(e)}",
@@ -158,6 +159,7 @@ class CourseService:
                     "update_course",
                 )
         except Exception as e:
+            self.logger.error(f"[Course Service Error] Error updating course: {e}")
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while updating the course: {str(e)}",
@@ -220,6 +222,7 @@ class CourseService:
                     "delete_course",
                 )
         except Exception as e:
+            self.logger.error(f"[Course Service Error] Error deleting course: {e}")
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while deleting the course: {str(e)}",
@@ -244,6 +247,7 @@ class CourseService:
                     "get_course",
                 )
         except Exception as e:
+            self.logger.error(f"[Course Service Error] Error getting course: {e}")
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while getting the course: {str(e)}",
@@ -272,6 +276,7 @@ class CourseService:
                     "search_course",
                 )
         except Exception as e:
+            self.logger.error(f"[Course Service Error] Error searching course: {e}")
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while searching for courses: {str(e)}",
@@ -293,6 +298,7 @@ class CourseService:
                     COURSE_NOT_FOUND, f"No courses found", 404, "get_all_courses"
                 )
         except Exception as e:
+            self.logger.error(f"[Course Service Error] Error getting all courses: {e}")
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while getting all courses: {str(e)}",
@@ -403,6 +409,9 @@ class CourseService:
                     "enroll_student",
                 )
         except Exception as e:
+            self.logger.error(
+                f"[Course Service Error] Error enrolling student in course: {e}"
+            )
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while enrolling the student in the course: {str(e)}",
@@ -427,6 +436,9 @@ class CourseService:
                     "get_enrolled_courses",
                 )
         except Exception as e:
+            self.logger.error(
+                f"[Course Service Error] Error getting enrolled courses: {e}"
+            )
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while getting the enrolled courses: {str(e)}",
@@ -511,6 +523,9 @@ class CourseService:
                     "add_module_to_course",
                 )
         except Exception as e:
+            self.logger.error(
+                f"[Course Service Error] Error adding module to course: {e}"
+            )
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while adding the module to the course: {str(e)}",
@@ -651,6 +666,9 @@ class CourseService:
                 "code_status": 200,
             }
         except Exception as e:
+            self.logger.error(
+                f"[Course Service Error] Error deleting module from course: {e}"
+            )
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while deleting the module from the course: {str(e)}",
@@ -671,6 +689,9 @@ class CourseService:
                     COURSE_NOT_FOUND, f"No courses found", 404, "get_paginated_courses"
                 )
         except Exception as e:
+            self.logger.error(
+                f"[Course Service Error] Error getting paginated courses: {e}"
+            )
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while getting the paginated courses: {str(e)}",
@@ -694,6 +715,7 @@ class CourseService:
                     "get_course_by_id",
                 )
         except Exception as e:
+            self.logger.error(f"[Course Service Error] Error getting course by ID: {e}")
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while getting the course by ID: {str(e)}",
@@ -719,6 +741,9 @@ class CourseService:
                     "get_courses_owned_by_user",
                 )
         except Exception as e:
+            self.logger.error(
+                f"[Service Error] Error getting courses owned by user: {e}"
+            )
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while getting the courses owned by user: {str(e)}",
@@ -814,3 +839,22 @@ class CourseService:
             },
             "code_status": 200,
         }
+
+    def get_students_in_course(self, course_id):
+        # Check if the course exists
+        course = self.course_repository.get_course_by_id(course_id)
+
+        if not course:
+            return error_generator(
+                "Course not found", COURSE_NOT_FOUND, 404, "get_students_in_course"
+            )
+
+        students = self.course_repository.get_students_in_course(course_id)
+
+        return {
+            "response": students,
+            "code_status": 200,
+        }
+
+    def remove_student_from_course(self, course_id, student_id):
+        self.course_repository.remove_student_from_course(course_id, student_id)

@@ -100,22 +100,28 @@ class UsersDataRepository:
 
         return user["favourite_courses"] if user else None
 
-    def check_student_enrollment(self, student_id, course_id):
+    def check_student_enrollment(self, student_id, course_id, list_students_in_course):
         """
         Check if a student is enrolled in a course.
+        returns true if the user is enrolled in the course
         """
         self.logger.debug(
             f"[REPOSITORY] Checking if student with ID: {student_id} is enrolled in course with ID: {course_id}"
         )
 
-        user = self.collection.find_one({"student_id": student_id})
+        self.logger.debug(
+            f"[REPOSITORY] List of students in course: {list_students_in_course}"
+        )
 
-        if not user:
+        if student_id in list_students_in_course:
             self.logger.debug(
-                f"[REPOSITORY] User with ID: {student_id} not found in the database"
+                f"[REPOSITORY] Student with ID: {student_id} is already enrolled in course with ID: {course_id}"
             )
-            return False
+            return True
 
+        self.logger.debug(
+            f"[REPOSITORY] Student with ID: {student_id} is not enrolled in course with ID: {course_id}"
+        )
         return False
 
     def approve_student(self, course_id, student_id):

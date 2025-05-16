@@ -5,17 +5,18 @@ from headers import (
     COURSE_NOT_FOUND,
     COURSE_REMOVED_FROM_FAVOURITES,
     MISSING_FIELDS,
+    USER_NOT_ENROLLED_INTO_THE_COURSE,
 )
 from src.models.course import Course
-from src.repository.courses_repository import CoursesRepository
 from src.repository.users_data_repository import UsersDataRepository
+from src.services.course_service import CourseService
 
 
 class UsersDataService:
     def __init__(
         self,
         repository_users: UsersDataRepository,
-        service_courses: CoursesRepository,
+        service_courses: CourseService,
         logger,
     ):
         self.repository = repository_users
@@ -62,7 +63,7 @@ class UsersDataService:
                 "title": COURSE_ADDED_TO_FAVOURITES,
                 "status": 200,
                 "detail": f"Student with ID {student_id} now has as favourite the course {course_id}",
-                "instance": f"/courses/enroll/{course_id}",
+                "instance": f"/courses/favourites/{course_id}",
             },
             "code_status": 200,
         }
@@ -111,7 +112,7 @@ class UsersDataService:
                 "title": COURSE_REMOVED_FROM_FAVOURITES,
                 "status": 200,
                 "detail": f"Student with ID {student_id} has removed the course id: {course_id} as favourites",
-                "instance": f"/courses/enroll/{course_id}",
+                "instance": f"/courses/favourites/{course_id}",
             },
             "code_status": 200,
         }
@@ -206,15 +207,49 @@ class UsersDataService:
     def approve_student_in_course(self, course_id, student_id):
         try:
             # Check if the student is already enrolled in the course
-            student_enrolled = self.repository.check_student_enrollment(student_id)
+            course_students_query = self.service_courses.get_students_in_course(
+                course_id
+            )
+
+            if course_students_query["code_status"] != 200:
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    "Course ID not found or no students found",
+                    404,
+                    "approve_student_in_courses",
+                )
+
+            students_in_course = course_students_query.get("response", [])
+            self.logger.debug(
+                f"[UsersDataService] ===Course students===: {students_in_course}"
+            )
+
+            student_enrolled = self.repository.check_student_enrollment(
+                student_id, course_id, students_in_course
+            )
 
             if not student_enrolled:
                 return error_generator(
-                    MISSING_FIELDS,
-                    "Student not enrolled in any course",
+                    USER_NOT_ENROLLED_INTO_THE_COURSE,
+                    "Student not enrolled in the course nor has the correlatives signatures required",
                     400,
                     "approve_student_in_courses",
                 )
+
+            # At this point, lets check if the course exists and if it does, check if the student is enrolled
+            if (
+                course_students_query["code_status"] == 200
+            ):  # If the course exists & has students
+
+                if student_id not in students_in_course:
+                    return error_generator(
+                        MISSING_FIELDS,
+                        "Student ID not found in course",
+                        404,
+                        "approve_student_in_courses",
+                    )
+
+            # If the course doesn't have any students, no need to do any checks
 
             # Approve the student in the course
             self.repository.approve_student(course_id, student_id)
@@ -227,7 +262,7 @@ class UsersDataService:
                     "type": "about:blank",
                     "title": "Student Approved",
                     "status": 200,
-                    "detail": f"Student with ID {student_id} has been approved in all courses",
+                    "detail": f"Student with ID {student_id} has been approved in the course {course_id}",
                     "instance": f"/courses/approve/{student_id}",
                 },
                 "code_status": 200,

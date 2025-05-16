@@ -248,3 +248,10 @@ class CoursesRepository:
             return course.get("correlatives_required_id", [])
         else:
             return None
+
+    def get_students_in_course(self, course_id):
+        course = self.get_course_by_id(course_id)
+        if course:
+            return course.get("students", [])
+        else:
+            return None
