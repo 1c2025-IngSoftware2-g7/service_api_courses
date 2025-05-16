@@ -14,7 +14,7 @@ class Course:
         creator_name: str,
         students: list = None,
         _id: ObjectId = None,
-        resources: list = None,
+        modules: list = None,
         enroll_date_start: datetime = datetime.now(),
         enroll_date_end: str = None,
         assistants: list = None,
@@ -34,7 +34,7 @@ class Course:
         self.creator_id = creator_id
         self.creator_name = creator_name
         self.students = students
-        self.resources = resources if resources else []
+        self.modules = modules if modules else []
         self.assistants = assistants if assistants else []
         self.correlatives_required_id = (
             correlatives_required_id if correlatives_required_id else []
@@ -53,7 +53,7 @@ class Course:
             "creator_id": self.creator_id,
             "creator_name": self.creator_name,
             "students": self.students,
-            "resources": self.resources,
+            "modules": self.modules,
             "assistants": self.assistants,
             "correlatives_required_id": self.correlatives_required_id,
         }
@@ -72,7 +72,7 @@ class Course:
             creator_id=data.get("creator_id"),
             creator_name=data.get("creator_name"),
             students=data.get("students", []),
-            resources=data.get("resources", []),
+            modules=data.get("modules", []),
             assistants=data.get("assistants", []),
             correlatives_required_id=data.get("correlatives_required_id", []),
         )

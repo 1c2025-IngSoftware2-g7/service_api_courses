@@ -2,7 +2,16 @@ from datetime import datetime
 
 from bson import ObjectId
 
-
+''' Module 
+    Title
+    Description
+    order: (Index position?)
+    resources: []
+    
+    
+    Resource
+        source: url/text or whatever
+'''
 class Module:
     def __init__(self, title, description, url, type, id: str = None):
         self.id = ObjectId() if id is None else ObjectId(id)

@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from src.repository.feedback_repository import FeedBackRepository
 from src.services.enrollment_service import EnrollmentService
 from src.services.feedback_service import FeedbackService
+from src.services.module_service import ModuleService
 
 load_dotenv()
 
@@ -24,10 +25,13 @@ logging.getLogger("pymongo").setLevel(logging.WARNING)
 logger = get_logger("api-courses")
 
 collection_courses_data = db[os.getenv("COURSES_COLLECTION_NAME")]
+
 collection_users_data = db[os.getenv("USERS_COLLECTION_NAME")]
 
 collection_feedback_students = db[os.getenv("FEEDBACK_STUDENTS_COLLECTION_NAME")]
 collection_feedback_courses = db[os.getenv("FEEDBACK_COURSES_COLLECTION_NAME")]
+
+collection_modules_and_resources = db[os.getenv("MODULES_AND_RESOURCES_COLLECTION_NAME")]
 
 collection_approved_courses_students = db[
     os.getenv("APPROVED_COURSES_STUDENTS_COLLECTION_NAME")
@@ -56,3 +60,5 @@ service_feedbacks = FeedbackService(repository_feedbacks, service_courses, logge
 service_enrollment = EnrollmentService(
     repository_courses_data, repository_users_data, logger
 )
+
+service_modules = ModuleService(collection_modules_and_resources, logger)
