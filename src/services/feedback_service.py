@@ -15,7 +15,7 @@ class FeedbackService:
         self.service_courses = service_courses
         self.logger = logger
 
-    def create_course_feedback(self, course_id, feedback):
+    def create_course_feedback(self, course_id, feedback, rating):
         try:
             # Check if the course exists
             self.logger.debug(
@@ -30,7 +30,9 @@ class FeedbackService:
 
             self.logger.debug(f"[FeedbackService] Course {course_id} found")
             # Create the feedback object
-            feedback_object = FeedbackCourse(course_id=course_id, feedback=feedback)
+            feedback_object = FeedbackCourse(
+                course_id=course_id, feedback=feedback, rating=rating
+            )
 
             self.logger.debug(f"[FeedbackService] Feedback object: {feedback_object}")
 

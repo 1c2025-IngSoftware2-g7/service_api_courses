@@ -10,6 +10,7 @@ from headers import (
     MODULE_CREATED,
     MODULE_MODIFIED,
     UNAUTHORIZED,
+    USER_HAS_NOT_ENOUGH_CORRELATIVES_APPROVED_TO_ENROLL,
     USER_IS_ALREADY_AN_ASSISTANT,
     USER_NOT_ALLOWED_TO_ADD_ASSISTANT,
     USER_NOT_AN_ASSISTANT,
@@ -17,12 +18,13 @@ from headers import (
 from error.error import error_generator
 from models.course import Course
 from models.module import Module
+from repository.courses_repository import CoursesRepository
 
 
 class CourseService:
-    def __init__(self, course_repository, logger):
+    def __init__(self, course_repository: CoursesRepository, course_logger):
         self.course_repository = course_repository
-        self.logger = logger
+        self.logger = course_logger
 
     def create_course(self, data):
         data_required = [
@@ -34,7 +36,7 @@ class CourseService:
             "max_students",
             "creator_name",
         ]
-        optional_data = ["enroll_date_end"]
+        optional_data = ["enroll_date_end", "correlatives_required_id"]
 
         for field in data_required:
             if field not in data:
@@ -64,6 +66,11 @@ class CourseService:
             enroll_date_end=(
                 data["enroll_date_end"] if "enroll_date_end" in data else None
             ),
+            correlatives_required_id=(
+                data["correlatives_required_id"]
+                if "correlatives_required_id" in data
+                else None
+            ),
         )
 
         dict_course = course.to_dict()
@@ -82,6 +89,7 @@ class CourseService:
                 "code_status": 201,
             }
         except Exception as e:
+            self.logger.error(f"[Course Service Error] Error creating course: {e}")
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while creating the course: {str(e)}",
@@ -151,6 +159,7 @@ class CourseService:
                     "update_course",
                 )
         except Exception as e:
+            self.logger.error(f"[Course Service Error] Error updating course: {e}")
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while updating the course: {str(e)}",
@@ -213,6 +222,7 @@ class CourseService:
                     "delete_course",
                 )
         except Exception as e:
+            self.logger.error(f"[Course Service Error] Error deleting course: {e}")
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while deleting the course: {str(e)}",
@@ -237,6 +247,7 @@ class CourseService:
                     "get_course",
                 )
         except Exception as e:
+            self.logger.error(f"[Course Service Error] Error getting course: {e}")
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while getting the course: {str(e)}",
@@ -265,6 +276,7 @@ class CourseService:
                     "search_course",
                 )
         except Exception as e:
+            self.logger.error(f"[Course Service Error] Error searching course: {e}")
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while searching for courses: {str(e)}",
@@ -286,6 +298,7 @@ class CourseService:
                     COURSE_NOT_FOUND, f"No courses found", 404, "get_all_courses"
                 )
         except Exception as e:
+            self.logger.error(f"[Course Service Error] Error getting all courses: {e}")
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while getting all courses: {str(e)}",
@@ -293,7 +306,9 @@ class CourseService:
                 "get_all_courses",
             )
 
-    def enroll_student_in_course(self, course_id, student_id):
+    def enroll_student_in_course(
+        self, course_id, student_id, approved_signatures_from_user
+    ):
         try:
             # We check if the course inscription is still open
             inscription_available = (
@@ -348,6 +363,27 @@ class CourseService:
                     "enroll_student",
                 )
 
+            # In order an user to be able to enroll in a course, the user MUST have the correlatives signatures approved.
+            # We check if the user has ALL the correlatives approved from approved_signatures_from_user
+            courses_correlatives = self.course_repository.get_course_correlatives(
+                course_id
+            )
+
+            if (
+                courses_correlatives
+            ):  # if the course has correlatives, we need to check them, else we skip this step
+                for assignatures_aproved in approved_signatures_from_user:
+                    if assignatures_aproved not in courses_correlatives:
+                        self.logger.debug(
+                            f"[SERVICE] Enroll: student with ID {student_id} doesn't have the correlatives approved to enroll in course with ID {course_id}"
+                        )
+                        return error_generator(
+                            USER_HAS_NOT_ENOUGH_CORRELATIVES_APPROVED_TO_ENROLL,
+                            f"Student with ID {student_id} doesn't have the correlatives approved to enroll in course with ID {course_id}",
+                            403,
+                            "enroll_student",
+                        )
+
             enrolled = self.course_repository.enroll_student_in_course(
                 course_id, student_id
             )
@@ -373,6 +409,9 @@ class CourseService:
                     "enroll_student",
                 )
         except Exception as e:
+            self.logger.error(
+                f"[Course Service Error] Error enrolling student in course: {e}"
+            )
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while enrolling the student in the course: {str(e)}",
@@ -397,6 +436,9 @@ class CourseService:
                     "get_enrolled_courses",
                 )
         except Exception as e:
+            self.logger.error(
+                f"[Course Service Error] Error getting enrolled courses: {e}"
+            )
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while getting the enrolled courses: {str(e)}",
@@ -481,6 +523,9 @@ class CourseService:
                     "add_module_to_course",
                 )
         except Exception as e:
+            self.logger.error(
+                f"[Course Service Error] Error adding module to course: {e}"
+            )
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while adding the module to the course: {str(e)}",
@@ -621,6 +666,9 @@ class CourseService:
                 "code_status": 200,
             }
         except Exception as e:
+            self.logger.error(
+                f"[Course Service Error] Error deleting module from course: {e}"
+            )
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while deleting the module from the course: {str(e)}",
@@ -641,6 +689,9 @@ class CourseService:
                     COURSE_NOT_FOUND, f"No courses found", 404, "get_paginated_courses"
                 )
         except Exception as e:
+            self.logger.error(
+                f"[Course Service Error] Error getting paginated courses: {e}"
+            )
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while getting the paginated courses: {str(e)}",
@@ -664,6 +715,7 @@ class CourseService:
                     "get_course_by_id",
                 )
         except Exception as e:
+            self.logger.error(f"[Course Service Error] Error getting course by ID: {e}")
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while getting the course by ID: {str(e)}",
@@ -689,6 +741,9 @@ class CourseService:
                     "get_courses_owned_by_user",
                 )
         except Exception as e:
+            self.logger.error(
+                f"[Service Error] Error getting courses owned by user: {e}"
+            )
             return error_generator(
                 INTERNAL_SERVER_ERROR,
                 f"An error occurred while getting the courses owned by user: {str(e)}",
@@ -784,3 +839,22 @@ class CourseService:
             },
             "code_status": 200,
         }
+
+    def get_students_in_course(self, course_id):
+        # Check if the course exists
+        course = self.course_repository.get_course_by_id(course_id)
+
+        if not course:
+            return error_generator(
+                "Course not found", COURSE_NOT_FOUND, 404, "get_students_in_course"
+            )
+
+        students = self.course_repository.get_students_in_course(course_id)
+
+        return {
+            "response": students,
+            "code_status": 200,
+        }
+
+    def remove_student_from_course(self, course_id, student_id):
+        self.course_repository.remove_student_from_course(course_id, student_id)

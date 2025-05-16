@@ -33,7 +33,9 @@ class CoursesRepository:
 
     def get_course_by_id(self, course_id):
         object_id = ObjectId(course_id)
-        self.logger.debug(f"[REPOSITORY] course_id: {course_id} - object_id: {object_id}")
+        self.logger.debug(
+            f"[REPOSITORY] course_id: {course_id} - object_id: {object_id}"
+        )
         course = self.collection.find_one({"_id": object_id})
 
         self.logger.debug(f"[REPOSITORY] course searched on repository: {course}")
@@ -75,7 +77,9 @@ class CoursesRepository:
         result = self.collection.update_one(
             {"_id": ObjectId(course_id)}, {"$addToSet": {"students": student_id}}
         )
-        self.logger.debug(f"[REPOSITORY] Enroll student {student_id} in course {course_id}")
+        self.logger.debug(
+            f"[REPOSITORY] Enroll student {student_id} in course {course_id}"
+        )
         return result.modified_count > 0
 
     def remove_student_from_course(self, course_id, student_id):
@@ -169,7 +173,9 @@ class CoursesRepository:
         result = self.collection.update_one(
             {"_id": ObjectId(course_id)}, {"$addToSet": {"assistants": assistant_id}}
         )
-        self.logger.debug(f"[REPOSITORY] Add assistant {assistant_id} to course {course_id}")
+        self.logger.debug(
+            f"[REPOSITORY] Add assistant {assistant_id} to course {course_id}"
+        )
         return result.modified_count > 0
 
     def is_user_allowed_to_create_module(self, course_id, user_id):
@@ -219,3 +225,33 @@ class CoursesRepository:
             {"_id": ObjectId(course_id)},
             {"$pull": {"resources": {"_id": module_id}}},
         )
+
+    def get_course_correlatives(self, course_id):
+        course = self.get_course_by_id(course_id)
+        if course:
+            return course.get("correlatives_required_id", [])
+        else:
+            return None
+
+    def remove_student_from_course(self, course_id, student_id):
+        result = self.collection.update_one(
+            {"_id": ObjectId(course_id)}, {"$pull": {"students": student_id}}
+        )
+        self.logger.debug(
+            f"[DEBUG] Remove student {student_id} from course {course_id}"
+        )
+        return result.modified_count > 0
+
+    def get_course_correlatives_by_id(self, course_id):
+        course = self.get_course_by_id(course_id)
+        if course:
+            return course.get("correlatives_required_id", [])
+        else:
+            return None
+
+    def get_students_in_course(self, course_id):
+        course = self.get_course_by_id(course_id)
+        if course:
+            return course.get("students", [])
+        else:
+            return None

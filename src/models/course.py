@@ -18,6 +18,7 @@ class Course:
         enroll_date_start: datetime = datetime.now(),
         enroll_date_end: str = None,
         assistants: list = None,
+        correlatives_required_id: list = None,
     ):
         self._id = str(_id) if _id else ObjectId()
         self.name = course_name
@@ -35,6 +36,9 @@ class Course:
         self.students = students
         self.resources = resources if resources else []
         self.assistants = assistants if assistants else []
+        self.correlatives_required_id = (
+            correlatives_required_id if correlatives_required_id else []
+        )
 
     def to_dict(self):
         return {
@@ -51,6 +55,7 @@ class Course:
             "students": self.students,
             "resources": self.resources,
             "assistants": self.assistants,
+            "correlatives_required_id": self.correlatives_required_id,
         }
 
     @staticmethod
@@ -69,4 +74,5 @@ class Course:
             students=data.get("students", []),
             resources=data.get("resources", []),
             assistants=data.get("assistants", []),
+            correlatives_required_id=data.get("correlatives_required_id", []),
         )

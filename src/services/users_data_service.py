@@ -5,12 +5,20 @@ from headers import (
     COURSE_NOT_FOUND,
     COURSE_REMOVED_FROM_FAVOURITES,
     MISSING_FIELDS,
+    USER_NOT_ENROLLED_INTO_THE_COURSE,
 )
 from src.models.course import Course
+from src.repository.users_data_repository import UsersDataRepository
+from src.services.course_service import CourseService
 
 
 class UsersDataService:
-    def __init__(self, repository_users, service_courses, logger):
+    def __init__(
+        self,
+        repository_users: UsersDataRepository,
+        service_courses: CourseService,
+        logger,
+    ):
         self.repository = repository_users
         self.service_courses = service_courses
         self.logger = logger
@@ -55,7 +63,7 @@ class UsersDataService:
                 "title": COURSE_ADDED_TO_FAVOURITES,
                 "status": 200,
                 "detail": f"Student with ID {student_id} now has as favourite the course {course_id}",
-                "instance": f"/courses/enroll/{course_id}",
+                "instance": f"/courses/favourites/{course_id}",
             },
             "code_status": 200,
         }
@@ -104,7 +112,7 @@ class UsersDataService:
                 "title": COURSE_REMOVED_FROM_FAVOURITES,
                 "status": 200,
                 "detail": f"Student with ID {student_id} has removed the course id: {course_id} as favourites",
-                "instance": f"/courses/enroll/{course_id}",
+                "instance": f"/courses/favourites/{course_id}",
             },
             "code_status": 200,
         }
@@ -195,3 +203,96 @@ class UsersDataService:
         paginated_favourites = filtered_favourites[start:end]
 
         return {"response": paginated_favourites, "code_status": 200}
+
+    def approve_student_in_course(self, course_id, student_id):
+        try:
+            # Check if the student is already enrolled in the course
+            course_students_query = self.service_courses.get_students_in_course(
+                course_id
+            )
+
+            if course_students_query["code_status"] != 200:
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    "Course ID not found or no students found",
+                    404,
+                    "approve_student_in_courses",
+                )
+
+            students_in_course = course_students_query.get("response", [])
+            self.logger.debug(
+                f"[UsersDataService] ===Course students===: {students_in_course}"
+            )
+
+            student_enrolled = self.repository.check_student_enrollment(
+                student_id, course_id, students_in_course
+            )
+
+            if not student_enrolled:
+                return error_generator(
+                    USER_NOT_ENROLLED_INTO_THE_COURSE,
+                    "Student not enrolled in the course nor has the correlatives signatures required",
+                    400,
+                    "approve_student_in_courses",
+                )
+
+            # At this point, lets check if the course exists and if it does, check if the student is enrolled
+            if (
+                course_students_query["code_status"] == 200
+            ):  # If the course exists & has students
+
+                if student_id not in students_in_course:
+                    return error_generator(
+                        MISSING_FIELDS,
+                        "Student ID not found in course",
+                        404,
+                        "approve_student_in_courses",
+                    )
+
+            # If the course doesn't have any students, no need to do any checks
+
+            # Approve the student in the course
+            self.repository.approve_student(course_id, student_id)
+
+            # now we remove the student from the course list
+            self.service_courses.remove_student_from_course(course_id, student_id)
+
+            return {
+                "response": {
+                    "type": "about:blank",
+                    "title": "Student Approved",
+                    "status": 200,
+                    "detail": f"Student with ID {student_id} has been approved in the course {course_id}",
+                    "instance": f"/courses/approve/{student_id}",
+                },
+                "code_status": 200,
+            }
+        except Exception as e:
+            self.logger.error(f"[REPOSITORY] Error approving student in courses: {e}")
+            return error_generator(
+                MISSING_FIELDS,
+                "Error approving student in courses",
+                500,
+                "approve_student_in_courses",
+            )
+
+    def get_approved_signatures_from_user_id(self, student_id):
+        """
+        Get the approved signatures for a student.
+        """
+        self.logger.debug(
+            f"[UsersDataService] Getting approved signatures for student with ID: {student_id}"
+        )
+
+        # Check if the student has any approved signatures
+        approved_signatures = self.repository.get_approved_signatures(student_id)
+
+        if not approved_signatures:
+            return error_generator(
+                MISSING_FIELDS,
+                "No approved signatures found",
+                404,
+                "get_approved_signatures_from_user_id",
+            )
+
+        return {"response": approved_signatures, "code_status": 200}

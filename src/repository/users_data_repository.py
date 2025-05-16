@@ -3,8 +3,9 @@ from headers import MISSING_FIELDS
 
 
 class UsersDataRepository:
-    def __init__(self, collection_users, logger):
+    def __init__(self, collection_users, user_approved_courses_collection, logger):
         self.collection = collection_users
+        self.user_approved_courses_collection = user_approved_courses_collection
         self.logger = logger
 
     # This function will set a favourite course for a certain user
@@ -98,3 +99,88 @@ class UsersDataRepository:
         user = self.collection.find_one({"student_id": student_id})
 
         return user["favourite_courses"] if user else None
+
+    def check_student_enrollment(self, student_id, course_id, list_students_in_course):
+        """
+        Check if a student is enrolled in a course.
+        returns true if the user is enrolled in the course
+        """
+        self.logger.debug(
+            f"[REPOSITORY] Checking if student with ID: {student_id} is enrolled in course with ID: {course_id}"
+        )
+
+        self.logger.debug(
+            f"[REPOSITORY] List of students in course: {list_students_in_course}"
+        )
+
+        if student_id in list_students_in_course:
+            self.logger.debug(
+                f"[REPOSITORY] Student with ID: {student_id} is already enrolled in course with ID: {course_id}"
+            )
+            return True
+
+        self.logger.debug(
+            f"[REPOSITORY] Student with ID: {student_id} is not enrolled in course with ID: {course_id}"
+        )
+        return False
+
+    def approve_student(self, course_id, student_id):
+        """
+        Approve a student in a course.
+        """
+        self.logger.debug(
+            f"[REPOSITORY] Approving student with ID: {student_id} in course with ID: {course_id}"
+        )
+
+        user = self.user_approved_courses_collection.find_one(
+            {"student_id": student_id}
+        )
+
+        if not user:
+            # If it isn't we add it.
+            self.user_approved_courses_collection.insert_one(
+                {"student_id": student_id, "approved_courses": [course_id]},
+            )
+        else:
+            # If it is, we update the field
+            self.user_approved_courses_collection.update_one(
+                {"student_id": student_id},
+                {"$addToSet": {"approved_courses": course_id}},
+            )
+
+        self.logger.debug(
+            f"[REPOSITORY] Student with ID: {student_id} approved in course with ID: {course_id}"
+        )
+
+        return True
+
+    def get_student_approved_courses(self, student_id):
+        """
+        Get the approved courses for a student.
+        """
+        self.logger.debug(
+            f"[REPOSITORY] Getting approved courses for student with ID: {student_id}"
+        )
+
+        user = self.user_approved_courses_collection.find_one(
+            {"student_id": student_id}
+        )
+
+        return user["approved_courses"] if user else None
+
+    def get_approved_signatures(self, student_id):
+        """
+        Get the approved signatures for a student.
+        """
+        self.logger.debug(
+            f"[REPOSITORY] Getting approved signatures for student with ID: {student_id}"
+        )
+
+        user = self.user_approved_courses_collection.find_one(
+            {"student_id": student_id}
+        )
+
+        if not user:
+            return None
+
+        return user["approved_courses"] if user else None

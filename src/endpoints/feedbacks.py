@@ -38,10 +38,17 @@ def add_feedback_to_course():
         )
         return error["response"], error["code_status"]
 
+    if "rating" not in data:
+        error = error_generator(
+            "Missing rating", MISSING_FIELDS, 400, "add_feedback_to_course"
+        )
+        return error["response"], error["code_status"]
+
     course_id = data["course_id"]
     feedback = data["feedback"]
+    rating = data["rating"]
 
-    result = service_feedbacks.create_course_feedback(course_id, feedback)
+    result = service_feedbacks.create_course_feedback(course_id, feedback, rating)
     logger.debug(f"[Feedbacks] Feedback created for course {course_id}")
     logger.debug(f"[Feedbacks] Feedback: {feedback}")
     logger.debug(f"[Feedbacks] Result: {result}")

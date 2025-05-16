@@ -158,6 +158,30 @@ paths:
         '200':
           description: List of enrolled courses
 
+  /courses/{course_id}/approve:
+    post:
+      summary: Approve a course
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - student_id
+              properties:
+                student_id:
+                  type: string
+      responses:
+        '200':
+          description: Course approved
+    
   /courses/{course_id}/modules:
     post:
       summary: Add a module to a course
@@ -216,7 +240,7 @@ paths:
           schema:
             type: string
         - name: owner_id
-          in: query
+          in: path
           required: true
           schema:
             type: string
@@ -385,6 +409,80 @@ paths:
         '200':
           description: Feedback added
 
+  /courses/assistants/{course_id}:
+    post:
+      summary: Add an assistant to a course
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - assistant_id
+                - owner id
+              properties:
+                assistant_id:
+                  type: string
+                owner_id:
+                  type: string
+      responses:
+        '200':
+          description: Assistant added
+
+  /<string:course_id>/delete_assistant/<string:assistant_id>/with_owner_id/<string:owner_id>:
+    delete:
+      summary: Remove an assistant from a course
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: assistant_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: owner_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Assistant removed
+
+  /courses/{string:course_id}/approve:
+    post:
+      summary: Approve a course for a student
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - student_id
+              properties:
+                student_id:
+                  type: string
+      responses:
+        '200':
+          description: Course approved
+
 
 components:
   schemas:
@@ -419,6 +517,11 @@ components:
           type: string
         creator_name:
           type: string
+        correlatives_required_id:
+          type: array
+          items:
+            type: string
+          description: List of course IDs that are required as correlatives to enroll in this course
 
     CourseUpdate:
       type: object
