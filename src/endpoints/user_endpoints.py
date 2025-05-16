@@ -54,13 +54,13 @@ def enroll_student(course_id=None):
         )
 
     # If the user already has the assignature approved, we return an error
-    if course_id in approved_signatures_from_user["response"]:
+    '''if course_id in approved_signatures_from_user["response"]:
         return error_generator(
             USER_ALREADY_APPROVED_COURSE,
             "Student ID already has the course approved",
             404,
             "enroll_student",
-        )
+        )'''
 
     # Call the service to enroll the student
     result = service_courses.enroll_student_in_course(
