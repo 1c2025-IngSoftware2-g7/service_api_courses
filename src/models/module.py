@@ -13,12 +13,12 @@ from bson import ObjectId
         source: url/text or whatever
 '''
 class Module:
-    def __init__(self, title, description, url, type, id: str = None):
+    def __init__(self, title, description, position, resources: list = None, id: str = None):
         self.id = ObjectId() if id is None else ObjectId(id)
         self.title = title
         self.description = description
-        self.url = url
-        self.type = type  # mp4? pdf?
+        self.resources = resources if resources else []
+        self.position = position
         self.date_created = datetime.now()
 
     def to_dict(self):
@@ -26,8 +26,8 @@ class Module:
             "_id": str(self.id),
             "title": self.title,
             "description": self.description,
-            "url": self.url,
-            "type": self.type,
+            "resources": self.resources,
+            "position": self.position,
             "date_created": self.date_created,
         }
 
@@ -42,6 +42,7 @@ class Module:
             id=data.get("_id"),
             title=data.get("title"),
             description=data.get("description"),
-            url=data.get("url"),
+            resources=data.get("resources",[]),
+            position = data.get("position"),
             type=data.get("type"),
         )

@@ -127,14 +127,6 @@ class CoursesRepository:
         else:
             return False
 
-    def add_module_to_course(self, course_id, module):
-        result = self.collection.update_one(
-            {"_id": ObjectId(course_id)}, {"$addToSet": {"resources": module}}
-        )
-
-        self.logger.debug(f"[REPOSITORY] Add module {module} to course {course_id}")
-        return result.modified_count > 0
-
     def get_paginated_courses(self, offset, max_per_page):
         courses = self.collection.find().skip(offset).limit(max_per_page)
         return list(courses)

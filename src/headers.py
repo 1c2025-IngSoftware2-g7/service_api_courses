@@ -22,3 +22,7 @@ COURSE_IS_FULL = "Course is full"
 COURSE_ADDED_TO_FAVOURITES = "Course added to favourites successfully"
 COURSE_ALREADY_IN_FAVOURITES = "Course already in favourites"
 COURSE_REMOVED_FROM_FAVOURITES = "Course removed from favourites successfully"
+
+
+MODULE_WASNT_CREATED = "Module wasn't created"
+USER_NOT_ALLOWED_TO_CREATE= "User not allowed to create in this instance"

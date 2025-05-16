@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from services import service_courses, logger
+from services import service_modules, logger
 from src.error.error import error_generator
 from src.headers import MISSING_FIELDS
 
@@ -15,9 +15,6 @@ def add_module(course_id=None):
     Module comes as a json with
     title = title
     description = description
-    url = url
-    type = type # mp4? pdf?
-    date_created = datetime.now()
     owner_course = id of the attempt creator
     """
 
@@ -32,7 +29,7 @@ def add_module(course_id=None):
 
     logger.debug(f"[APP] Adding module to course with ID: {course_id} and data: {data}")
     # Call the service to add the module
-    result = service_courses.add_module_to_course(course_id, data)
+    result = service_modules.add_module_to_course(course_id, data)
 
     return result["response"], result["code_status"]
 

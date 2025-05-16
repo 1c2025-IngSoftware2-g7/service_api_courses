@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 
 from src.repository.feedback_repository import FeedBackRepository
+from src.repository.module_repository import ModuleRepository
 from src.services.enrollment_service import EnrollmentService
 from src.services.feedback_service import FeedbackService
 from src.services.module_service import ModuleService
@@ -39,6 +40,7 @@ collection_approved_courses_students = db[
 
 # Indexes for courses will be the student id.
 collection_users_data.create_index(["student_id"], unique=True)
+collection_users_data.create_index(["course_id"], unique=True)
 
 
 repository_courses_data = CoursesRepository(collection_courses_data, logger)
@@ -47,6 +49,10 @@ repository_users_data = UsersDataRepository(
 )
 repository_feedbacks = FeedBackRepository(
     collection_feedback_courses, collection_feedback_students, logger
+)
+
+repository_modules_and_resources = ModuleRepository(
+    collection_modules_and_resources, logger
 )
 
 
@@ -61,4 +67,4 @@ service_enrollment = EnrollmentService(
     repository_courses_data, repository_users_data, logger
 )
 
-service_modules = ModuleService(collection_modules_and_resources, logger)
+service_modules = ModuleService(collection_modules_and_resources, repository_courses_data, logger)
