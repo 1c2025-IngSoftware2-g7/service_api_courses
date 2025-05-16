@@ -166,7 +166,7 @@ class UsersDataRepository:
             {"student_id": student_id}
         )
 
-        return user["approved_courses"] if user else None
+        return user["approved_courses"] if user else []
 
     def get_approved_signatures(self, student_id):
         """
@@ -183,4 +183,4 @@ class UsersDataRepository:
         if not user:
             return None
 
-        return user["approved_courses"] if user else None
+        return user["approved_courses"] if user else []
