@@ -30,7 +30,9 @@ class FeedbackService:
 
             self.logger.debug(f"[FeedbackService] Course {course_id} found")
             # Create the feedback object
-            feedback_object = FeedbackCourse(course_id=course_id, feedback=feedback, rating=rating)
+            feedback_object = FeedbackCourse(
+                course_id=course_id, feedback=feedback, rating=rating
+            )
 
             self.logger.debug(f"[FeedbackService] Feedback object: {feedback_object}")
 

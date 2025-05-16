@@ -37,7 +37,7 @@ def add_feedback_to_course():
             "Missing feedback", MISSING_FIELDS, 400, "add_feedback_to_course"
         )
         return error["response"], error["code_status"]
-    
+
     if "rating" not in data:
         error = error_generator(
             "Missing rating", MISSING_FIELDS, 400, "add_feedback_to_course"

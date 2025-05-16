@@ -5,7 +5,11 @@ from bson import ObjectId
 
 class FeedbackCourse:
     def __init__(
-        self, course_id: str, feedback: str, rating: int, date_feedback_created: datetime = None
+        self,
+        course_id: str,
+        feedback: str,
+        rating: int,
+        date_feedback_created: datetime = None,
     ):
         self.course_id = course_id
         self.feedback = feedback
