@@ -162,11 +162,20 @@ class CoursesRepository:
             return False
 
     def get_courses_owned_by_user(self, user_id, offset, max_per_page):
-        courses = (
+        # An owner of the course is either the creator or its assistant
+        """courses = (
             self.collection.find({"creator_id": user_id})
             .skip(offset)
             .limit(max_per_page)
+        )"""
+        courses = (
+            self.collection.find(
+                {"$or": [{"creator_id": user_id}, {"assistants": user_id}]}
+            )
+            .skip(offset)
+            .limit(max_per_page)
         )
+
         return list(courses)
 
     def add_assistant_to_course(self, course_id, assistant_id):
