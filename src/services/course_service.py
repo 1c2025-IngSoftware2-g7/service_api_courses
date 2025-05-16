@@ -10,6 +10,7 @@ from headers import (
     MODULE_CREATED,
     MODULE_MODIFIED,
     UNAUTHORIZED,
+    USER_HAS_NOT_ENOUGH_CORRELATIVES_APPROVED_TO_ENROLL,
     USER_IS_ALREADY_AN_ASSISTANT,
     USER_NOT_ALLOWED_TO_ADD_ASSISTANT,
     USER_NOT_AN_ASSISTANT,
@@ -35,7 +36,7 @@ class CourseService:
             "max_students",
             "creator_name",
         ]
-        optional_data = ["enroll_date_end"]
+        optional_data = ["enroll_date_end", "correlatives_required_id"]
 
         for field in data_required:
             if field not in data:
@@ -64,6 +65,11 @@ class CourseService:
             data["creator_name"],
             enroll_date_end=(
                 data["enroll_date_end"] if "enroll_date_end" in data else None
+            ),
+            correlatives_required_id=(
+                data["correlatives_required_id"]
+                if "correlatives_required_id" in data
+                else None
             ),
         )
 
@@ -294,7 +300,9 @@ class CourseService:
                 "get_all_courses",
             )
 
-    """def enroll_student_in_course(self, course_id, student_id):
+    def enroll_student_in_course(
+        self, course_id, student_id, approved_signatures_from_user
+    ):
         try:
             # We check if the course inscription is still open
             inscription_available = (
@@ -348,11 +356,27 @@ class CourseService:
                     403,
                     "enroll_student",
                 )
-                
+
             # In order an user to be able to enroll in a course, the user MUST have the correlatives signatures approved.
-            # We check if the user has the correlatives signatures approved
-            courses_correlatives = self.course_repository.get_course_correlatives(course_id)
-            
+            # We check if the user has ALL the correlatives approved from approved_signatures_from_user
+            courses_correlatives = self.course_repository.get_course_correlatives(
+                course_id
+            )
+
+            if (
+                courses_correlatives
+            ):  # if the course has correlatives, we need to check them, else we skip this step
+                for assignatures_aproved in approved_signatures_from_user:
+                    if assignatures_aproved not in courses_correlatives:
+                        self.logger.debug(
+                            f"[SERVICE] Enroll: student with ID {student_id} doesn't have the correlatives approved to enroll in course with ID {course_id}"
+                        )
+                        return error_generator(
+                            USER_HAS_NOT_ENOUGH_CORRELATIVES_APPROVED_TO_ENROLL,
+                            f"Student with ID {student_id} doesn't have the correlatives approved to enroll in course with ID {course_id}",
+                            403,
+                            "enroll_student",
+                        )
 
             enrolled = self.course_repository.enroll_student_in_course(
                 course_id, student_id
@@ -408,7 +432,7 @@ class CourseService:
                 f"An error occurred while getting the enrolled courses: {str(e)}",
                 500,
                 "get_enrolled_courses",
-            )"""
+            )
 
     def add_module_to_course(self, course_id, data):
         data_required = ["title", "description", "url", "type", "owner_id"]

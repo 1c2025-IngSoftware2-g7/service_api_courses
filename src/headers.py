@@ -7,6 +7,10 @@ ASSISTANT_ADDED = "Assistant added successfully"
 INTERNAL_SERVER_ERROR = "Internal Server Error"
 FEEDBACK_CREATED = "Feedback created successfully"
 USER_ENROLLED = "User enrolled successfully"
+USER_HAS_NOT_ENOUGH_CORRELATIVES_APPROVED_TO_ENROLL = (
+    "User has not enough correlatives approved to enroll"
+)
+USER_ALREADY_APPROVED_COURSE = "User already approved the course"
 USER_NOT_ALLOWED_TO_ADD_ASSISTANT = "User not allowed to add assistant"
 USER_IS_ALREADY_AN_ASSISTANT = "User is already an assistant"
 USER_NOT_AN_ASSISTANT = "User is not an assistant"

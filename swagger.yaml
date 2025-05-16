@@ -459,6 +459,30 @@ paths:
         '200':
           description: Assistant removed
 
+  /courses/{string:course_id}/approve:
+    post:
+      summary: Approve a course for a student
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - student_id
+              properties:
+                student_id:
+                  type: string
+      responses:
+        '200':
+          description: Course approved
+
 
 components:
   schemas:
@@ -493,6 +517,11 @@ components:
           type: string
         creator_name:
           type: string
+        correlatives_required_id:
+          type: array
+          items:
+            type: string
+          description: List of course IDs that are required as correlatives to enroll in this course
 
     CourseUpdate:
       type: object

@@ -240,3 +240,24 @@ class UsersDataService:
                 500,
                 "approve_student_in_courses",
             )
+
+    def get_approved_signatures_from_user_id(self, student_id):
+        """
+        Get the approved signatures for a student.
+        """
+        self.logger.debug(
+            f"[UsersDataService] Getting approved signatures for student with ID: {student_id}"
+        )
+
+        # Check if the student has any approved signatures
+        approved_signatures = self.repository.get_approved_signatures(student_id)
+
+        if not approved_signatures:
+            return error_generator(
+                MISSING_FIELDS,
+                "No approved signatures found",
+                404,
+                "get_approved_signatures_from_user_id",
+            )
+
+        return {"response": approved_signatures, "code_status": 200}

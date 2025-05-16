@@ -161,3 +161,20 @@ class UsersDataRepository:
         )
 
         return user["approved_courses"] if user else None
+
+    def get_approved_signatures(self, student_id):
+        """
+        Get the approved signatures for a student.
+        """
+        self.logger.debug(
+            f"[REPOSITORY] Getting approved signatures for student with ID: {student_id}"
+        )
+
+        user = self.user_approved_courses_collection.find_one(
+            {"student_id": student_id}
+        )
+
+        if not user:
+            return None
+
+        return user["approved_courses"] if user else None

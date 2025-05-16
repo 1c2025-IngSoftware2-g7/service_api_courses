@@ -1,7 +1,11 @@
 from flask import Blueprint, request
 
 from src.error.error import error_generator
-from src.headers import MISSING_FIELDS
+from src.headers import (
+    MISSING_FIELDS,
+    USER_ALREADY_APPROVED_COURSE,
+    USER_HAS_NOT_ENOUGH_CORRELATIVES_APPROVED_TO_ENROLL,
+)
 from services import service_courses, service_users, logger
 
 courses_enrollment_bp = Blueprint("courses_enrollment", __name__, url_prefix="/courses")
@@ -35,8 +39,33 @@ def enroll_student(course_id=None):
     logger.debug(
         f"[APP] Enrolling student with ID: {student_id} in course with ID: {course_id}"
     )
+
+    # Lets get the approved signatures from the user.
+    approved_signatures_from_user = service_users.get_approved_signatures_from_user_id(
+        student_id=student_id
+    )
+
+    if not approved_signatures_from_user["response"]:
+        return error_generator(
+            USER_HAS_NOT_ENOUGH_CORRELATIVES_APPROVED_TO_ENROLL,
+            "Student ID not found in the approved signatures (He doesn't have any approved signatures)",
+            404,
+            "enroll_student",
+        )
+
+    # If the user already has the assignature approved, we return an error
+    if course_id in approved_signatures_from_user["response"]:
+        return error_generator(
+            USER_ALREADY_APPROVED_COURSE,
+            "Student ID already has the course approved",
+            404,
+            "enroll_student",
+        )
+
     # Call the service to enroll the student
-    result = service_courses.enroll_student_in_course(course_id, student_id)
+    result = service_courses.enroll_student_in_course(
+        course_id, student_id, approved_signatures_from_user
+    )
 
     return result["response"], result["code_status"]
 
