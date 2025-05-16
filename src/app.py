@@ -14,7 +14,7 @@ from endpoints.feedbacks import feedbacks_bp
 # Lets start the courses app by default on /courses
 courses_app = Flask(__name__)
 
-CORS(courses_app, origins=["*"])
+CORS(courses_app, origins=["*"], methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
 # Session config
 courses_app.secret_key = os.getenv("SECRET_KEY_SESSION")
