@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 from services import service_modules, logger
-from src.error.error import error_generator
+from error.error import error_generator
 from src.headers import MISSING_FIELDS
 
 
@@ -82,7 +82,7 @@ def modify_module(course_id=None, module_id=None):
         f"[APP] Modifying module with ID: {module_id} in course with ID: {course_id} and data: {data}"
     )
     # Call the service to modify the module
-    result = service_courses.modify_module_in_course(
+    result = service_modules.modify_module_in_course(
         course_id, module_id, owner_id, data
     )
 
