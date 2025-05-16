@@ -5,10 +5,11 @@ from bson import ObjectId
 
 class FeedbackCourse:
     def __init__(
-        self, course_id: str, feedback: str, date_feedback_created: datetime = None
+        self, course_id: str, feedback: str, rating: int, date_feedback_created: datetime = None
     ):
         self.course_id = course_id
         self.feedback = feedback
+        self.rating = rating
 
         if isinstance(date_feedback_created, str):
             self.feedback_created = datetime.strptime(date_feedback_created, "%Y-%m-%d")
@@ -18,15 +19,16 @@ class FeedbackCourse:
             self.feedback_created = datetime.now()
 
     def __str__(self):
-        return f"FeedbackCourse(course_id={self.course_id}, feedback={self.feedback})"
+        return f"FeedbackCourse(course_id={self.course_id}, feedback={self.feedback}, rating={self.rating})"
 
     def __repr__(self):
-        return f"FeedbackCourse(course_id={self.course_id}, feedback={self.feedback})"
+        return f"FeedbackCourse(course_id={self.course_id}, feedback={self.feedback}, rating={self.rating})"
 
     def to_dict(self):
         return {
             "course_id": self.course_id,
             "feedback": self.feedback,
+            "rating": self.rating,
             "feedback_created": self.feedback_created,
         }
 
@@ -35,6 +37,7 @@ class FeedbackCourse:
         return FeedbackCourse(
             course_id=data.get("course_id"),
             feedback=data.get("feedback"),
+            rating=data.get("rating"),
             date_feedback_created=data.get("feedback_created"),
         )
 

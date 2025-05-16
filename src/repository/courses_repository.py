@@ -33,10 +33,10 @@ class CoursesRepository:
 
     def get_course_by_id(self, course_id):
         object_id = ObjectId(course_id)
-        self.logger.debug(f"[DEBUG] course_id: {course_id} - object_id: {object_id}")
+        self.logger.debug(f"[REPOSITORY] course_id: {course_id} - object_id: {object_id}")
         course = self.collection.find_one({"_id": object_id})
 
-        self.logger.debug(f"[DEBUG] course searched on repository: {course}")
+        self.logger.debug(f"[REPOSITORY] course searched on repository: {course}")
 
         # we convert the course to a Course instance
         if course:
@@ -61,7 +61,7 @@ class CoursesRepository:
             }
         )
 
-        self.logger.debug(f"[DEBUG] courses searched on repository: {courses}")
+        self.logger.debug(f"[REPOSITORY] courses searched on repository: {courses}")
         return list(courses)
 
     def get_list_of_students_for_course(self, course_id):
@@ -70,6 +70,19 @@ class CoursesRepository:
             return course.get("students", [])
         else:
             return None
+
+    def enroll_student_in_course(self, course_id, student_id):
+        result = self.collection.update_one(
+            {"_id": ObjectId(course_id)}, {"$addToSet": {"students": student_id}}
+        )
+        self.logger.debug(f"[REPOSITORY] Enroll student {student_id} in course {course_id}")
+        return result.modified_count > 0
+
+    def remove_student_from_course(self, course_id, student_id):
+        result = self.collection.update_one(
+            {"_id": course_id}, {"$pull": {"students": student_id}}
+        )
+        return result.modified_count > 0
 
     """ This method is used to find all courses that a student is enrolled in. """
 
@@ -115,7 +128,7 @@ class CoursesRepository:
             {"_id": ObjectId(course_id)}, {"$addToSet": {"resources": module}}
         )
 
-        self.logger.debug(f"[DEBUG] Add module {module} to course {course_id}")
+        self.logger.debug(f"[REPOSITORY] Add module {module} to course {course_id}")
         return result.modified_count > 0
 
     def get_paginated_courses(self, offset, max_per_page):
@@ -129,12 +142,12 @@ class CoursesRepository:
             # So in that case, the enrollment is available, else, we check if the enroll_date_end is greater than now
             if course.get("enroll_date_end") is None:
                 self.logger.debug(
-                    f"[DEBUG] Course {course_id} has no end date for enrollment, so it is available"
+                    f"[REPOSITORY] Course {course_id} has no end date for enrollment, so it is available"
                 )
                 return True
             else:
                 self.logger.debug(
-                    f"[DEBUG] Course {course_id} has an end date for enrollment, so we check if it is available"
+                    f"[REPOSITORY] Course {course_id} has an end date for enrollment, so we check if it is available"
                 )
                 return (
                     course.get("enroll_date_start")
@@ -156,7 +169,7 @@ class CoursesRepository:
         result = self.collection.update_one(
             {"_id": ObjectId(course_id)}, {"$addToSet": {"assistants": assistant_id}}
         )
-        self.logger.debug(f"[DEBUG] Add assistant {assistant_id} to course {course_id}")
+        self.logger.debug(f"[REPOSITORY] Add assistant {assistant_id} to course {course_id}")
         return result.modified_count > 0
 
     def is_user_allowed_to_create_module(self, course_id, user_id):
@@ -182,7 +195,7 @@ class CoursesRepository:
             {"_id": ObjectId(course_id)}, {"$pull": {"assistants": assistant_id}}
         )
         self.logger.debug(
-            f"[DEBUG] Remove assistant {assistant_id} from course {course_id}"
+            f"[REPOSITORY] Remove assistant {assistant_id} from course {course_id}"
         )
         return result.modified_count > 0
 

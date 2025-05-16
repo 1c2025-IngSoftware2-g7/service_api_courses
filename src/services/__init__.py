@@ -13,6 +13,7 @@ from repository.courses_repository import CoursesRepository
 from repository.users_data_repository import UsersDataRepository
 from services.users_data_service import UsersDataService
 from .course_service import CourseService
+from services.logger_config import get_logger
 
 
 client = MongoClient(os.getenv("MONGO_URI"))
@@ -20,7 +21,7 @@ db = client[os.getenv("COURSE_DATABASE")]
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("pymongo").setLevel(logging.WARNING)
-logger = logging.getLogger(__name__)
+logger = get_logger("api-courses")
 
 collection_courses_data = db[os.getenv("COURSES_COLLECTION_NAME")]
 collection_users_data = db[os.getenv("USERS_COLLECTION_NAME")]
