@@ -409,6 +409,55 @@ paths:
         '200':
           description: Feedback added
 
+  /courses/assistants/{course_id}:
+    post:
+      summary: Add an assistant to a course
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - assistant_id
+                - owner id
+              properties:
+                assistant_id:
+                  type: string
+                owner_id:
+                  type: string
+      responses:
+        '200':
+          description: Assistant added
+
+  /<string:course_id>/delete_assistant/<string:assistant_id>/with_owner_id/<string:owner_id>:
+    delete:
+      summary: Remove an assistant from a course
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: assistant_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: owner_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Assistant removed
 
 
 components:
