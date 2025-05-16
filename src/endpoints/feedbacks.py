@@ -46,7 +46,7 @@ def add_feedback_to_course():
 
     course_id = data["course_id"]
     feedback = data["feedback"]
-    rating = data["feedback"]
+    rating = data["rating"]
 
     result = service_feedbacks.create_course_feedback(course_id, feedback, rating)
     logger.debug(f"[Feedbacks] Feedback created for course {course_id}")
