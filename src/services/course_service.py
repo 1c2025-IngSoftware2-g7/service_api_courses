@@ -36,7 +36,7 @@ class CourseService:
             "max_students",
             "creator_name",
         ]
-        optional_data = ["enroll_date_end", "correlatives_required_id"]
+        optional_data = ["enroll_date_end", "correlatives_required_id", "background"]
 
         for field in data_required:
             if field not in data:
@@ -71,6 +71,7 @@ class CourseService:
                 if "correlatives_required_id" in data
                 else None
             ),
+            background=(data["background"] if "background" in data else None),
         )
 
         dict_course = course.to_dict()
@@ -104,6 +105,7 @@ class CourseService:
             "course_start_date",
             "course_end_date",
             "max_students",
+            "background",
         ]
 
         if len(data.keys()) == 0:

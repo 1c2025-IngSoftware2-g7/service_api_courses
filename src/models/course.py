@@ -3,6 +3,10 @@ from datetime import datetime
 
 # background https://images.unsplash.com/photo-1517694712202-14dd9538aa97
 
+DEFAULT_COURSE_BACKGOUND = (
+    "https://images.unsplash.com/photo-1517694712202-14dd9538aa97"
+)
+
 
 class Course:
     def __init__(
@@ -21,6 +25,7 @@ class Course:
         enroll_date_end: str = None,
         assistants: list = None,
         correlatives_required_id: list = None,
+        background: str = None,
     ):
         self._id = str(_id) if _id else ObjectId()
         self.name = course_name
@@ -41,6 +46,7 @@ class Course:
         self.correlatives_required_id = (
             correlatives_required_id if correlatives_required_id else []
         )
+        self.background = background if background else DEFAULT_COURSE_BACKGOUND
 
     def to_dict(self):
         return {
@@ -58,6 +64,7 @@ class Course:
             "modules": self.modules,
             "assistants": self.assistants,
             "correlatives_required_id": self.correlatives_required_id,
+            "background": self.background,
         }
 
     @staticmethod
@@ -77,4 +84,5 @@ class Course:
             modules=data.get("modules", []),
             assistants=data.get("assistants", []),
             correlatives_required_id=data.get("correlatives_required_id", []),
+            background=data.get("background", DEFAULT_COURSE_BACKGOUND),
         )
