@@ -6,7 +6,7 @@ from src.headers import (
     USER_ALREADY_APPROVED_COURSE,
     USER_HAS_NOT_ENOUGH_CORRELATIVES_APPROVED_TO_ENROLL,
 )
-from services import service_courses, service_users, logger
+from services import service_courses, service_users, service_enrollment, logger
 
 courses_enrollment_bp = Blueprint("courses_enrollment", __name__, url_prefix="/courses")
 
@@ -36,38 +36,8 @@ def enroll_student(course_id=None):
     # Get the student_id from the request
     student_id = data["student_id"]
 
-    logger.debug(
-        f"[APP] Enrolling student with ID: {student_id} in course with ID: {course_id}"
-    )
-
-    # Lets get the approved signatures from the user.
-    approved_signatures_from_user = service_users.get_approved_signatures_from_user_id(
-        student_id=student_id
-    )
+    result = service_enrollment.enroll_student_in_course(course_id, student_id)
     
-    if approved_signatures_from_user["code_status"] == 200:
-        if not approved_signatures_from_user["response"] or len(approved_signatures_from_user["response"]) == 0:
-            return error_generator(
-                USER_HAS_NOT_ENOUGH_CORRELATIVES_APPROVED_TO_ENROLL,
-                "Student ID not found in the approved signatures (He doesn't have any approved signatures)",
-                404,
-                "enroll_student",
-            )
-
-        # If the user already has the assignature approved, we return an error
-        if course_id in approved_signatures_from_user["response"]:
-            return error_generator(
-                USER_ALREADY_APPROVED_COURSE,
-                "Student ID already has the course approved",
-                404,
-                "enroll_student",
-            )
-
-    # Call the service to enroll the student
-    result = service_courses.enroll_student_in_course(
-        course_id, student_id, approved_signatures_from_user
-    )
-
     return result["response"], result["code_status"]
 
 
@@ -86,7 +56,7 @@ def get_enrolled_courses(student_id=None):
 
     logger.debug(f"[APP] Getting all courses for student with ID: {student_id}")
     # Call the service to get all courses
-    result = service_courses.get_enrolled_courses(student_id)
+    result = service_enrollment.get_enrolled_courses(student_id)
 
     return result["response"], result["code_status"]
 

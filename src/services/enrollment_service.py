@@ -1,5 +1,6 @@
 from error.error import error_generator
 from headers import (
+    COURSE_ALREADY_APPROVED,
     COURSE_IS_FULL,
     COURSE_NOT_FOUND,
     INTERNAL_SERVER_ERROR,
@@ -26,7 +27,7 @@ class EnrollmentService:
         try:
             # We check if the course inscription is still open
             inscription_available = (
-                self.course_service.check_if_course_inscription_is_available(course_id)
+                self.course_repository.check_if_course_inscription_is_available(course_id)
             )
 
             if not inscription_available:
@@ -84,6 +85,17 @@ class EnrollmentService:
                 self.user_repository.get_student_approved_courses(student_id)
             )
 
+            # HOTFIX: Does the user already has approved this course?
+            if course_id in student_approved_courses:
+                self.logger.debug(
+                    f"[SERVICE] Enroll: student with ID {student_id} already has approved course with ID {course_id}"
+                )
+                return error_generator(
+                    COURSE_ALREADY_APPROVED,
+                    f"Student with ID {student_id} already has approved course with ID {course_id}",
+                    403,
+                    "enroll_student",
+                )
             if not self.user_available_to_enroll(
                 courses_correlatives, student_approved_courses
             ):

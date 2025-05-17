@@ -22,7 +22,8 @@ COURSE_IS_FULL = "Course is full"
 COURSE_ADDED_TO_FAVOURITES = "Course added to favourites successfully"
 COURSE_ALREADY_IN_FAVOURITES = "Course already in favourites"
 COURSE_REMOVED_FROM_FAVOURITES = "Course removed from favourites successfully"
-
-
 MODULE_WASNT_CREATED = "Module wasn't created"
 USER_NOT_ALLOWED_TO_CREATE= "User not allowed to create in this instance"
+NO_SIGNATURES_APPROVED_FOUND= "No signatures approved found"
+MODULE_NOT_FOUND_IN_COURSE="Module not found in course"
+COURSE_ALREADY_APPROVED= "Course already approved"
