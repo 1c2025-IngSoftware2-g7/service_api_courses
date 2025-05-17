@@ -44,23 +44,24 @@ def enroll_student(course_id=None):
     approved_signatures_from_user = service_users.get_approved_signatures_from_user_id(
         student_id=student_id
     )
+    
+    if approved_signatures_from_user["code_status"] == 200:
+        if not approved_signatures_from_user["response"] or len(approved_signatures_from_user["response"]) == 0:
+            return error_generator(
+                USER_HAS_NOT_ENOUGH_CORRELATIVES_APPROVED_TO_ENROLL,
+                "Student ID not found in the approved signatures (He doesn't have any approved signatures)",
+                404,
+                "enroll_student",
+            )
 
-    if not approved_signatures_from_user["response"]:
-        return error_generator(
-            USER_HAS_NOT_ENOUGH_CORRELATIVES_APPROVED_TO_ENROLL,
-            "Student ID not found in the approved signatures (He doesn't have any approved signatures)",
-            404,
-            "enroll_student",
-        )
-
-    # If the user already has the assignature approved, we return an error
-    if course_id in approved_signatures_from_user["response"]:
-        return error_generator(
-            USER_ALREADY_APPROVED_COURSE,
-            "Student ID already has the course approved",
-            404,
-            "enroll_student",
-        )
+        # If the user already has the assignature approved, we return an error
+        if course_id in approved_signatures_from_user["response"]:
+            return error_generator(
+                USER_ALREADY_APPROVED_COURSE,
+                "Student ID already has the course approved",
+                404,
+                "enroll_student",
+            )
 
     # Call the service to enroll the student
     result = service_courses.enroll_student_in_course(

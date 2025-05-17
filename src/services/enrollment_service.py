@@ -159,7 +159,7 @@ class EnrollmentService:
         """
         Check if the user has the correlatives signatures approved.
         """
-        if not courses_correlatives:
+        if not courses_correlatives or len(courses_correlatives) == 0:
             # If there are no correlatives, the user can enroll
             return True
 
