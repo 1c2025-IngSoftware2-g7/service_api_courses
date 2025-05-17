@@ -1,6 +1,8 @@
 from bson import ObjectId
 from datetime import datetime
 
+# background https://images.unsplash.com/photo-1517694712202-14dd9538aa97
+
 
 class Course:
     def __init__(

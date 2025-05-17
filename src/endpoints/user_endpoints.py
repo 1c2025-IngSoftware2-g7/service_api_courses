@@ -3,10 +3,8 @@ from flask import Blueprint, request
 from src.error.error import error_generator
 from src.headers import (
     MISSING_FIELDS,
-    USER_ALREADY_APPROVED_COURSE,
-    USER_HAS_NOT_ENOUGH_CORRELATIVES_APPROVED_TO_ENROLL,
 )
-from services import service_courses, service_users, service_enrollment, logger
+from services import service_users, service_enrollment, logger
 
 courses_enrollment_bp = Blueprint("courses_enrollment", __name__, url_prefix="/courses")
 
@@ -37,7 +35,7 @@ def enroll_student(course_id=None):
     student_id = data["student_id"]
 
     result = service_enrollment.enroll_student_in_course(course_id, student_id)
-    
+
     return result["response"], result["code_status"]
 
 

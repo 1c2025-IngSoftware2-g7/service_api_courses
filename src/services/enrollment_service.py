@@ -27,7 +27,9 @@ class EnrollmentService:
         try:
             # We check if the course inscription is still open
             inscription_available = (
-                self.course_repository.check_if_course_inscription_is_available(course_id)
+                self.course_repository.check_if_course_inscription_is_available(
+                    course_id
+                )
             )
 
             if not inscription_available:

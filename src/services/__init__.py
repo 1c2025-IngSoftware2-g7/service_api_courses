@@ -32,7 +32,9 @@ collection_users_data = db[os.getenv("USERS_COLLECTION_NAME")]
 collection_feedback_students = db[os.getenv("FEEDBACK_STUDENTS_COLLECTION_NAME")]
 collection_feedback_courses = db[os.getenv("FEEDBACK_COURSES_COLLECTION_NAME")]
 
-collection_modules_and_resources = db[os.getenv("MODULES_AND_RESOURCES_COLLECTION_NAME")]
+collection_modules_and_resources = db[
+    os.getenv("MODULES_AND_RESOURCES_COLLECTION_NAME")
+]
 
 collection_approved_courses_students = db[
     os.getenv("APPROVED_COURSES_STUDENTS_COLLECTION_NAME")
@@ -67,4 +69,6 @@ service_enrollment = EnrollmentService(
     repository_courses_data, repository_users_data, logger
 )
 
-service_modules = ModuleService(collection_modules_and_resources, repository_courses_data, logger)
+service_modules = ModuleService(
+    collection_modules_and_resources, repository_courses_data, logger
+)

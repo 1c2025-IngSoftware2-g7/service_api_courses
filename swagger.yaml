@@ -436,7 +436,7 @@ paths:
         '200':
           description: Assistant added
 
-  /<string:course_id>/delete_assistant/<string:assistant_id>/with_owner_id/<string:owner_id>:
+  /{course_id}/delete_assistant/{assistant_id}/with_owner_id/{owner_id}:
     delete:
       summary: Remove an assistant from a course
       parameters:
@@ -458,31 +458,6 @@ paths:
       responses:
         '200':
           description: Assistant removed
-
-  /courses/{string:course_id}/approve:
-    post:
-      summary: Approve a course for a student
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - student_id
-              properties:
-                student_id:
-                  type: string
-      responses:
-        '200':
-          description: Course approved
-
 
 components:
   schemas:

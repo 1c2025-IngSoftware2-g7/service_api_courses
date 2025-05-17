@@ -2,7 +2,7 @@ from datetime import datetime
 
 from bson import ObjectId
 
-''' Module 
+""" Module 
     Title
     Description
     order: (Index position?)
@@ -11,9 +11,13 @@ from bson import ObjectId
     
     Resource
         source: url/text or whatever
-'''
+"""
+
+
 class Module:
-    def __init__(self, title, description, position, resources: list = None, id: str = None):
+    def __init__(
+        self, title, description, position, resources: list = None, id: str = None
+    ):
         self.id = ObjectId() if id is None else ObjectId(id)
         self.title = title
         self.description = description
@@ -42,7 +46,7 @@ class Module:
             id=data.get("_id"),
             title=data.get("title"),
             description=data.get("description"),
-            resources=data.get("resources",[]),
-            position = data.get("position"),
+            resources=data.get("resources", []),
+            position=data.get("position"),
             type=data.get("type"),
         )
