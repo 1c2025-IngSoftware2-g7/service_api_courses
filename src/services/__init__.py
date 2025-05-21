@@ -44,7 +44,7 @@ collection_approved_courses_students = db[
 collection_users_data.create_index(["student_id"], unique=True)
 collection_users_data.create_index(["course_id"], unique=True)
 
-
+''' REPOSITORY CREATION '''
 repository_courses_data = CoursesRepository(collection_courses_data, logger)
 repository_users_data = UsersDataRepository(
     collection_users_data, collection_approved_courses_students, logger
@@ -54,10 +54,11 @@ repository_feedbacks = FeedBackRepository(
 )
 
 repository_modules_and_resources = ModuleRepository(
-    collection_modules_and_resources, logger
+    collection_modules_and_resources, collection_courses_data, logger
 )
 
 
+''' SERVICE CREATION '''
 service_courses = CourseService(repository_courses_data, logger)
 # Service users requires the course service to check if the course exists and other checks
 service_users = UsersDataService(repository_users_data, service_courses, logger)
@@ -70,5 +71,5 @@ service_enrollment = EnrollmentService(
 )
 
 service_modules = ModuleService(
-    collection_modules_and_resources, repository_courses_data, logger
+    repository_modules_and_resources, repository_courses_data, logger
 )

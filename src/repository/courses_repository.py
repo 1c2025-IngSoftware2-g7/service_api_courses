@@ -3,6 +3,8 @@ from bson import ObjectId
 from models.course import Course
 from datetime import datetime
 
+from src.models.module import Module
+
 
 class CoursesRepository:
     def __init__(self, collection, logger):
@@ -179,14 +181,15 @@ class CoursesRepository:
         )
         return result.modified_count > 0
 
-    def is_user_allowed_to_create_module(self, course_id, user_id):
+    def is_user_allowed_to_create_module(self, course_id, user_id: str = None):
         # A user is allowed to create a module if he is the owner of the course or if he is an assistant
 
         course = self.get_course_by_id(course_id)
+        course = Course.from_dict(course).to_dict()
 
         if course:
             # Check if the user is the owner of the course
-            if course.get("creator_id") == user_id:
+            if course.get("creator_id", None) == user_id:
                 return True
 
             # Check if the user is an assistant
@@ -206,14 +209,27 @@ class CoursesRepository:
         )
         return result.modified_count > 0
 
-    def get_module_by_id(self, course_id, module_id):
+    '''def get_module_by_id(self, course_id, module_id):
         course = self.get_course_by_id(course_id)
+        
         if course:
-            for module in course.get("resources", []):
-                if module.get("_id") == module_id:
-                    return module
+            course = Course.from_dict(course).to_dict()
+            
+            self.logger.debug(f"[REPOSITORY COURSES] course searched on repository: {course}")
+                    
+            for module_from_course in course.get("modules", []):
+                if module_from_course == module_id:
+                    return module_from_course
+                    
+                 = Module.from_dict(module).to_dict()
+                
+                self.logger.debug(f"[REPOSITORY COURSES] module searched on repository: {module_as_dict}")
+                
+                if module_as_dict.get("_id") == module_id:
+                    return module_as_dict
 
         return None
+    '''
 
     def modify_module_in_course(self, module_modified_as_dict, course_id, module_id):
         self.collection.update_one(
@@ -256,3 +272,12 @@ class CoursesRepository:
             return course.get("students", [])
         else:
             return None
+
+    def remove_module_from_course(self, course_id, module_id):
+        result = self.collection.update_one(
+            {"_id": ObjectId(course_id)}, {"$pull": {"modules": {"_id": module_id}}}
+        )
+        self.logger.debug(
+            f"[DEBUG] Remove module {module_id} from course {course_id}"
+        )
+        return result.modified_count > 0

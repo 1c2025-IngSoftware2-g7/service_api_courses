@@ -183,6 +183,18 @@ paths:
           description: Course approved
     
   /courses/{course_id}/modules:
+    get: 
+      summary: Get all modules for a course (Including his resources)
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of modules
+
     post:
       summary: Add a module to a course
       parameters:
@@ -529,23 +541,14 @@ components:
       required:
         - title
         - description
-        - url
-        - type
-        - owner_id
+        - id_creator
       properties:
         title:
           type: string
         description:
           type: string
-        url:
-          type: string
-        type:
-          type: string
         owner_id:
           type: string
-        date_created:
-          type: string
-          format: date-time
 
     ModuleUpdate:
       type: object
@@ -556,12 +559,12 @@ components:
         description:
           type: string
           description: Optional
-        url:
-          type: string
+        position:
+          type: integer
           description: Optional
-        type:
+        modifier_id:
           type: string
-          description: Optional
+          description: Obligatory
 
     FavouriteCourseInput:
       type: object
