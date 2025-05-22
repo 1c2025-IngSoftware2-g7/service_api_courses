@@ -16,15 +16,20 @@ from bson import ObjectId
 
 class Module:
     def __init__(
-        self, title, description, position, resources: list = None, id: str = None, date_created: datetime = None
+        self,
+        title,
+        description,
+        position,
+        resources: list = None,
+        id: str = None,
+        date_created: datetime = None,
     ):
         self.id = ObjectId() if id is None else ObjectId(id)
         self.title = title
         self.description = description
         self.resources = resources if resources else []
         self.position = position
-        
-        
+
         if isinstance(date_created, str):
             self.date_created = datetime.strptime(date_created, "%Y-%m-%d")
         elif isinstance(date_created, datetime):
@@ -45,7 +50,7 @@ class Module:
     def __setattr__(self, name, value):
         if name == "_id" and value is not None:
             value = ObjectId(value)
-            
+
         super().__setattr__(name, value)
 
     @staticmethod
@@ -56,5 +61,5 @@ class Module:
             description=data.get("description"),
             resources=data.get("resources", []),
             position=data.get("position"),
-            date_created=data.get("date_created")
+            date_created=data.get("date_created"),
         )

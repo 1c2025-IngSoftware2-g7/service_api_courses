@@ -16,6 +16,7 @@ from headers import (
 from models.module import Module
 from repository.courses_repository import CoursesRepository
 from repository.module_repository import ModuleRepository
+from src.models.resource import Resource
 
 
 class ModuleService:
@@ -29,7 +30,7 @@ class ModuleService:
         self.repository_modules = repository_modules
         self.repository_courses = repository_courses
         self.logger = logger
-        
+
     def get_modules_from_course(self, course_id):
         """
         Get all modules from a course.
@@ -75,7 +76,10 @@ class ModuleService:
 
         if not owner_id:
             return error_generator(
-                MISSING_FIELDS, "Owner ID is required (id_creator)", 400, "add_module_to_course"
+                MISSING_FIELDS,
+                "Owner ID is required (id_creator)",
+                400,
+                "add_module_to_course",
             )
 
         is_allowed_user_to_create_module = (
@@ -105,7 +109,7 @@ class ModuleService:
         get_position = (
             len(self.repository_modules.get_modules_from_course(course_id)) + 1
         )
-        
+
         self.logger.debug(f"[SERVICE MODULE] position to be placed: {get_position}")
 
         module = Module.from_dict(
@@ -125,17 +129,17 @@ class ModuleService:
                 MODULE_WASNT_CREATED, "Module not added", 400, "add_module_to_course"
             )
 
-        module_id = module # This returns the ID
+        module_id = module  # This returns the ID
         return {
-                "response": {
-                    "type": "about:blank",
-                    "title": MODULE_CREATED,
-                    "status": 200,
-                    "detail": f"Module with ID {module_id} created on course with ID {course_id}",
-                    "instance": f"/courses/modules/{course_id}",
-                },
-                "code_status": 200,
-            }
+            "response": {
+                "type": "about:blank",
+                "title": MODULE_CREATED,
+                "status": 200,
+                "detail": f"Module with ID {module_id} created on course with ID {course_id}",
+                "instance": f"/courses/modules/{course_id}",
+            },
+            "code_status": 200,
+        }
 
     def modify_module_in_course(self, course_id, module_id, owner_id, data):
         try:
@@ -179,7 +183,9 @@ class ModuleService:
 
             self.logger.debug(f"[SERVICE MODULE] AT THIS POINT STILL WORKING")
             module_from_database = Module.from_dict(module)
-            self.logger.debug(f"[SERVICE MODULE] MODIFY MODULE: module from database: {module_from_database.to_dict()}")
+            self.logger.debug(
+                f"[SERVICE MODULE] MODIFY MODULE: module from database: {module_from_database.to_dict()}"
+            )
 
             optional_modification_parameters = ["title", "description", "position"]
 
@@ -246,10 +252,8 @@ class ModuleService:
                 "delete_module_from_course",
             )
 
-        is_allowed_to_delete = (
-            self.repository_courses.is_user_allowed_to_create_module(
-                course_id, owner_id
-            )
+        is_allowed_to_delete = self.repository_courses.is_user_allowed_to_create_module(
+            course_id, owner_id
         )
 
         if not is_allowed_to_delete:
@@ -261,10 +265,8 @@ class ModuleService:
             )
 
         # Delete the module from the course
-        result = self.repository_modules.delete_module_from_course(
-            course_id, module_id
-        )
-        
+        result = self.repository_modules.delete_module_from_course(course_id, module_id)
+
         # Now remove from courses collection
         result_from_courses = self.repository_courses.remove_module_from_course(
             course_id, module_id
@@ -285,6 +287,290 @@ class ModuleService:
                 "status": 200,
                 "detail": f"Module with ID {module_id} deleted from course with ID {course_id}",
                 "instance": f"/courses/modules/{course_id}",
+            },
+            "code_status": 200,
+        }
+
+    def get_module_from_course(self, course_id, module_id):
+        """
+        Get a module from a course.
+        """
+        # Check if the course exists
+        course = self.repository_courses.get_course_by_id(course_id)
+
+        if not course:
+            return error_generator(
+                COURSE_NOT_FOUND,
+                f"Course with ID {course_id} not found",
+                404,
+                "get_module_from_course",
+            )
+
+        # Check if the module exists
+        module = self.repository_modules.get_module_by_id(course_id, module_id)
+
+        if not module:
+            return error_generator(
+                MODULE_NOT_FOUND_IN_COURSE,
+                f"Module with ID {module_id} not found in course with ID {course_id}",
+                404,
+                "get_module_from_course",
+            )
+
+        return {
+            "response": module,
+            "code_status": 200,
+        }
+
+    def get_resources_from_module(self, course_id, module_id):
+        """
+        Get all resources from a module.
+        """
+        # Check if the course exists
+        course = self.repository_courses.get_course_by_id(course_id)
+
+        if not course:
+            return error_generator(
+                COURSE_NOT_FOUND,
+                f"Course with ID {course_id} not found",
+                404,
+                "get_resources_from_module",
+            )
+
+        # Check if the module exists
+        module = self.repository_modules.get_module_by_id(course_id, module_id)
+
+        if not module:
+            return error_generator(
+                MODULE_NOT_FOUND_IN_COURSE,
+                f"Module with ID {module_id} not found in course with ID {course_id}",
+                404,
+                "get_resources_from_module",
+            )
+
+        # Get all resources from the module
+        resources = self.repository_modules.get_resources_from_module(
+            course_id, module_id
+        )
+
+        if not resources:
+            return error_generator(
+                MODULE_NOT_FOUND_IN_COURSE,
+                f"No resources found in module with ID {module_id} in course with ID {course_id}",
+                404,
+                "get_resources_from_module",
+            )
+
+        return {
+            "response": resources,
+            "code_status": 200,
+        }
+
+    def get_resource_from_module(self, course_id, module_id, resource_id):
+        """
+        Get a resource from a module.
+        """
+        # Check if the course exists
+        course = self.repository_courses.get_course_by_id(course_id)
+
+        if not course:
+            return error_generator(
+                COURSE_NOT_FOUND,
+                f"Course with ID {course_id} not found",
+                404,
+                "get_resource_from_module",
+            )
+
+        # Check if the module exists
+        module = self.repository_modules.get_module_by_id(course_id, module_id)
+
+        if not module:
+            return error_generator(
+                MODULE_NOT_FOUND_IN_COURSE,
+                f"Module with ID {module_id} not found in course with ID {course_id}",
+                404,
+                "get_resource_from_module",
+            )
+
+        # Get the resource from the module
+        resource = self.repository_modules.get_resource_from_module(
+            course_id, module_id, resource_id
+        )
+
+        if not resource:
+            return error_generator(
+                MODULE_NOT_FOUND_IN_COURSE,
+                f"Resource with ID {resource_id} not found in module with ID {module_id} in course with ID {course_id}",
+                404,
+                "get_resource_from_module",
+            )
+
+        return {
+            "response": resource,
+            "code_status": 200,
+        }
+
+    def add_resource_to_module(self, course_id, module_id, data, owner_id):
+        """
+        Add a resource to a module.
+        """
+
+        # Lets check if the user is allowed to create a resource
+        is_allowed_to_create = self.repository_courses.is_user_allowed_to_create_module(
+            course_id, owner_id
+        )
+
+        if not is_allowed_to_create:
+            return error_generator(
+                USER_NOT_ALLOWED_TO_CREATE,
+                "User is not allowed to create resource",
+                403,
+                "add_resource_to_module",
+            )
+
+        # Check if the course exists
+        course = self.repository_courses.get_course_by_id(course_id)
+
+        if not course:
+            return error_generator(
+                COURSE_NOT_FOUND,
+                f"Course with ID {course_id} not found",
+                404,
+                "add_resource_to_module",
+            )
+
+        # Check if the module exists
+        module = self.repository_modules.get_module_by_id(course_id, module_id)
+
+        if not module:
+            return error_generator(
+                MODULE_NOT_FOUND_IN_COURSE,
+                f"Module with ID {module_id} not found in course with ID {course_id}",
+                404,
+                "add_resource_to_module",
+            )
+
+        required_fields = ["source"]
+
+        # Lets drop the fields that are not in the required fields
+        for field in list(data.keys()):
+            if field not in required_fields:
+                del data[field]
+            else:
+                data[field] = data[field]
+
+        # Lets get the new position
+
+        position = (
+            len(self.repository_modules.get_resources_from_module(course_id, module_id))
+            + 1
+        )
+
+        # Lets create a new Resource element
+        resource = Resource.from_dict(data)
+        resource.position = position
+
+        if not "source" in data:
+            return error_generator(
+                MISSING_FIELDS,
+                "Source",
+                400,
+                "add_resource_to_module",
+            )
+
+        # Add the resource to the module
+        result = self.repository_modules.add_resource_to_module(
+            course_id, module_id, resource.to_dict()
+        )
+
+        if not result:
+            return error_generator(
+                MODULE_NOT_FOUND_IN_COURSE,
+                f"Resource not added to module with ID {module_id} in course with ID {course_id}",
+                400,
+                "add_resource_to_module",
+            )
+
+        return {
+            "response": {
+                "type": "about:blank",
+                "title": MODULE_CREATED,
+                "status": 200,
+                "detail": f"Resource added to module with ID {module_id} in course with ID {course_id}",
+                "instance": f"/courses/modules/{course_id}/resources/{result}",
+            },
+            "code_status": 200,
+        }
+
+    def delete_resource_from_module(self, course_id, module_id, resource_id, owner_id):
+
+        is_allowed_to_delete = self.repository_courses.is_user_allowed_to_create_module(
+            course_id, owner_id
+        )
+
+        if not is_allowed_to_delete:
+            return error_generator(
+                UNAUTHORIZED,
+                f"User with ID {owner_id} is not authorized to delete this resource",
+                403,
+                "delete_resource_from_module",
+            )
+
+        # Check if the course exists
+        course = self.repository_courses.get_course_by_id(course_id)
+
+        if not course:
+            return error_generator(
+                COURSE_NOT_FOUND,
+                f"Course with ID {course_id} not found",
+                404,
+                "delete_resource_from_module",
+            )
+
+        # Check if the module exists
+        module = self.repository_modules.get_module_by_id(course_id, module_id)
+
+        if not module:
+            return error_generator(
+                MODULE_NOT_FOUND_IN_COURSE,
+                f"Module with ID {module_id} not found in course with ID {course_id}",
+                404,
+                "delete_resource_from_module",
+            )
+
+        # Check if the resource exists
+        resource = self.repository_modules.get_resource_from_module(
+            course_id, module_id, resource_id
+        )
+
+        if not resource:
+            return error_generator(
+                MODULE_NOT_FOUND_IN_COURSE,
+                f"Resource with ID {resource_id} not found in module with ID {module_id} in course with ID {course_id}",
+                404,
+                "delete_resource_from_module",
+            )
+
+        # Delete the resource from the module
+        result = self.repository_modules.delete_resource_from_module(
+            course_id, module_id, resource_id
+        )
+
+        if not result:
+            return error_generator(
+                MODULE_NOT_FOUND_IN_COURSE,
+                f"Resource with ID {resource_id} not found in module with ID {module_id} in course with ID {course_id}",
+                404,
+                "delete_resource_from_module",
+            )
+
+        return {
+            "response": {
+                "type": "about:blank",
+                "title": MODULE_REMOVED,
+                "status": 200,
+                "detail": f"Resource with ID {resource_id} deleted from module with ID {module_id} in course with ID {course_id}",
+                "instance": f"/courses/modules/{course_id}/resources/{resource_id}",
             },
             "code_status": 200,
         }

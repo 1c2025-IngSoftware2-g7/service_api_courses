@@ -209,7 +209,7 @@ class CoursesRepository:
         )
         return result.modified_count > 0
 
-    '''def get_module_by_id(self, course_id, module_id):
+    """def get_module_by_id(self, course_id, module_id):
         course = self.get_course_by_id(course_id)
         
         if course:
@@ -229,7 +229,7 @@ class CoursesRepository:
                     return module_as_dict
 
         return None
-    '''
+    """
 
     def modify_module_in_course(self, module_modified_as_dict, course_id, module_id):
         self.collection.update_one(
