@@ -274,10 +274,9 @@ class CoursesRepository:
             return None
 
     def remove_module_from_course(self, course_id, module_id):
+        # This method is used to remove a module from a course
+        # Course has a list of modules with the id inside.
         result = self.collection.update_one(
-            {"_id": ObjectId(course_id)}, {"$pull": {"modules": {"_id": module_id}}}
-        )
-        self.logger.debug(
-            f"[DEBUG] Remove module {module_id} from course {course_id}"
+            {"_id": ObjectId(course_id)}, {"$pull": {"modules": module_id}}
         )
         return result.modified_count > 0

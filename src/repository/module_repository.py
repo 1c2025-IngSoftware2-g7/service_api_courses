@@ -218,11 +218,29 @@ class ModuleRepository:
     def delete_module_from_course(self, course_id, module_id):
         """
         Delete a module from a course.
+        Also, we need to decrement the position for all of those modules that are after the deleted one.
         """
+        
+        # This works because we do the validations check in the service
+        module_to_remove = self.get_module_by_id(course_id, module_id)
+        
+        pos_to_remove = module_to_remove["position"]
+        
         result = self.collection_modules.update_one(
             {"course_id": ObjectId(course_id)},
-            {"$pull": {"modules": {"_id": ObjectId(module_id)}}},
+            {"$pull": {"modules": {"_id": module_id}}},
         )
+        
+        if result.modified_count > 0:
+            # We need to decrement the position of those modules that are after the deleted one
+            self.collection_modules.update_many(
+                {
+                    "course_id": ObjectId(course_id),
+                    "modules.position": {"$gt": pos_to_remove},
+                },
+                {"$inc": {"modules.$[elem].position": -1}},
+                array_filters=[{"elem.position": {"$gt": pos_to_remove}}],
+            )
 
         self.logger.debug(
             f"[MODULE REPOSITORY] Deleted module {module_id} from course {course_id}"

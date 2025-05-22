@@ -8,6 +8,7 @@ from headers import (
     MODULE_CREATED,
     MODULE_MODIFIED,
     MODULE_NOT_FOUND_IN_COURSE,
+    MODULE_REMOVED,
     MODULE_WASNT_CREATED,
     UNAUTHORIZED,
     USER_NOT_ALLOWED_TO_CREATE,
@@ -269,7 +270,7 @@ class ModuleService:
             course_id, module_id
         )
 
-        if not result or not result_from_courses:
+        if not result and not result_from_courses:
             return error_generator(
                 MODULE_NOT_FOUND_IN_COURSE,
                 f"Module with ID {module_id} not found in course with ID {course_id}",
