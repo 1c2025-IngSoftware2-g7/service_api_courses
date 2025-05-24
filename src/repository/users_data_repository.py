@@ -183,4 +183,4 @@ class UsersDataRepository:
         if not user:
             return None
 
-        return user["approved_courses"] if user else []
+        return list(user["approved_courses"]) if user else None

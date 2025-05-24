@@ -183,6 +183,18 @@ paths:
           description: Course approved
     
   /courses/{course_id}/modules:
+    get: 
+      summary: Get all modules for a course (Including his resources)
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of modules
+
     post:
       summary: Add a module to a course
       parameters:
@@ -201,7 +213,24 @@ paths:
         '200':
           description: Module added
 
+
   /courses/{course_id}/modules/{module_id}:
+    get:
+      summary: Get a module by ID
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: module_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Module retrieved
     put:
       summary: Update a module in a course
       parameters:
@@ -247,6 +276,106 @@ paths:
       responses:
         '200':
           description: Module deleted
+
+  /courses/{course_id}/modules/{module_id}/resources:
+    get:
+      summary: Get all resources for a module
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: module_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of resources
+    post:
+      summary: Add a resource to a module
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: module_id
+          in: path
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - source
+                - id_creator
+              properties:
+                source:
+                  type: string
+                id_creator:
+                  type: string
+      responses:
+        '200':
+          description: Resource added
+
+  /courses/{course_id}/modules/{module_id}/resources/{resource_id}:
+    get:
+      summary: Get a resource by ID
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: module_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: resource_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resource retrieved
+  
+  /courses/{course_id}/modules/{module_id}/resources/{resource_id}/{owner_id}:
+    delete:
+      summary: Delete a resource from a module
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: module_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: resource_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: owner_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resource deleted
 
   /courses/paginated:
     get:
@@ -436,7 +565,7 @@ paths:
         '200':
           description: Assistant added
 
-  /<string:course_id>/delete_assistant/<string:assistant_id>/with_owner_id/<string:owner_id>:
+  /{course_id}/delete_assistant/{assistant_id}/with_owner_id/{owner_id}:
     delete:
       summary: Remove an assistant from a course
       parameters:
@@ -458,31 +587,6 @@ paths:
       responses:
         '200':
           description: Assistant removed
-
-  /courses/{string:course_id}/approve:
-    post:
-      summary: Approve a course for a student
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - student_id
-              properties:
-                student_id:
-                  type: string
-      responses:
-        '200':
-          description: Course approved
-
 
 components:
   schemas:
@@ -554,23 +658,14 @@ components:
       required:
         - title
         - description
-        - url
-        - type
-        - owner_id
+        - id_creator
       properties:
         title:
           type: string
         description:
           type: string
-        url:
-          type: string
-        type:
-          type: string
         owner_id:
           type: string
-        date_created:
-          type: string
-          format: date-time
 
     ModuleUpdate:
       type: object
@@ -581,12 +676,12 @@ components:
         description:
           type: string
           description: Optional
-        url:
-          type: string
+        position:
+          type: integer
           description: Optional
-        type:
+        modifier_id:
           type: string
-          description: Optional
+          description: Obligatory
 
     FavouriteCourseInput:
       type: object

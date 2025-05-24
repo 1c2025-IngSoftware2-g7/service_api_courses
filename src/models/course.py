@@ -1,6 +1,12 @@
 from bson import ObjectId
 from datetime import datetime
 
+# background https://images.unsplash.com/photo-1517694712202-14dd9538aa97
+
+DEFAULT_COURSE_BACKGOUND = (
+    "https://images.unsplash.com/photo-1517694712202-14dd9538aa97"
+)
+
 
 class Course:
     def __init__(
@@ -14,11 +20,12 @@ class Course:
         creator_name: str,
         students: list = None,
         _id: ObjectId = None,
-        resources: list = None,
+        modules: list = None,
         enroll_date_start: datetime = datetime.now(),
         enroll_date_end: str = None,
         assistants: list = None,
         correlatives_required_id: list = None,
+        background: str = None,
     ):
         self._id = str(_id) if _id else ObjectId()
         self.name = course_name
@@ -34,11 +41,12 @@ class Course:
         self.creator_id = creator_id
         self.creator_name = creator_name
         self.students = students
-        self.resources = resources if resources else []
+        self.modules = modules if modules else []
         self.assistants = assistants if assistants else []
         self.correlatives_required_id = (
             correlatives_required_id if correlatives_required_id else []
         )
+        self.background = background if background else DEFAULT_COURSE_BACKGOUND
 
     def to_dict(self):
         return {
@@ -53,9 +61,10 @@ class Course:
             "creator_id": self.creator_id,
             "creator_name": self.creator_name,
             "students": self.students,
-            "resources": self.resources,
+            "modules": self.modules,
             "assistants": self.assistants,
             "correlatives_required_id": self.correlatives_required_id,
+            "background": self.background,
         }
 
     @staticmethod
@@ -72,7 +81,8 @@ class Course:
             creator_id=data.get("creator_id"),
             creator_name=data.get("creator_name"),
             students=data.get("students", []),
-            resources=data.get("resources", []),
+            modules=data.get("modules", []),
             assistants=data.get("assistants", []),
             correlatives_required_id=data.get("correlatives_required_id", []),
+            background=data.get("background", DEFAULT_COURSE_BACKGOUND),
         )
