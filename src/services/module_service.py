@@ -16,19 +16,20 @@ from headers import (
 from models.module import Module
 from repository.courses_repository import CoursesRepository
 from repository.module_repository import ModuleRepository
-from src.models.resource import Resource
+from models.resource import Resource
 
 
 class ModuleService:
-
     def __init__(
         self,
         repository_modules: ModuleRepository,
         repository_courses: CoursesRepository,
+        service_users,
         logger,
     ):
         self.repository_modules = repository_modules
         self.repository_courses = repository_courses
+        self.service_users = service_users
         self.logger = logger
 
     def get_modules_from_course(self, course_id):
@@ -82,13 +83,19 @@ class ModuleService:
                 "add_module_to_course",
             )
 
-        is_allowed_user_to_create_module = (
-            self.repository_courses.is_user_allowed_to_create_module(
-                course_id, owner_id
-            )
+        has_permissions = self.service_users.check_assistants_permissions(
+            course_id, owner_id, "ModulesAndResources"
+        )
+        is_owner_course = self.repository_courses.is_user_owner(course_id, owner_id)
+        # Here we need to check if its either the owner of the course or an assistant
+        self.logger.debug(
+            f"[MODULE SERVICE] has_permissions as assistant? : {has_permissions} <<<<<======="
+        )
+        self.logger.debug(
+            f"[MODULE SERVICE] is_owner_course? : {is_owner_course} <<<<<======="
         )
 
-        if not is_allowed_user_to_create_module:
+        if not has_permissions and not is_owner_course:
             return error_generator(
                 USER_NOT_ALLOWED_TO_CREATE,
                 "User is not allowed to create module",
@@ -164,21 +171,24 @@ class ModuleService:
                     "modify_module_in_course",
                 )
 
-            is_allowed_to_update = (
-                self.repository_courses.is_user_allowed_to_create_module(
-                    course_id, owner_id
-                )
+            has_permissions = self.service_users.check_assistants_permissions(
+                course_id, owner_id, "ModulesAndResources"
+            )
+            is_owner_course = self.repository_courses.is_user_owner(course_id, owner_id)
+            # Here we need to check if its either the owner of the course or an assistant
+            self.logger.debug(
+                f"[MODULE SERVICE] has_permissions as assistant? : {has_permissions} <<<<<======="
+            )
+            self.logger.debug(
+                f"[MODULE SERVICE] is_owner_course? : {is_owner_course} <<<<<======="
             )
 
-            if not is_allowed_to_update:
-                self.logger.debug(
-                    f"[SERVICE MODULES] MODIFY MODULE: user with id {owner_id} is not allowed to modify the module id {course_id}, return error"
-                )
+            if not has_permissions and not is_owner_course:
                 return error_generator(
-                    UNAUTHORIZED,
-                    f"User with ID {owner_id} is not authorized to modify this module",
+                    USER_NOT_ALLOWED_TO_CREATE,
+                    "User is not allowed to create module",
                     403,
-                    "modify_module_in_course",
+                    "add_module_to_course",
                 )
 
             self.logger.debug(f"[SERVICE MODULE] AT THIS POINT STILL WORKING")
@@ -252,16 +262,24 @@ class ModuleService:
                 "delete_module_from_course",
             )
 
-        is_allowed_to_delete = self.repository_courses.is_user_allowed_to_create_module(
-            course_id, owner_id
+        has_permissions = self.service_users.check_assistants_permissions(
+            course_id, owner_id, "ModulesAndResources"
+        )
+        is_owner_course = self.repository_courses.is_user_owner(course_id, owner_id)
+        # Here we need to check if its either the owner of the course or an assistant
+        self.logger.debug(
+            f"[MODULE SERVICE] has_permissions as assistant? : {has_permissions} <<<<<======="
+        )
+        self.logger.debug(
+            f"[MODULE SERVICE] is_owner_course? : {is_owner_course} <<<<<======="
         )
 
-        if not is_allowed_to_delete:
+        if not has_permissions and not is_owner_course:
             return error_generator(
-                UNAUTHORIZED,
-                f"User with ID {owner_id} is not authorized to delete this module",
+                USER_NOT_ALLOWED_TO_CREATE,
+                "User is not allowed to remove a module",
                 403,
-                "delete_module_from_course",
+                "add_module_to_course",
             )
 
         # Delete the module from the course
@@ -415,17 +433,24 @@ class ModuleService:
         Add a resource to a module.
         """
 
-        # Lets check if the user is allowed to create a resource
-        is_allowed_to_create = self.repository_courses.is_user_allowed_to_create_module(
-            course_id, owner_id
+        has_permissions = self.service_users.check_assistants_permissions(
+            course_id, owner_id, "ModulesAndResources"
+        )
+        is_owner_course = self.repository_courses.is_user_owner(course_id, owner_id)
+        # Here we need to check if its either the owner of the course or an assistant
+        self.logger.debug(
+            f"[MODULE SERVICE] has_permissions as assistant? : {has_permissions} <<<<<======="
+        )
+        self.logger.debug(
+            f"[MODULE SERVICE] is_owner_course? : {is_owner_course} <<<<<======="
         )
 
-        if not is_allowed_to_create:
+        if not has_permissions and not is_owner_course:
             return error_generator(
                 USER_NOT_ALLOWED_TO_CREATE,
-                "User is not allowed to create resource",
+                "User is not allowed to create module",
                 403,
-                "add_resource_to_module",
+                "add_module_to_course",
             )
 
         # Check if the course exists
@@ -504,16 +529,24 @@ class ModuleService:
 
     def delete_resource_from_module(self, course_id, module_id, resource_id, owner_id):
 
-        is_allowed_to_delete = self.repository_courses.is_user_allowed_to_create_module(
-            course_id, owner_id
+        has_permissions = self.service_users.check_assistants_permissions(
+            course_id, owner_id, "ModulesAndResources"
+        )
+        is_owner_course = self.repository_courses.is_user_owner(course_id, owner_id)
+        # Here we need to check if its either the owner of the course or an assistant
+        self.logger.debug(
+            f"[MODULE SERVICE] has_permissions as assistant? : {has_permissions} <<<<<======="
+        )
+        self.logger.debug(
+            f"[MODULE SERVICE] is_owner_course? : {is_owner_course} <<<<<======="
         )
 
-        if not is_allowed_to_delete:
+        if not has_permissions and not is_owner_course:
             return error_generator(
-                UNAUTHORIZED,
-                f"User with ID {owner_id} is not authorized to delete this resource",
+                USER_NOT_ALLOWED_TO_CREATE,
+                "User is not allowed to create module",
                 403,
-                "delete_resource_from_module",
+                "add_module_to_course",
             )
 
         # Check if the course exists

@@ -46,9 +46,11 @@ collection_users_data.create_index(["course_id"], unique=True)
 
 """ REPOSITORY CREATION """
 repository_courses_data = CoursesRepository(collection_courses_data, logger)
+
 repository_users_data = UsersDataRepository(
     collection_users_data, collection_approved_courses_students, logger
 )
+
 repository_feedbacks = FeedBackRepository(
     collection_feedback_courses, collection_feedback_students, logger
 )
@@ -60,10 +62,14 @@ repository_modules_and_resources = ModuleRepository(
 
 """ SERVICE CREATION """
 service_courses = CourseService(repository_courses_data, logger)
+
 # Service users requires the course service to check if the course exists and other checks
 service_users = UsersDataService(repository_users_data, service_courses, logger)
 
-service_feedbacks = FeedbackService(repository_feedbacks, service_courses, logger)
+# We also need the reference of service_users to know if the assistant is allowed to make modifications
+service_feedbacks = FeedbackService(
+    repository_feedbacks, service_courses, service_users, logger
+)
 
 
 service_enrollment = EnrollmentService(
@@ -71,5 +77,9 @@ service_enrollment = EnrollmentService(
 )
 
 service_modules = ModuleService(
-    repository_modules_and_resources, repository_courses_data, logger
+    # We need the reference of service_users to know if the assistant is allowed to make modifications
+    repository_modules_and_resources,
+    repository_courses_data,
+    service_users,
+    logger,
 )

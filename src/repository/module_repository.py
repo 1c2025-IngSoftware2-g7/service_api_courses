@@ -61,11 +61,6 @@ class ModuleRepository:
             {"$addToSet": {"modules": module_as_dict["_id"]}},
         )
 
-        """result = self.collection_modules.update_one(
-            {"course_id": ObjectId(course_id)},
-            {"$addToSet": {"modules": module_as_dict}},
-        )"""
-
         self.logger.debug(
             f"[MODULE REPOSITORY] Add module {module} to course {course_id}"
         )
@@ -185,6 +180,12 @@ class ModuleRepository:
                 {"$inc": {"modules.$[elem].position": -1}},
                 array_filters=[{"elem.position": {"$gt": pos_to_remove}}],
             )
+
+        # Now, lets remove the module from the course
+        self.collection_courses.update_one(
+            {"_id": ObjectId(course_id)},
+            {"$pull": {"modules": module_id}},
+        )
 
         self.logger.debug(
             f"[MODULE REPOSITORY] Deleted module {module_id} from course {course_id}"

@@ -3,8 +3,6 @@ from bson import ObjectId
 from models.course import Course
 from datetime import datetime
 
-from src.models.module import Module
-
 
 class CoursesRepository:
     def __init__(self, collection, logger):
@@ -114,6 +112,13 @@ class CoursesRepository:
         else:
             return False
 
+    def is_user_owner(self, course_id, user_id):
+        course = self.get_course_by_id(course_id)
+        if course:
+            return course.get("creator_id", None) == user_id
+        else:
+            return False
+
     def get_all_courses(self):
         courses = self.collection.find()
         return list(courses)
@@ -181,7 +186,7 @@ class CoursesRepository:
         )
         return result.modified_count > 0
 
-    def is_user_allowed_to_create_module(self, course_id, user_id: str = None):
+    """def is_user_allowed_to_create_module(self, course_id, user_id: str = None):
         # A user is allowed to create a module if he is the owner of the course or if he is an assistant
 
         course = self.get_course_by_id(course_id)
@@ -192,13 +197,11 @@ class CoursesRepository:
             if course.get("creator_id", None) == user_id:
                 return True
 
-            # Check if the user is an assistant
-            if user_id in course.get("assistants", []):
-                return True
+            # The check is done on the user part now
 
             return False
         else:
-            return False
+            return False"""
 
     def remove_assistant_from_course(self, course_id, assistant_id):
         result = self.collection.update_one(
@@ -230,18 +233,6 @@ class CoursesRepository:
 
         return None
     """
-
-    def modify_module_in_course(self, module_modified_as_dict, course_id, module_id):
-        self.collection.update_one(
-            {"_id": ObjectId(course_id), "resources._id": module_id},
-            {"$set": {"resources.$": module_modified_as_dict}},
-        )
-
-    def delete_module_from_course(self, course_id, module_id):
-        self.collection.update_one(
-            {"_id": ObjectId(course_id)},
-            {"$pull": {"resources": {"_id": module_id}}},
-        )
 
     def get_course_correlatives(self, course_id):
         course = self.get_course_by_id(course_id)

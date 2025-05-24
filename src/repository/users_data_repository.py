@@ -184,3 +184,157 @@ class UsersDataRepository:
             return None
 
         return list(user["approved_courses"]) if user else None
+
+    def check_assistant_already_in_course(self, course_id, assistant_id):
+        """
+        Check if an assistant is in a course.
+        A user is an assistant if first contains the value "assistant" and it contains as key the course_id.
+
+        """
+
+        self.logger.debug(
+            f"[REPOSITORY] Checking if assistant with ID: {assistant_id} is in course with ID: {course_id}"
+        )
+
+        user = self.collection.find_one({"student_id": assistant_id})
+
+        if not user:
+            self.logger.debug(
+                f"[REPOSITORY] User with ID: {assistant_id} not found in the database, so doesn't exist"
+            )
+            return False
+
+        if "assistant" not in user:
+            self.logger.debug(
+                f"[REPOSITORY] Assistant with ID: {assistant_id} is not in course with ID: {course_id}"
+            )
+            return False
+
+        if user["assistant"].get(course_id) is None:
+            self.logger.debug(
+                f"[REPOSITORY] Assistant with ID: {assistant_id} is not in course with ID: {course_id}"
+            )
+            return False
+
+        return True
+
+    def add_assistant_to_course(self, course_id, assistant_id, perms_as_dict):
+        """
+        Add an assistant to a course.
+        """
+        # There are two scenarios here, the user may exists on the collectio and not have the array "assistant"
+        # Or he alreaady have an assistant array and we need to add the course_id to it.
+
+        self.logger.debug(
+            f"[REPOSITORY] Adding assistant with ID: {assistant_id} to course with ID: {course_id}"
+        )
+
+        user_already_exists = self.collection.find_one({"student_id": assistant_id})
+
+        if not user_already_exists:
+            self.collection.insert_one(
+                {"student_id": assistant_id, "assistant": {course_id: perms_as_dict}}
+            )
+        else:
+            self.collection.update_one(
+                {"student_id": assistant_id},
+                {"$set": {f"assistant.{course_id}": perms_as_dict}},
+            )
+
+    def get_assistant_permissions_for_course(self, course_id, assistant_id):
+        """
+        Get the assistant permissions for a course.
+        """
+        self.logger.debug(
+            f"[REPOSITORY] Getting assistant permissions for course with ID: {course_id} and assistant with ID: {assistant_id}"
+        )
+
+        user = self.collection.find_one({"student_id": assistant_id})
+
+        if not user:
+            self.logger.debug(
+                f"[REPOSITORY] User with ID: {assistant_id} not found in the database"
+            )
+            return None
+
+        if "assistant" not in user or course_id not in user["assistant"]:
+            self.logger.debug(
+                f"[REPOSITORY] Assistant with ID: {assistant_id} is not in course with ID: {course_id}"
+            )
+            return None
+
+        return user["assistant"][course_id]
+
+    def update_assistant_permissions(self, course_id, assistant_id, perms_as_dict):
+        """
+        Update the assistant permissions for a course.
+        """
+        self.logger.debug(
+            f"[REPOSITORY] Updating assistant permissions for course with ID: {course_id} and assistant with ID: {assistant_id}"
+        )
+
+        user = self.collection.find_one({"student_id": assistant_id})
+
+        if not user:
+            self.logger.debug(
+                f"[REPOSITORY] User with ID: {assistant_id} not found in the database"
+            )
+            return False
+
+        if "assistant" not in user or course_id not in user["assistant"]:
+            self.logger.debug(
+                f"[REPOSITORY] Assistant with ID: {assistant_id} is not in course with ID: {course_id}"
+            )
+            return False
+
+        update_result = self.collection.update_one(
+            {"student_id": assistant_id},
+            {"$set": {f"assistant.{course_id}": perms_as_dict}},
+        )
+
+        self.logger.debug(
+            f"[REPOSITORY] Assistant permissions for course with ID: {course_id} and assistant with ID: {assistant_id} updated"
+        )
+
+        return update_result.modified_count > 0
+
+    def remove_assistant_from_course_with_id(self, course_id, assistant_id):
+        """
+        Remove an assistant from a course.
+        """
+        self.logger.debug(
+            f"[REPOSITORY] Removing assistant with ID: {assistant_id} from course with ID: {course_id}"
+        )
+
+        update_result = self.collection.update_one(
+            {"student_id": assistant_id}, {"$unset": {f"assistant.{course_id}": ""}}
+        )
+
+        return update_result.modified_count > 0
+
+    def check_assistants_permissions(self, course_id, assistant_id, permissions):
+        """
+        Check if the assistant has the required permissions.
+        """
+        self.logger.debug(
+            f"[REPOSITORY] Checking if assistant with ID: {assistant_id} has permissions for course with ID: {course_id}"
+        )
+
+        user = self.collection.find_one({"student_id": assistant_id})
+
+        if not user:
+            self.logger.debug(
+                f"[REPOSITORY] User with ID: {assistant_id} not found in the database"
+            )
+            return False
+
+        if "assistant" not in user or course_id not in user["assistant"]:
+            self.logger.debug(
+                f"[REPOSITORY] Assistant with ID: {assistant_id} is not in course with ID: {course_id}"
+            )
+            return False
+
+        assistant_permissions = user["assistant"][course_id].get(permissions, False)
+
+        # Best case scenario, this returns true
+        return assistant_permissions
