@@ -779,3 +779,6 @@ class CourseService:
 
     def remove_student_from_course(self, course_id, student_id):
         self.course_repository.remove_student_from_course(course_id, student_id)
+
+    def get_course_owner(self, course_id):
+        return self.course_repository.get_course_owner(course_id)
