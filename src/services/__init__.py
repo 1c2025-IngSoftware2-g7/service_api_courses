@@ -74,5 +74,9 @@ service_enrollment = EnrollmentService(
 )
 
 service_modules = ModuleService(
-    repository_modules_and_resources, repository_courses_data, logger
+    # We need the reference of service_users to know if the assistant is allowed to make modifications
+    repository_modules_and_resources,
+    repository_courses_data,
+    service_users,
+    logger,
 )

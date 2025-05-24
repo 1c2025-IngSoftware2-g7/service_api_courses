@@ -311,3 +311,30 @@ class UsersDataRepository:
         )
 
         return update_result.modified_count > 0
+
+    def check_assistants_permissions(self, course_id, assistant_id, permissions):
+        """
+        Check if the assistant has the required permissions.
+        """
+        self.logger.debug(
+            f"[REPOSITORY] Checking if assistant with ID: {assistant_id} has permissions for course with ID: {course_id}"
+        )
+
+        user = self.collection.find_one({"student_id": assistant_id})
+
+        if not user:
+            self.logger.debug(
+                f"[REPOSITORY] User with ID: {assistant_id} not found in the database"
+            )
+            return False
+
+        if "assistant" not in user or course_id not in user["assistant"]:
+            self.logger.debug(
+                f"[REPOSITORY] Assistant with ID: {assistant_id} is not in course with ID: {course_id}"
+            )
+            return False
+
+        assistant_permissions = user["assistant"][course_id].get(permissions, False)
+
+        # Best case scenario, this returns true
+        return assistant_permissions

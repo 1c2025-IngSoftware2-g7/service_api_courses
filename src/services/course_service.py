@@ -126,11 +126,9 @@ class CourseService:
         try:
 
             # Lets check beforehand if the creator of the course is the same as the one who is trying to update it
-            owner_from_db = self.course_repository.get_course_owner(course_id)
-
-            if owner_from_db != owner_id:
+            if not self.course_repository.is_user_owner(course_id, owner_id):
                 self.logger.debug(
-                    f"[SERVICE] Update: owner with id {owner_from_db} is not the same as {owner_id}, return error"
+                    f"[SERVICE] Update: owner with id {owner_id} is not the owner of the course with id {course_id}, return error"
                 )
                 return error_generator(
                     UNAUTHORIZED,
@@ -173,11 +171,9 @@ class CourseService:
 
     def delete_course(self, course_id, owner_id):
         try:
-            course_owner_from_db = self.course_repository.get_course_owner(course_id)
-
-            if course_owner_from_db != owner_id:
+            if not self.course_repository.is_user_owner(course_id, owner_id):
                 self.logger.debug(
-                    f"[SERVICE] Delete: owner with id {course_owner_from_db} is not the same as {owner_id}, return error"
+                    f"[SERVICE] Delete: owner with id {owner_id} is not the owner of the course with id {course_id}, return error"
                 )
                 return error_generator(
                     UNAUTHORIZED,
@@ -535,68 +531,6 @@ class CourseService:
                 "add_module_to_course",
             )
 
-    def delete_module_from_course(self, course_id, module_id, owner_id):
-        try:
-            # Lets check beforehand if the course exists
-            course = self.course_repository.get_course_by_id(course_id)
-            if not course:
-                return error_generator(
-                    COURSE_NOT_FOUND,
-                    f"Course with ID {course_id} not found",
-                    404,
-                    "delete_module_from_course",
-                )
-
-            # Lets check beforehand if the module exists
-            module = self.course_repository.get_module_by_id(course_id, module_id)
-            if not module:
-                return error_generator(
-                    COURSE_NOT_FOUND,
-                    f"Module with ID {module_id} not found in course with ID {course_id}",
-                    404,
-                    "delete_module_from_course",
-                )
-
-            is_allowed_to_update = (
-                self.course_repository.is_user_allowed_to_create_module(
-                    course_id, owner_id
-                )
-            )
-
-            if not is_allowed_to_update:
-                self.logger.debug(
-                    f"[SERVICE] DELETE MODULE: user with id {owner_id} is not the owner of the course with id {course_id}, return error"
-                )
-                return error_generator(
-                    UNAUTHORIZED,
-                    f"User with ID {owner_id} is not authorized to delete this module",
-                    403,
-                    "delete_module_from_course",
-                )
-
-            self.course_repository.delete_module_from_course(course_id, module_id)
-
-            return {
-                "response": {
-                    "type": "about:blank",
-                    "title": MODULE_MODIFIED,
-                    "status": 200,
-                    "detail": f"Module with ID {module_id} deleted from course with ID {course_id}",
-                    "instance": f"/courses/modules/{course_id}",
-                },
-                "code_status": 200,
-            }
-        except Exception as e:
-            self.logger.error(
-                f"[Course Service Error] Error deleting module from course: {e}"
-            )
-            return error_generator(
-                INTERNAL_SERVER_ERROR,
-                f"An error occurred while deleting the module from the course: {str(e)}",
-                500,
-                "delete_module_from_course",
-            )
-
     def get_paginated_courses(self, offset, max_per_page):
         try:
             courses = self.course_repository.get_paginated_courses(offset, max_per_page)
@@ -780,5 +714,5 @@ class CourseService:
     def remove_student_from_course(self, course_id, student_id):
         self.course_repository.remove_student_from_course(course_id, student_id)
 
-    def get_course_owner(self, course_id):
-        return self.course_repository.get_course_owner(course_id)
+    def is_user_owner_of_course(self, course_id, user_id):
+        return self.course_repository.is_user_owner(course_id, user_id)

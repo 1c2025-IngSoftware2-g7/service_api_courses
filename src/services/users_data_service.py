@@ -12,10 +12,10 @@ from headers import (
     MISSING_FIELDS,
     USER_NOT_ENROLLED_INTO_THE_COURSE,
 )
-from src.models.course import Course
-from src.models.permissions import AssistantPermissions
-from src.repository.users_data_repository import UsersDataRepository
-from src.services.course_service import CourseService
+from models.course import Course
+from models.permissions import AssistantPermissions
+from repository.users_data_repository import UsersDataRepository
+from services.course_service import CourseService
 
 
 class UsersDataService:
@@ -328,9 +328,7 @@ class UsersDataService:
             f"[UsersDataService] Adding assistant with ID: {assistant_id} to course with ID: {course_id}"
         )
 
-        is_owner_of_course = self.service_courses.get_course_owner(course_id)
-
-        if is_owner_of_course != owner_id:
+        if not self.service_courses.is_user_owner_of_course(course_id, owner_id):
             return error_generator(
                 MISSING_FIELDS,
                 "You are not the owner of the course",
@@ -406,9 +404,7 @@ class UsersDataService:
             f"[UsersDataService] Attemptying to modify ID: {assistant_id} to course with ID: {course_id}"
         )
 
-        is_owner_of_course = self.service_courses.get_course_owner(course_id)
-
-        if is_owner_of_course != owner_id:
+        if not self.service_courses.is_user_owner_of_course(course_id, owner_id):
             return error_generator(
                 MISSING_FIELDS,
                 "You are not the owner of the course",
@@ -505,9 +501,8 @@ class UsersDataService:
     def remove_assistant_from_course(
         self, course_id: str, assistant_id: str, owner_id: str
     ):
-        is_owner_of_course = self.service_courses.get_course_owner(course_id)
 
-        if is_owner_of_course != owner_id:
+        if not self.service_courses.is_user_owner_of_course(course_id, owner_id):
             return error_generator(
                 MISSING_FIELDS,
                 "You are not the owner of the course",
@@ -577,3 +572,8 @@ class UsersDataService:
                 500,
                 "remove_assistant_from_course",
             )
+
+    def check_assistants_permissions(self, course_id, attempt_user_id, permission: str):
+        return self.repository.check_assistants_permissions(
+            course_id, attempt_user_id, permission
+        )
