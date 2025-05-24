@@ -66,7 +66,10 @@ service_courses = CourseService(repository_courses_data, logger)
 # Service users requires the course service to check if the course exists and other checks
 service_users = UsersDataService(repository_users_data, service_courses, logger)
 
-service_feedbacks = FeedbackService(repository_feedbacks, service_courses, logger)
+# We also need the reference of service_users to know if the assistant is allowed to make modifications
+service_feedbacks = FeedbackService(
+    repository_feedbacks, service_courses, service_users, logger
+)
 
 
 service_enrollment = EnrollmentService(

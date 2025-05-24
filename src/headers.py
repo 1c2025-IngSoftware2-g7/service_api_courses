@@ -11,6 +11,7 @@ ASSISTANT_MODIFIED_CORRECTLY = "Assistant modified correctly"
 ASSISTANT_ADDED = "Assistant added successfully"
 INTERNAL_SERVER_ERROR = "Internal Server Error"
 FEEDBACK_CREATED = "Feedback created successfully"
+USER_NOT_ALLOWED_TO_CREATE_FEEDBACK = "User not allowed to create feedback"
 USER_ENROLLED = "User enrolled successfully"
 USER_NOT_ENROLLED_INTO_THE_COURSE = "User not enrolled into the course"
 USER_HAS_NOT_ENOUGH_CORRELATIVES_APPROVED_TO_ENROLL = (
