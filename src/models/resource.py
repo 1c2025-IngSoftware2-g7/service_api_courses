@@ -15,15 +15,29 @@ from bson import ObjectId
 
 
 class Resource:
-    def __init__(self, source: str, position: int, id: str = None):
+    def __init__(
+        self,
+        title: str,
+        description: str,
+        mimetype: str,
+        source: str,
+        position: int,
+        id: str = None,
+    ):
         self.id = ObjectId() if id is None else ObjectId(id)
+        self.title = title
+        self.description = description
+        self.mimetype = mimetype
         self.source = source
         self.position = position
 
     def to_dict(self):
         return {
             "_id": str(self.id),
+            "title": self.title,
+            "description": self.description,
             "source": self.source,
+            "mimetype": self.mimetype,
             "position": self.position,
         }
 
@@ -37,6 +51,9 @@ class Resource:
     def from_dict(data):
         return Resource(
             id=data.get("_id"),
+            title=data.get("title"),
+            description=data.get("description"),
+            mimetype=data.get("mimetype"),
             source=data.get("source"),
             position=data.get("position"),
         )
