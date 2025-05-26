@@ -374,10 +374,18 @@ paths:
             schema:
               type: object
               required:
+                - title
+                - mimetype
                 - source
                 - id_creator
               properties:
+                title:
+                  type: string
+                mimetype:
+                  type: string
                 source:
+                  type: string
+                description:
                   type: string
                 id_creator:
                   type: string
