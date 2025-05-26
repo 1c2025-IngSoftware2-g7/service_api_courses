@@ -125,8 +125,7 @@ def modify_module(course_id=None, module_id=None):
     Module comes as a json with
     title = title
     description = description
-    url = url
-    type = type
+    position = position 
     """
 
     logger.debug(

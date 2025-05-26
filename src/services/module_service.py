@@ -475,14 +475,17 @@ class ModuleService:
                 "add_resource_to_module",
             )
 
-        required_fields = ["source"]
+        required_fields = ["title", "source", "mimetype"]
 
-        # Lets drop the fields that are not in the required fields
+        optional_fields = ["description"]
+
+        # Lets drop the fields that are not in the required fields or optional fields
         for field in list(data.keys()):
-            if field not in required_fields:
+            if field not in required_fields and field not in optional_fields:
+                self.logger.debug(
+                    f"[MODULE SERVICE] add_resource_to_module: field {field} not found in data, so we drop it"
+                )
                 del data[field]
-            else:
-                data[field] = data[field]
 
         # Lets get the new position
 
