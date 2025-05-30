@@ -65,3 +65,39 @@ def delete_task(task_id=None):
     result = service_tasks.delete_task(task_id)
 
     return result["response"], result["code_status"]
+
+
+@tasks_bp.get("/course/<string:course_id>")
+def get_tasks_by_course(course_id=None):
+    """
+    Get all tasks for a specific course
+    Optional: Filter by status (passed as query parameter)
+    """
+    if not course_id:
+        error = error_generator(
+            MISSING_FIELDS, "Course ID is required", 400, "get_tasks_by_course"
+        )
+        return error["response"], error["code_status"]
+
+    status = request.args.get("status", None)
+    logger.debug(
+        f"Getting tasks for course {course_id} with status filter: {status}")
+
+    result = service_tasks.get_tasks_by_course(course_id, status)
+    return result["response"], result["code_status"]
+
+
+@tasks_bp.get("/<string:task_id>")
+def get_task_by_id(task_id=None):
+    """
+    Get a specific task by ID
+    """
+    if not task_id:
+        error = error_generator(
+            MISSING_FIELDS, "Task ID is required", 400, "get_task_by_id"
+        )
+        return error["response"], error["code_status"]
+
+    logger.debug(f"Getting task with ID: {task_id}")
+    result = service_tasks.get_task_by_id(task_id)
+    return result["response"], result["code_status"]

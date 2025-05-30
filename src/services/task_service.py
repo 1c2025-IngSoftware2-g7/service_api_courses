@@ -183,3 +183,62 @@ class TaskService:
                 500,
                 "delete_task"
             )
+
+
+    def get_tasks_by_course(self, course_id: str, status: str = None):
+        try:
+            # Validar que el curso exista
+            course = self.course_service.get_course_by_id(course_id)
+            if not course or course["code_status"] != 200:
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    "Course not found",
+                    404,
+                    "get_tasks_by_course"
+                )
+
+            # Construir query de búsqueda
+            query = {"course_id": course_id}
+            if status:
+                query["status"] = status
+
+            # Obtener tareas
+            tasks = self.repository.get_tasks_by_query(query)
+
+            return {
+                "response": [task.to_dict() for task in tasks],
+                "code_status": 200
+            }
+        except Exception as e:
+            self.logger.error(f"Error getting tasks by course: {str(e)}")
+            return error_generator(
+                "Internal server error",
+                "An error occurred while getting tasks",
+                500,
+                "get_tasks_by_course"
+            )
+
+
+    def get_task_by_id(self, task_id: str):
+        try:
+            task = self.repository.get_task_by_id(task_id)
+            if not task:
+                return error_generator(
+                    "Task not found",
+                    "The specified task does not exist",
+                    404,
+                    "get_task_by_id"
+                )
+
+            return {
+                "response": task.to_dict(),
+                "code_status": 200
+            }
+        except Exception as e:
+            self.logger.error(f"Error getting task: {str(e)}")
+            return error_generator(
+                "Internal server error",
+                "An error occurred while getting the task",
+                500,
+                "get_task_by_id"
+            )

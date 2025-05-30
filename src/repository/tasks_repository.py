@@ -48,3 +48,11 @@ class TasksRepository:
             self.logger.error(f"Error deleting task {task_id}: {str(e)}")
             raise e
 
+
+    def get_tasks_by_query(self, query: dict):
+        try:
+            tasks = self.collection.find(query)
+            return [Task.from_dict(task) for task in tasks]
+        except Exception as e:
+            self.logger.error(f"Error getting tasks by query: {str(e)}")
+            raise e
