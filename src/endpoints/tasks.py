@@ -112,7 +112,7 @@ def submit_task(uuid_task):
     try:
         data = request.json
         if 'uuid_student' not in data:
-            raise BadRequest("The uuid_student field is missing from the form.")
+            raise BadRequest("The uuid_student field is missing from the request.")
         if 'attachment_links' not in data:
             raise BadRequest("The attachment_links is missing from the request.")
 

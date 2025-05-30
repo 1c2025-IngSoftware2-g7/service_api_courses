@@ -56,7 +56,8 @@ class TasksRepository:
             raise e
         
     def get_task_with_submission_for_student(self, task_id, student_id):
-        task = self.get_task_by_id(task_id)
+        query = {"_id": task_id}
+        task = self.get_tasks_by_query(query)[0]
         if not task:
             return None
 
@@ -70,8 +71,6 @@ class TasksRepository:
         return task
 
     def add_task_submission(self, task_id, student_id, attachment_links: list[str]):
-        if not isinstance(task_id, ObjectId):
-            task_id = ObjectId(task_id)
 
         submission = Submission(attachment_links=attachment_links, feedback=None)
 
