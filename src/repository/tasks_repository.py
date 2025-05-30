@@ -22,7 +22,7 @@ class TasksRepository:
 
     def get_task_by_id(self, task_id: str):
         try:
-            task = self.collection.find_one({"_id": ObjectId(task_id)})
+            task = self.collection.find_one({"_id": task_id})
             return Task.from_dict(task) if task else None
         except Exception as e:
             logger.error(f"Error getting task {task_id}: {str(e)}")
@@ -31,7 +31,7 @@ class TasksRepository:
     def update_task(self, task_id: str, update_data: dict):
         try:
             result = self.collection.update_one(
-                {"_id": ObjectId(task_id)},
+                {"_id": task_id},
                 {"$set": update_data}
             )
             return result.modified_count > 0
@@ -42,7 +42,7 @@ class TasksRepository:
 
     def delete_task(self, task_id: str):
         try:
-            result = self.collection.delete_one({"_id": ObjectId(task_id)})
+            result = self.collection.delete_one({"_id": task_id})
             return result.deleted_count > 0
         except Exception as e:
             self.logger.error(f"Error deleting task {task_id}: {str(e)}")

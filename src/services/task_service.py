@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from error.error import error_generator
 from src.headers import MISSING_FIELDS, COURSE_NOT_FOUND
 from models.task import Task, TaskStatus, TaskType
@@ -70,7 +70,12 @@ class TaskService:
     def update_task(self, task_id: str, data: dict):
         try:
             # Verificar que la tarea exista
-            existing_task = self.repository.get_task_by_id(task_id)
+            query = {"_id": task_id}
+
+            # Obtener tareas
+            existing_task = self.repository.get_tasks_by_query(query)[0]
+            # Verificar que la tarea exista
+            #existing_task = self.repository.get_task_by_id(task_id)
             if not existing_task:
                 return error_generator(
                     "Task not found",
@@ -143,9 +148,13 @@ class TaskService:
 
 
     def delete_task(self, task_id: str):
-        try:
+        #try:
             # Verificar que la tarea exista
-            existing_task = self.repository.get_task_by_id(task_id)
+            query = {"_id": task_id}
+
+            # Obtener tareas
+            existing_task = self.repository.get_tasks_by_query(query)[0]
+            #existing_task = self.repository.get_task_by_id(task_id)
             if not existing_task:
                 return error_generator(
                     "Task not found",
@@ -175,14 +184,14 @@ class TaskService:
                     400,
                     "delete_task"
                 )
-        except Exception as e:
-            self.logger.error(f"Error deleting task: {str(e)}")
-            return error_generator(
-                "Internal server error",
-                "An error occurred while deleting the task",
-                500,
-                "delete_task"
-            )
+        # except Exception as e:
+        #     self.logger.error(f"Error deleting task: {str(e)}")
+        #     return error_generator(
+        #         "Internal server error",
+        #         "An error occurred while deleting the task",
+        #         500,
+        #         "delete_task"
+        #     )
 
 
     def get_tasks_by_course(self, course_id: str, status: str = None):
@@ -221,7 +230,13 @@ class TaskService:
 
     def get_task_by_id(self, task_id: str):
         try:
-            task = self.repository.get_task_by_id(task_id)
+
+            # Construir query de búsqueda
+            query = {"_id": task_id}
+
+            # Obtener tareas
+            task = self.repository.get_tasks_by_query(query)[0]
+            #task = self.repository.get_task_by_id(task_id)
             if not task:
                 return error_generator(
                     "Task not found",
