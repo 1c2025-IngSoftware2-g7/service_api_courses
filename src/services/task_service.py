@@ -148,7 +148,7 @@ class TaskService:
 
 
     def delete_task(self, task_id: str):
-        #try:
+        try:
             # Verificar que la tarea exista
             query = {"_id": task_id}
 
@@ -184,14 +184,14 @@ class TaskService:
                     400,
                     "delete_task"
                 )
-        # except Exception as e:
-        #     self.logger.error(f"Error deleting task: {str(e)}")
-        #     return error_generator(
-        #         "Internal server error",
-        #         "An error occurred while deleting the task",
-        #         500,
-        #         "delete_task"
-        #     )
+        except Exception as e:
+            self.logger.error(f"Error deleting task: {str(e)}")
+            return error_generator(
+                "Internal server error",
+                "An error occurred while deleting the task",
+                500,
+                "delete_task"
+            )
 
 
     def get_tasks_by_course(self, course_id: str, status: str = None):
