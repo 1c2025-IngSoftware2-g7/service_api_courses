@@ -4,8 +4,8 @@ from flask_cors import CORS
 
 # Importing the blueprints..
 from endpoints.courses import courses_bp
-from endpoints.modules import modules_bp
 from endpoints.tasks import tasks_bp
+from endpoints.modules_and_resources import modules_bp, resources_bp
 from endpoints.user_endpoints import courses_enrollment_bp, users_approvation_bp
 from endpoints.favourite_courses import courses_favourites
 from endpoints.assistants import courses_assistants
@@ -34,5 +34,6 @@ courses_app.register_blueprint(courses_assistants)
 courses_app.register_blueprint(feedbacks_bp)
 courses_app.register_blueprint(users_approvation_bp)
 courses_app.register_blueprint(tasks_bp)
+courses_app.register_blueprint(resources_bp)
 
 print(courses_app.url_map)

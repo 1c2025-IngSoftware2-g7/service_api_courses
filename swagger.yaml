@@ -3,12 +3,30 @@ info:
   title: Course API
   version: 1.0.0
 
+tags:
+  - name: Health
+    description: Health Checkpoints for the service
+  - name: Courses
+    description: Operations related to courses
+  - name: Enrollment
+    description: Operations related to enrollment to a course
+  - name: Modules & Resources
+    description: Operations related to modules and resources
+  - name: Favourites
+    description: Operations related to favourites courses for student
+  - name: Feedback
+    description: Operations related to feedback from student to course or professor to student
+  - name: Assistants
+    description: Operations related to assistant for a course
+
 servers:
   - url: https://service-api-courses.onrender.com
 
 paths:
   /courses/health:
     get:
+      tags:
+        - Health
       summary: Health check
       responses:
         '200':
@@ -16,11 +34,15 @@ paths:
 
   /courses:
     get:
+      tags:
+        - Courses
       summary: Get all courses
       responses:
         '200':
           description: A list of courses
     post:
+      tags:
+        - Courses
       summary: Create a new course
       requestBody:
         required: true
@@ -34,6 +56,9 @@ paths:
 
   /courses/{course_id}:
     get:
+      tags:
+        - Courses
+        
       summary: Get a course by ID
       parameters:
         - name: course_id
@@ -45,6 +70,9 @@ paths:
         '200':
           description: Course retrieved
     put:
+      tags:
+        - Courses
+        
       summary: Update a course by ID
       parameters:
         - name: course_id
@@ -67,6 +95,8 @@ paths:
         '200':
           description: Course updated
     delete:
+      tags:
+        - Courses
       summary: Delete a course by ID
       parameters:
         - name: course_id
@@ -85,6 +115,8 @@ paths:
 
   /courses/search:
     get:
+      tags:
+        - Courses
       summary: Search for a course
       parameters:
         - name: q
@@ -98,6 +130,9 @@ paths:
 
   /courses/{course_id}/enroll:
     post:
+      tags:
+        - Courses
+        - Enrollment
       summary: Enroll a student in a course
       parameters:
         - name: course_id
@@ -122,6 +157,8 @@ paths:
 
   /courses_owned/{owner_id}:
     get:
+      tags:
+        - Courses
       summary: Get courses owned by a user
       parameters:
         - name: owner_id
@@ -147,6 +184,10 @@ paths:
           
   /courses/enrolled_courses/{student_id}:
     get:
+      tags:
+        - Courses
+        - Enrollment
+        
       summary: Get courses a student is enrolled in
       parameters:
         - name: student_id
@@ -160,6 +201,8 @@ paths:
 
   /courses/{course_id}/approve:
     post:
+      tags:
+        - Courses
       summary: Approve a course
       parameters:
         - name: course_id
@@ -183,7 +226,24 @@ paths:
           description: Course approved
     
   /courses/{course_id}/modules:
+    get: 
+      tags: 
+        - Modules & Resources
+      summary: Get all modules for a course (Including his resources)
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of modules
+
     post:
+      tags:
+        - Modules & Resources
+        
       summary: Add a module to a course
       parameters:
         - name: course_id
@@ -201,8 +261,30 @@ paths:
         '200':
           description: Module added
 
+
   /courses/{course_id}/modules/{module_id}:
+    get:
+      tags:
+        - Modules & Resources
+        
+      summary: Get a module by ID
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: module_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Module retrieved
     put:
+      tags:
+        - Modules & Resources
       summary: Update a module in a course
       parameters:
         - name: course_id
@@ -227,6 +309,8 @@ paths:
   
   /courses/{course_id}/modules/{module_id}/{owner_id}:
     delete:
+      tags:
+        - Modules & Resources
       summary: Delete a module from a course
       parameters:
         - name: course_id
@@ -248,8 +332,126 @@ paths:
         '200':
           description: Module deleted
 
+  /courses/{course_id}/modules/{module_id}/resources:
+    get:
+      tags: 
+        - Modules & Resources
+      summary: Get all resources for a module
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: module_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of resources
+    post:
+      tags:
+        - Modules & Resources
+      summary: Add a resource to a module
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: module_id
+          in: path
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - mimetype
+                - source
+                - id_creator
+              properties:
+                title:
+                  type: string
+                mimetype:
+                  type: string
+                source:
+                  type: string
+                description:
+                  type: string
+                id_creator:
+                  type: string
+      responses:
+        '200':
+          description: Resource added
+
+  /courses/{course_id}/modules/{module_id}/resources/{resource_id}:
+    get:
+      tags:
+        - Modules & Resources
+      summary: Get a resource by ID
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: module_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: resource_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resource retrieved
+  
+  /courses/{course_id}/modules/{module_id}/resources/{resource_id}/{owner_id}:
+    delete:
+      tags:
+        - Modules & Resources
+      summary: Delete a resource from a module
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: module_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: resource_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: owner_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resource deleted
+
   /courses/paginated:
     get:
+      tags:
+        - Courses
       summary: Get courses with pagination
       parameters:
         - name: offset
@@ -270,6 +472,8 @@ paths:
   
   /courses/favourites/:
     post:
+      tags: 
+        - Favourites
       summary: Add a course to a student's favourites
       requestBody:
         required: true
@@ -282,6 +486,9 @@ paths:
           description: Course added to favourites
           
     delete:
+      tags: 
+        - Favourites
+        
       summary: Remove a course from favourites
       parameters:
         - in: query
@@ -300,6 +507,9 @@ paths:
   
   /courses/favourites/{student_id}:
     get:
+      tags: 
+        - Favourites
+        
       summary: Get all favourite courses for a student
       parameters:
         - name: student_id
@@ -325,6 +535,9 @@ paths:
   
   /courses/favourites/search_favourite_for_id/{student_id}:
     get:
+      tags: 
+        - Favourites
+        
       summary: Search for a specific favourite course by ID paginated (starts from zero)
       parameters:
         - name: student_id
@@ -350,6 +563,8 @@ paths:
 
   /courses/feedback/add_feedback_to_course:
     post:
+      tags:
+        - Feedback
       summary: Add feedback to a course
       requestBody:
         required: true
@@ -371,6 +586,9 @@ paths:
   
   /courses/feedback/get_course_feedback/{course_id}:
     get:
+      tags:
+        - Feedback
+        
       summary: Get feedback for a course
       parameters:
         - name: course_id
@@ -384,6 +602,9 @@ paths:
 
   /courses/feedback/add_feedback_to_student:
     post:
+      tags:
+        - Feedback
+        
       summary: Add feedback to a student
       requestBody:
         required: true
@@ -411,6 +632,8 @@ paths:
 
   /courses/assistants/{course_id}:
     post:
+      tags:
+        - Assistants
       summary: Add an assistant to a course
       parameters:
         - name: course_id
@@ -423,21 +646,24 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - assistant_id
-                - owner id
-              properties:
-                assistant_id:
-                  type: string
-                owner_id:
-                  type: string
+              $ref: '#/components/schemas/AssistantPermission'
+
       responses:
         '200':
           description: Assistant added
+        '400':
+          description: Missing parameters
+        '409':
+          description: Assistant already exists
+        '403':
+          description: User is not the owner of the course
+        '404':
+          description: Course not found
 
-  /<string:course_id>/delete_assistant/<string:assistant_id>/with_owner_id/<string:owner_id>:
+  /{course_id}/delete_assistant/{assistant_id}/with_owner_id/{owner_id}:
     delete:
+      tags:
+        - Assistants
       summary: Remove an assistant from a course
       parameters:
         - name: course_id
@@ -458,30 +684,12 @@ paths:
       responses:
         '200':
           description: Assistant removed
-
-  /courses/{string:course_id}/approve:
-    post:
-      summary: Approve a course for a student
-      parameters:
-        - name: course_id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - student_id
-              properties:
-                student_id:
-                  type: string
-      responses:
-        '200':
-          description: Course approved
+        '400':
+          description: Missing parameters
+        '403':
+          description: User is not the owner to remove the assistant
+        '404':
+          description: Course or assistant not found
 
 
 components:
@@ -554,23 +762,14 @@ components:
       required:
         - title
         - description
-        - url
-        - type
-        - owner_id
+        - id_creator
       properties:
         title:
           type: string
         description:
           type: string
-        url:
-          type: string
-        type:
-          type: string
         owner_id:
           type: string
-        date_created:
-          type: string
-          format: date-time
 
     ModuleUpdate:
       type: object
@@ -581,12 +780,12 @@ components:
         description:
           type: string
           description: Optional
-        url:
-          type: string
+        position:
+          type: integer
           description: Optional
-        type:
+        modifier_id:
           type: string
-          description: Optional
+          description: Obligatory
 
     FavouriteCourseInput:
       type: object
@@ -598,3 +797,33 @@ components:
           type: string
         course_id:
           type: string
+
+    AssistantPermission:
+      type: object
+      properties:
+        assistant_id:
+          type: string
+          description: The ID of the assistant
+        owner_id:
+          type: string
+          example: The ID of the course owner
+        permissions:
+          type: object
+          properties:
+            ModulesAndResources:
+              type: boolean
+              description: "Can manage modules and resources"
+            Exams:
+              type: boolean
+              description: "Can manage exams"
+            Tasks:
+              type: boolean
+              description: "Can manage tasks"
+            Feedbacks:
+              type: boolean
+              description: "Can manage feedbacks"
+
+      required:
+        - assistant_id
+        - owner_id
+        - permissions

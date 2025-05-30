@@ -2,17 +2,27 @@ import datetime
 
 from flask import jsonify
 from error.error import error_generator
-from src.headers import COURSE_NOT_FOUND, FEEDBACK_CREATED, INTERNAL_SERVER_ERROR
+from src.headers import (
+    COURSE_NOT_FOUND,
+    FEEDBACK_CREATED,
+    INTERNAL_SERVER_ERROR,
+    USER_NOT_ALLOWED_TO_CREATE_FEEDBACK,
+)
 from src.models.feedback import FeedbackCourse, FeedbackStudent
 from src.repository.feedback_repository import FeedBackRepository
 
 
 class FeedbackService:
     def __init__(
-        self, repository_feedbacks: FeedBackRepository, service_courses, logger
+        self,
+        repository_feedbacks: FeedBackRepository,
+        service_courses,
+        service_users,
+        logger,
     ):
         self.repository_feedbacks = repository_feedbacks
         self.service_courses = service_courses
+        self.service_users = service_users
         self.logger = logger
 
     def create_course_feedback(self, course_id, feedback, rating):
@@ -93,6 +103,24 @@ class FeedbackService:
 
     def create_student_feedback(self, student_id, course_id, teacher_id, feedback):
         try:
+
+            is_teacher_owner = self.service_courses.is_user_owner_of_course(
+                course_id, teacher_id
+            )
+            is_assistant_with_permissions = (
+                self.service_users.check_assistants_permissions(
+                    course_id, teacher_id, "Feedbacks"
+                )
+            )
+
+            if not is_teacher_owner and not is_assistant_with_permissions:
+                return error_generator(
+                    "You are not allowed to create feedback to students to this course",
+                    USER_NOT_ALLOWED_TO_CREATE_FEEDBACK,
+                    403,
+                    "create_student_feedback",
+                )
+
             # Check if the student exists
             feedback_object = FeedbackStudent(
                 student_id=student_id,
