@@ -212,7 +212,15 @@ class TaskService:
             # Construir query de búsqueda
             query = {"course_id": course_id}
             if status:
-                query["status"] = status
+                # Validar que el status sea uno de los permitidos
+                if status.lower() not in [s.value for s in TaskStatus]:
+                    return error_generator(
+                        "Invalid status",
+                        f"Status must be one of: {[s.value for s in TaskStatus]}",
+                        400,
+                        "get_tasks_by_course"
+                    )
+                query["status"] = status.lower()
 
             # Obtener tareas
             tasks = self.repository.get_tasks_by_query(query)
