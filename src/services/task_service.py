@@ -1,4 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from google.cloud import storage
+import os
+
 from error.error import error_generator
 from src.headers import MISSING_FIELDS, COURSE_NOT_FOUND
 from models.task import Task, TaskStatus, TaskType
@@ -257,3 +260,45 @@ class TaskService:
                 500,
                 "get_task_by_id"
             )
+
+    def submit_task(self, task_id, student_id, attachment_links):
+        return self.repository.add_task_submission(task_id, student_id, attachment_links)
+    
+    def upload_task(self, uuid, num_task, file):
+        file_link = self._upload_element(uuid, num_task, file)
+        return file_link
+
+    def _upload_element(self, uuid, num, file):
+        if file.filename == '':
+            return FileNotFoundError("No selected file: Missing file.filename in the request")
+
+        url = self._save_file(uuid, num, file)
+        self.logger.info(f"File saved in Google Cloud Storage ")
+
+        return url
+
+    def _save_file(self, uuid, num, file):
+        """Save the file to GCP."""
+        bucket = self._get_gcp_bucket()
+        ext = os.path.splitext(file.filename)[1] # Extract extension (.pdf, .jpg, .png, etc.)
+        filename = f"{uuid}{num}{ext}"
+        blob = bucket.blob(filename)
+        blob.upload_from_file(file, content_type=file.content_type)
+        url = blob.generate_signed_url(
+            version="v4",
+            expiration=timedelta(minutes=15),
+            method="GET",
+        )
+        return url
+
+    def _get_gcp_bucket(self):
+        # Reconstruct JSON file from environment variable:
+        credentials_json = os.getenv('GOOGLE_CREDENTIALS_JSON')
+        json_path = '/tmp/gcs-key.json'
+        with open(json_path, 'w') as f:
+            f.write(credentials_json)
+
+        # Initialize GCS:
+        storage_client = storage.Client.from_service_account_json(json_path)
+        bucket = storage_client.bucket(os.getenv('GCS_BUCKET_NAME'))
+        return bucket

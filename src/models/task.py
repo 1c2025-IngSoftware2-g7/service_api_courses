@@ -2,6 +2,8 @@ from datetime import datetime
 from bson import ObjectId
 from enum import Enum
 
+from models.submission import Submission
+
 
 class TaskStatus(str, Enum):
     INACTIVE = "inactivo"
@@ -25,6 +27,7 @@ class Task:
         status: TaskStatus = TaskStatus.INACTIVE,
         task_type: TaskType = TaskType.TASK,
         file_url: str = None,
+        submissions: dict[str, Submission] = None,
         _id: ObjectId = None,
         created_at: datetime = datetime.now(),
         updated_at: datetime = datetime.now()
@@ -38,6 +41,7 @@ class Task:
         self.status = status
         self.task_type = task_type
         self.file_url = file_url
+        self.submissions = submissions if submissions is not None else {}
         self.created_at = created_at
         self.updated_at = updated_at
 
@@ -52,12 +56,16 @@ class Task:
             "status": self.status.value,
             "task_type": self.task_type.value,
             "file_url": self.file_url,
+            "submissions": {k: v.to_dict() for k, v in self.submissions.items()},
             "created_at": self.created_at,
             "updated_at": self.updated_at
         }
 
     @staticmethod
     def from_dict(data):
+        submissions_data = data.get("submissions", {})
+        submissions = {k: Submission.from_dict(v) for k, v in submissions_data.items()}
+
         return Task(
             _id=ObjectId(data["_id"]) if data.get("_id") else None,
             title=data["title"],
@@ -68,6 +76,7 @@ class Task:
             status=TaskStatus(data.get("status", TaskStatus.INACTIVE)),
             task_type=TaskType(data.get("task_type", TaskType.TASK)),
             file_url=data.get("file_url"),
+            submissions=submissions,
             created_at=data.get("created_at", datetime.now()),
             updated_at=data.get("updated_at", datetime.now())
         )
