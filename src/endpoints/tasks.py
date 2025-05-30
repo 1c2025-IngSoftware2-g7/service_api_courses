@@ -141,17 +141,17 @@ def upload_task():
     try:
         if 'uuid' not in request.form and 'task_number' not in request.form:
             raise BadRequest("The uuid field is missing from the form.")
-        if 'file' not in request.files:
-            raise BadRequest("The file is missing from the request.")
+        if 'attachment' not in request.files:
+            raise BadRequest("The attachment is missing from the request.")
 
         uuid = request.form.get('uuid')
         task_number = request.form.get('task_number')
-        file = request.files.get('file')
+        attachment = request.files.get('attachment')
 
-        if not file or file.filename == '':
-            raise FileNotFoundError("The file is empty or has no name.")
+        if not attachment or attachment.filename == '':
+            raise FileNotFoundError("The attachment is empty or has no name.")
 
-        task_link = service_tasks.upload_task(uuid, task_number, file)
+        task_link = service_tasks.upload_task(uuid, task_number, attachment)
         return jsonify({"url": task_link}), 200
 
     except BadRequest as e:
