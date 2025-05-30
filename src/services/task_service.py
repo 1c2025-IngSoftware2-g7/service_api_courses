@@ -1,5 +1,4 @@
 import datetime
-from datetime import timedelta
 from google.cloud import storage
 import os
 
@@ -269,7 +268,7 @@ class TaskService:
         blob.upload_from_file(file, content_type=file.content_type)
         url = blob.generate_signed_url(
             version="v4",
-            expiration=timedelta(minutes=15),
+            expiration=datetime.timedelta(minutes=15),
             method="GET",
         )
         return url
