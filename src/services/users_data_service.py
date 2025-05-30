@@ -1,5 +1,10 @@
 from error.error import error_generator
 from headers import (
+    ASSISTANT_ALREADY_EXISTS,
+    ASSISTANT_DOESNT_EXISTS,
+    ASSISTANT_ERROR,
+    ASSISTANT_MODIFIED_CORRECTLY,
+    ASSISTANT_REMOVED,
     COURSE_ADDED_TO_FAVOURITES,
     COURSE_ALREADY_IN_FAVOURITES,
     COURSE_NOT_FOUND,
@@ -7,9 +12,10 @@ from headers import (
     MISSING_FIELDS,
     USER_NOT_ENROLLED_INTO_THE_COURSE,
 )
-from src.models.course import Course
-from src.repository.users_data_repository import UsersDataRepository
-from src.services.course_service import CourseService
+from models.course import Course
+from models.permissions import AssistantPermissions
+from repository.users_data_repository import UsersDataRepository
+from services.course_service import CourseService
 
 
 class UsersDataService:
@@ -296,3 +302,278 @@ class UsersDataService:
             )
 
         return {"response": approved_signatures, "code_status": 200}
+
+    def add_assistant_to_course(
+        self, course_id: str, assistant_id: str, owner_id: str, data: str
+    ):
+        """
+        Add an assistant to a course.
+        """
+
+        assistant_permissions = data["permissions"]
+        perm_obj = AssistantPermissions()
+
+        for perms in assistant_permissions:  # We iter for each permission
+            if perm_obj.contains_permission(perms) == False:
+                # If the permission is not in the object, we continue
+                # With this we avoid the assignation of a permission that doesn't exist
+                continue
+
+            # We extract the permission and set it to the assistant
+            perm_obj.set_permission(perms, assistant_permissions[perms])
+
+        # Now we have the permissions object, we can add the assistant to the course
+
+        self.logger.debug(
+            f"[UsersDataService] Adding assistant with ID: {assistant_id} to course with ID: {course_id}"
+        )
+
+        if not self.service_courses.is_user_owner_of_course(course_id, owner_id):
+            return error_generator(
+                MISSING_FIELDS,
+                "You are not the owner of the course",
+                403,
+                "add_assistant_to_course",
+            )
+
+        # now lets check if
+        # Check if the course exists
+        course_exists = self.service_courses.get_course(course_id)
+
+        if course_exists["code_status"] != 200:
+            return error_generator(
+                COURSE_NOT_FOUND,
+                "Course ID not found",
+                404,
+                "add_assistant_to_course",
+            )
+
+        # Check if the assistant is already in the course
+        is_already_an_assistant = self.repository.check_assistant_already_in_course(
+            course_id, assistant_id
+        )
+
+        if is_already_an_assistant:
+            return error_generator(
+                ASSISTANT_ALREADY_EXISTS,
+                "Assistant already linked to this course, you should edit it instead",
+                409,
+                "add_assistant_to_course",
+            )
+
+        # Add the assistant to the course
+        self.logger.debug(
+            f"[UsersDataService] Adding assistant with ID: {assistant_id} to course with ID: {course_id}"
+        )
+
+        result_courses_update = self.service_courses.add_assistant_to_course(
+            course_id, assistant_id, owner_id=owner_id
+        )
+
+        if result_courses_update["code_status"] != 200:
+            return error_generator(
+                ASSISTANT_ERROR,
+                "Error adding assistant to course",
+                500,
+                "add_assistant_to_course",
+            )
+
+        self.repository.add_assistant_to_course(
+            course_id, assistant_id, perm_obj.__to_dict__()
+        )
+
+        return {
+            "response": {
+                "type": "about:blank",
+                "title": "Assistant Added",
+                "status": 200,
+                "detail": f"Assistant with ID {assistant_id} has been added to the course {course_id}",
+                "instance": f"/courses/assistants/{course_id}",
+            },
+            "code_status": 200,
+        }
+
+    def modify_assistant_permissions(
+        self, course_id: str, assistant_id: str, owner_id: str, data: str
+    ):
+        """
+        Modify the permissions of an assistant in a course.
+        """
+
+        self.logger.debug(
+            f"[UsersDataService] Attemptying to modify ID: {assistant_id} to course with ID: {course_id}"
+        )
+
+        if not self.service_courses.is_user_owner_of_course(course_id, owner_id):
+            return error_generator(
+                MISSING_FIELDS,
+                "You are not the owner of the course",
+                403,
+                "modify_assistant_permissions",
+            )
+
+        # now lets check if
+        # Check if the course exists
+        course_exists = self.service_courses.get_course(course_id)
+
+        if course_exists["code_status"] != 200:
+            return error_generator(
+                COURSE_NOT_FOUND,
+                "Course ID not found",
+                404,
+                "modify_assistant_permissions",
+            )
+
+        # Check if the assistant is already in the course
+        assistant_exist_on_course = self.repository.check_assistant_already_in_course(
+            course_id, assistant_id
+        )
+
+        if not assistant_exist_on_course:
+            return error_generator(
+                ASSISTANT_DOESNT_EXISTS,
+                "Assistant doesn't exist in this course",
+                404,
+                "modify_assistant_permissions",
+            )
+
+        # At this point, we have the assistant, so we retrieve it to make the modifications of his permissions
+        assistant_perms = self.repository.get_assistant_permissions_for_course(
+            course_id, assistant_id
+        )
+
+        if not assistant_perms:
+            return error_generator(
+                MISSING_FIELDS,
+                "Assistant not found",
+                404,
+                "modify_assistant_permissions",
+            )
+
+        permissions = AssistantPermissions(assistant_perms)
+
+        # Here we set the new permissions to the assistant
+        for perm in data["permissions"]:
+            try:
+                permissions.set_permission(perm, data["permissions"][perm])
+            except ValueError as e:
+                # We log the error of the attempt of modification of a wrong permission
+                self.logger.error(f"[UsersDataService] Error modifying permission: {e}")
+                self.logger.error(f"[UsersDataService] Permission {perm} doesn't exist")
+                return error_generator(
+                    MISSING_FIELDS,
+                    f"Permission {perm} doesn't exist",
+                    400,
+                    "modify_assistant_permissions",
+                )
+
+        self.logger.debug(
+            f"[UsersDataService] Modifying assistant with ID: {assistant_id} in course with ID: {course_id}"
+        )
+
+        self.logger.debug(
+            f"[UsersDataService] new assistant permissions: {permissions.__to_dict__()}"
+        )
+
+        update_result = self.repository.update_assistant_permissions(
+            course_id, assistant_id, permissions.__to_dict__()
+        )
+
+        if update_result:
+            return {
+                "response": {
+                    "type": "about:blank",
+                    "title": ASSISTANT_MODIFIED_CORRECTLY,
+                    "status": 200,
+                    "detail": f"Assistant with ID {assistant_id} has been modified in the course {course_id}",
+                    "instance": f"/courses/assistants/{course_id}",
+                },
+                "code_status": 200,
+            }
+        else:
+            return error_generator(
+                ASSISTANT_ERROR,
+                "Error modifying assistant permissions",
+                500,
+                "modify_assistant_permissions",
+            )
+
+    def remove_assistant_from_course(
+        self, course_id: str, assistant_id: str, owner_id: str
+    ):
+
+        if not self.service_courses.is_user_owner_of_course(course_id, owner_id):
+            return error_generator(
+                MISSING_FIELDS,
+                "You are not the owner of the course",
+                403,
+                "modify_assistant_permissions",
+            )
+
+        course_exists = self.service_courses.get_course(course_id)
+
+        if course_exists["code_status"] != 200:
+            return error_generator(
+                COURSE_NOT_FOUND,
+                "Course ID not found",
+                404,
+                "modify_assistant_permissions",
+            )
+
+        # Check if the assistant is already in the course
+        assistant_exist_on_course = self.repository.check_assistant_already_in_course(
+            course_id, assistant_id
+        )
+
+        if not assistant_exist_on_course:
+            return error_generator(
+                ASSISTANT_DOESNT_EXISTS,
+                "Assistant doesn't exist in this course",
+                404,
+                "modify_assistant_permissions",
+            )
+
+        # So at this point, we should remove the assistant from the course
+        self.logger.debug(
+            f"[UsersDataService] Removing assistant with ID: {assistant_id} from course with ID: {course_id}"
+        )
+
+        result_remove_from_course = self.service_courses.remove_assistant_from_course(
+            course_id, assistant_id, owner_id=owner_id
+        )
+
+        if result_remove_from_course["code_status"] != 200:
+            return error_generator(
+                ASSISTANT_ERROR,
+                "Error removing assistant from course",
+                500,
+                "remove_assistant_from_course",
+            )
+        # No verifications needed, since we have already done them
+        delete_result = self.repository.remove_assistant_from_course_with_id(
+            course_id, assistant_id
+        )
+
+        if delete_result:
+            return {
+                "response": {
+                    "type": "about:blank",
+                    "title": ASSISTANT_REMOVED,
+                    "status": 200,
+                    "detail": f"Assistant with ID {assistant_id} has been removed from the course {course_id}",
+                    "instance": f"/courses/assistants/{course_id}",
+                },
+                "code_status": 200,
+            }
+        else:
+            return error_generator(
+                ASSISTANT_ERROR,
+                "Error removing assistant from course",
+                500,
+                "remove_assistant_from_course",
+            )
+
+    def check_assistants_permissions(self, course_id, attempt_user_id, permission: str):
+        return self.repository.check_assistants_permissions(
+            course_id, attempt_user_id, permission
+        )

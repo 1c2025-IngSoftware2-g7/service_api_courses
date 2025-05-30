@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 from google.cloud import storage
 import os
 
@@ -73,7 +73,12 @@ class TaskService:
     def update_task(self, task_id: str, data: dict):
         try:
             # Verificar que la tarea exista
-            existing_task = self.repository.get_task_by_id(task_id)
+            query = {"_id": task_id}
+
+            # Obtener tareas
+            existing_task = self.repository.get_tasks_by_query(query)[0]
+            # Verificar que la tarea exista
+            #existing_task = self.repository.get_task_by_id(task_id)
             if not existing_task:
                 return error_generator(
                     "Task not found",
@@ -148,7 +153,11 @@ class TaskService:
     def delete_task(self, task_id: str):
         try:
             # Verificar que la tarea exista
-            existing_task = self.repository.get_task_by_id(task_id)
+            query = {"_id": task_id}
+
+            # Obtener tareas
+            existing_task = self.repository.get_tasks_by_query(query)[0]
+            #existing_task = self.repository.get_task_by_id(task_id)
             if not existing_task:
                 return error_generator(
                     "Task not found",
@@ -224,7 +233,13 @@ class TaskService:
 
     def get_task_by_id(self, task_id: str):
         try:
-            task = self.repository.get_task_by_id(task_id)
+
+            # Construir query de búsqueda
+            query = {"_id": task_id}
+
+            # Obtener tareas
+            task = self.repository.get_tasks_by_query(query)[0]
+            #task = self.repository.get_task_by_id(task_id)
             if not task:
                 return error_generator(
                     "Task not found",
@@ -271,7 +286,7 @@ class TaskService:
         blob.upload_from_file(file, content_type=file.content_type)
         url = blob.generate_signed_url(
             version="v4",
-            expiration=datetime.timedelta(minutes=15),
+            expiration=timedelta(minutes=15),
             method="GET",
         )
         return url
