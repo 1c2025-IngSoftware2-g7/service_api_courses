@@ -110,18 +110,16 @@ def submit_task(uuid_task):
     Student: Submit a task/exam response
     """
     try:
-        if 'uuid_student' not in request.form:
+        data = request.json
+        if 'uuid_student' not in data:
             raise BadRequest("The uuid_student field is missing from the form.")
-        if 'file' not in request.files:
-            raise BadRequest("The file is missing from the request.")
+        if 'attachment_links' not in data:
+            raise BadRequest("The attachment_links is missing from the request.")
 
-        uuid_student = request.form.get('uuid_student')
-        file = request.files.get('file')
+        uuid_student = data.get('uuid_student')
+        attachment_links = data.get('attachment_links')
 
-        if not file or file.filename == '':
-            raise FileNotFoundError("The file is empty or has no name.")
-
-        task = service_tasks.submit_task(uuid_task, uuid_student, file)
+        task = service_tasks.submit_task(uuid_task, uuid_student, attachment_links)
         return jsonify(task.to_dict()), 200
 
     except BadRequest as e:
@@ -129,12 +127,44 @@ def submit_task(uuid_task):
         error = error_generator("Bad Request", str(e), 400, f"tasks/submission/{uuid_task}")
         return error["response"], error["code_status"]
 
+    except Exception as e:
+        # Catch-all for unexpected errors
+        error = error_generator("Internal Server Error", str(e), 500, f"tasks/submission/{uuid_task}")
+        return error["response"], error["code_status"]
+
+@tasks_bp.post('/upload')
+def upload_task():
+    """
+    Student or teacher upload task or exman
+    Body is form-data with uuid, attachment and task_number
+    """
+    try:
+        if 'uuid' not in request.form and 'task_number' not in request.form:
+            raise BadRequest("The uuid field is missing from the form.")
+        if 'file' not in request.files:
+            raise BadRequest("The file is missing from the request.")
+
+        uuid = request.form.get('uuid')
+        task_number = request.form.get('task_number')
+        file = request.files.get('file')
+
+        if not file or file.filename == '':
+            raise FileNotFoundError("The file is empty or has no name.")
+
+        task_link = service_tasks.upload_task(uuid, task_number, file)
+        return jsonify({"url": task_link}), 200
+
+    except BadRequest as e:
+        # Captures malformed request errors
+        error = error_generator("Bad Request", str(e), 400, f"tasks/upload")
+        return error["response"], error["code_status"]
+
     except FileNotFoundError as e:
         # Logical validation of empty or invalid values
-        error = error_generator("Validation Error", str(e), 422, f"tasks/submission/{uuid_task}")
+        error = error_generator("Validation Error", str(e), 422, f"tasks/upload")
         return error["response"], error["code_status"]
 
     except Exception as e:
         # Catch-all for unexpected errors
-        error = error_generator("Internal Server Error", str(e), 500, f"tasks/submission/{uuid_task}")
+        error = error_generator("Internal Server Error", str(e), 500, f"tasks/upload")
         return error["response"], error["code_status"]

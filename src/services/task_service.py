@@ -246,24 +246,27 @@ class TaskService:
                 "get_task_by_id"
             )
 
-    def submit_task(self, task_id, student_id, file):
-        file_link = self._upload_file(student_id, file)
-        return self.repository.add_task_submission(task_id, student_id, file_link)
+    def submit_task(self, task_id, student_id, attachment_links):
+        return self.repository.add_task_submission(task_id, student_id, attachment_links)
+    
+    def upload_task(self, uuid, num_task, file):
+        file_link = self._upload_element(uuid, num_task, file)
+        return file_link
 
-    def _upload_file(self, uuid, file):
+    def _upload_element(self, uuid, num, file):
         if file.filename == '':
             return FileNotFoundError("No selected file: Missing file.filename in the request")
 
-        url = self._save_file(uuid, file)
+        url = self._save_file(uuid, num, file)
         self.logger.info(f"File saved in Google Cloud Storage ")
 
         return url
 
-    def _save_file(self, uuid, file):
+    def _save_file(self, uuid, num, file):
         """Save the file to GCP."""
         bucket = self._get_gcp_bucket()
         ext = os.path.splitext(file.filename)[1] # Extract extension (.pdf, .jpg, .png, etc.)
-        filename = f"{uuid}{ext}"
+        filename = f"{uuid}{num}{ext}"
         blob = bucket.blob(filename)
         blob.upload_from_file(file, content_type=file.content_type)
         url = blob.generate_signed_url(

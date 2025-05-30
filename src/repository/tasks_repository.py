@@ -72,11 +72,11 @@ class TasksRepository:
 
         return task
 
-    def add_task_submission(self, task_id, student_id, file_link):
+    def add_task_submission(self, task_id, student_id, attachment_links: list[str]):
         if not isinstance(task_id, ObjectId):
             task_id = ObjectId(task_id)
 
-        submission = Submission(file_link=file_link, feedback=None)
+        submission = Submission(attachment_links=attachment_links, feedback=None)
 
         update_result = self.collection.update_one(
             {"_id": task_id},
