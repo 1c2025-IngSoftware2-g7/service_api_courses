@@ -259,7 +259,7 @@ paths:
               $ref: '#/components/schemas/CourseModule'
       responses:
         '200':
-          description: Module added
+          description: Returns the created module and the id
 
 
   /courses/{course_id}/modules/{module_id}:
@@ -391,7 +391,7 @@ paths:
                   type: string
       responses:
         '200':
-          description: Resource added
+          description: Resource added and returns the id
 
   /courses/{course_id}/modules/{module_id}/resources/{resource_id}:
     get:

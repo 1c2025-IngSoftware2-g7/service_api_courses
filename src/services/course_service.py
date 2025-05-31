@@ -578,10 +578,11 @@ class CourseService:
                 "get_course_by_id",
             )
 
-
     def get_courses_owned_by_user(self, user_id, offset=0, max_per_page=1000):
         try:
-            courses = self.course_repository.get_courses_owned_by_user(user_id, offset, max_per_page)
+            courses = self.course_repository.get_courses_owned_by_user(
+                user_id, offset, max_per_page
+            )
 
             if not courses:
                 return []

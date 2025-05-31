@@ -30,7 +30,7 @@ class Task:
         submissions: dict[str, Submission] = None,
         _id: ObjectId = None,
         created_at: datetime = datetime.now(),
-        updated_at: datetime = datetime.now()
+        updated_at: datetime = datetime.now(),
     ):
         self._id = _id if _id else ObjectId()
         self.title = title
@@ -58,7 +58,7 @@ class Task:
             "file_url": self.file_url,
             "submissions": {k: v.to_dict() for k, v in self.submissions.items()},
             "created_at": self.created_at,
-            "updated_at": self.updated_at
+            "updated_at": self.updated_at,
         }
 
     @staticmethod
@@ -78,5 +78,5 @@ class Task:
             file_url=data.get("file_url"),
             submissions=submissions,
             created_at=data.get("created_at", datetime.now()),
-            updated_at=data.get("updated_at", datetime.now())
+            updated_at=data.get("updated_at", datetime.now()),
         )

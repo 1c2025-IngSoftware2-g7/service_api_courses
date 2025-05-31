@@ -19,20 +19,14 @@ class TaskService:
         for field in required_fields:
             if field not in data:
                 return error_generator(
-                    MISSING_FIELDS,
-                    f"Field {field} is required",
-                    400,
-                    "create_task"
+                    MISSING_FIELDS, f"Field {field} is required", 400, "create_task"
                 )
 
         # Validar que el curso exista
         course = self.course_service.get_course_by_id(data["course_id"])
         if not course or course["code_status"] != 200:
             return error_generator(
-                COURSE_NOT_FOUND,
-                "Course not found",
-                404,
-                "create_task"
+                COURSE_NOT_FOUND, "Course not found", 404, "create_task"
             )
 
         try:
@@ -50,7 +44,7 @@ class TaskService:
                             MISSING_FIELDS,
                             "Invalid due_date format. Use 'YYYY-MM-DD' or 'YYYY-MM-DD HH:MM:SS'",
                             400,
-                            "create_task"
+                            "create_task",
                         )
 
             # Crear la tarea
@@ -62,7 +56,7 @@ class TaskService:
                 course_id=data["course_id"],
                 status=TaskStatus.INACTIVE,
                 task_type=TaskType(data.get("task_type", "task")),
-                file_url=data.get("file_url")
+                file_url=data.get("file_url"),
             )
 
             task_id = self.repository.create_task(task)
@@ -83,9 +77,8 @@ class TaskService:
                 "Internal server error",
                 "An error occurred while creating the task",
                 500,
-                "create_task"
+                "create_task",
             )
-    
 
     def update_task(self, task_id: str, data: dict):
         try:
@@ -95,28 +88,30 @@ class TaskService:
             # Obtener tareas
             existing_task = self.repository.get_tasks_by_query(query)[0]
             # Verificar que la tarea exista
-            #existing_task = self.repository.get_task_by_id(task_id)
+            # existing_task = self.repository.get_task_by_id(task_id)
             if not existing_task:
                 return error_generator(
                     "Task not found",
                     "The specified task does not exist",
                     404,
-                    "update_task"
+                    "update_task",
                 )
 
             # Validar que hay datos para actualizar
             if not data:
                 return error_generator(
-                    MISSING_FIELDS,
-                    "No fields provided for update",
-                    400,
-                    "update_task"
+                    MISSING_FIELDS, "No fields provided for update", 400, "update_task"
                 )
 
             # Campos permitidos para actualización
             allowed_fields = {
-                'title', 'description', 'instructions',
-                'due_date', 'task_type', 'file_url', 'status'
+                "title",
+                "description",
+                "instructions",
+                "due_date",
+                "task_type",
+                "file_url",
+                "status",
             }
 
             # Filtrar solo campos permitidos y que sean diferentes al valor actual
@@ -131,11 +126,11 @@ class TaskService:
                     "No changes detected",
                     "No valid fields provided for update or values are the same",
                     400,
-                    "update_task"
+                    "update_task",
                 )
 
             # Agregar marca de tiempo de actualización
-            update_data['updated_at'] = datetime.now()
+            update_data["updated_at"] = datetime.now()
             # Realizar la actualización en la base de datos
             updated = self.repository.update_task(task_id, update_data)
 
@@ -155,7 +150,7 @@ class TaskService:
                     "Task not modified",
                     "The task could not be updated",
                     400,
-                    "update_task"
+                    "update_task",
                 )
         except Exception as e:
             self.logger.error(f"Error updating task: {str(e)}")
@@ -163,9 +158,8 @@ class TaskService:
                 "Internal server error",
                 "An error occurred while updating the task",
                 500,
-                "update_task"
+                "update_task",
             )
-
 
     def delete_task(self, task_id: str):
         try:
@@ -174,13 +168,13 @@ class TaskService:
 
             # Obtener tareas
             existing_task = self.repository.get_tasks_by_query(query)[0]
-            #existing_task = self.repository.get_task_by_id(task_id)
+            # existing_task = self.repository.get_task_by_id(task_id)
             if not existing_task:
                 return error_generator(
                     "Task not found",
                     "The specified task does not exist",
                     404,
-                    "delete_task"
+                    "delete_task",
                 )
 
             # Eliminar la tarea
@@ -202,7 +196,7 @@ class TaskService:
                     "Task not deleted",
                     "The task could not be deleted",
                     400,
-                    "delete_task"
+                    "delete_task",
                 )
         except Exception as e:
             self.logger.error(f"Error deleting task: {str(e)}")
@@ -210,9 +204,8 @@ class TaskService:
                 "Internal server error",
                 "An error occurred while deleting the task",
                 500,
-                "delete_task"
+                "delete_task",
             )
-
 
     def get_tasks_by_course(self, course_id: str, status: str = None):
         try:
@@ -220,10 +213,7 @@ class TaskService:
             course = self.course_service.get_course_by_id(course_id)
             if not course or course["code_status"] != 200:
                 return error_generator(
-                    COURSE_NOT_FOUND,
-                    "Course not found",
-                    404,
-                    "get_tasks_by_course"
+                    COURSE_NOT_FOUND, "Course not found", 404, "get_tasks_by_course"
                 )
 
             # Construir query de búsqueda
@@ -235,26 +225,22 @@ class TaskService:
                         "Invalid status",
                         f"Status must be one of: {[s.value for s in TaskStatus]}",
                         400,
-                        "get_tasks_by_course"
+                        "get_tasks_by_course",
                     )
                 query["status"] = status.lower()
 
             # Obtener tareas
             tasks = self.repository.get_tasks_by_query(query)
 
-            return {
-                "response": [task.to_dict() for task in tasks],
-                "code_status": 200
-            }
+            return {"response": [task.to_dict() for task in tasks], "code_status": 200}
         except Exception as e:
             self.logger.error(f"Error getting tasks by course: {str(e)}")
             return error_generator(
                 "Internal server error",
                 "An error occurred while getting tasks",
                 500,
-                "get_tasks_by_course"
+                "get_tasks_by_course",
             )
-
 
     def get_task_by_id(self, task_id: str):
         try:
@@ -264,38 +250,39 @@ class TaskService:
 
             # Obtener tareas
             task = self.repository.get_tasks_by_query(query)[0]
-            #task = self.repository.get_task_by_id(task_id)
+            # task = self.repository.get_task_by_id(task_id)
             if not task:
                 return error_generator(
                     "Task not found",
                     "The specified task does not exist",
                     404,
-                    "get_task_by_id"
+                    "get_task_by_id",
                 )
 
-            return {
-                "response": task.to_dict(),
-                "code_status": 200
-            }
+            return {"response": task.to_dict(), "code_status": 200}
         except Exception as e:
             self.logger.error(f"Error getting task: {str(e)}")
             return error_generator(
                 "Internal server error",
                 "An error occurred while getting the task",
                 500,
-                "get_task_by_id"
+                "get_task_by_id",
             )
 
     def submit_task(self, task_id, student_id, attachment_links):
-        return self.repository.add_task_submission(task_id, student_id, attachment_links)
-    
+        return self.repository.add_task_submission(
+            task_id, student_id, attachment_links
+        )
+
     def upload_task(self, uuid, num_task, file):
         file_link = self._upload_element(uuid, num_task, file)
         return file_link
 
     def _upload_element(self, uuid, num, file):
-        if file.filename == '':
-            return FileNotFoundError("No selected file: Missing file.filename in the request")
+        if file.filename == "":
+            return FileNotFoundError(
+                "No selected file: Missing file.filename in the request"
+            )
 
         url = self._save_file(uuid, num, file)
         self.logger.info(f"File saved in Google Cloud Storage ")
@@ -305,7 +292,9 @@ class TaskService:
     def _save_file(self, uuid, num, file):
         """Save the file to GCP."""
         bucket = self._get_gcp_bucket()
-        ext = os.path.splitext(file.filename)[1] # Extract extension (.pdf, .jpg, .png, etc.)
+        ext = os.path.splitext(file.filename)[
+            1
+        ]  # Extract extension (.pdf, .jpg, .png, etc.)
         filename = f"{uuid}{num}{ext}"
         blob = bucket.blob(filename)
         blob.upload_from_file(file, content_type=file.content_type)
@@ -318,22 +307,26 @@ class TaskService:
 
     def _get_gcp_bucket(self):
         # Reconstruct JSON file from environment variable:
-        credentials_json = os.getenv('GOOGLE_CREDENTIALS_JSON')
-        json_path = '/tmp/gcs-key.json'
-        with open(json_path, 'w') as f:
+        credentials_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
+        json_path = "/tmp/gcs-key.json"
+        with open(json_path, "w") as f:
             f.write(credentials_json)
 
         # Initialize GCS:
         storage_client = storage.Client.from_service_account_json(json_path)
-        bucket = storage_client.bucket(os.getenv('GCS_BUCKET_NAME'))
+        bucket = storage_client.bucket(os.getenv("GCS_BUCKET_NAME"))
         return bucket
 
-    def get_tasks_by_teacher(self, teacher_id, status=None, due_date=None, page=1, limit=10):
+    def get_tasks_by_teacher(
+        self, teacher_id, status=None, due_date=None, page=1, limit=10
+    ):
         try:
             courses = self.course_service.get_courses_owned_by_user(teacher_id)
 
             if not courses:
-                self.logger.info(f"[TAKS][SERVICES] Teacher {teacher_id} has not courses.")
+                self.logger.info(
+                    f"[TAKS][SERVICES] Teacher {teacher_id} has not courses."
+                )
                 return []
 
             course_ids = [c._id for c in courses]
@@ -343,7 +336,7 @@ class TaskService:
                 status=status,
                 due_date=due_date,
                 page=page,
-                limit=limit
+                limit=limit,
             )
 
             return tasks

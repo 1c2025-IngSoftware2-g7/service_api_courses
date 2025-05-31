@@ -17,9 +17,7 @@ def create_task():
     data = request.json
 
     if not data:
-        error = error_generator(
-            MISSING_FIELDS, "Request body is required", 400, ""
-        )
+        error = error_generator(MISSING_FIELDS, "Request body is required", 400, "")
         return error["response"], error["code_status"]
 
     logger.debug(f"Creating task with data: {data}")
@@ -82,8 +80,7 @@ def get_tasks_by_course(course_id=None):
         return error["response"], error["code_status"]
 
     status = request.args.get("status", None)
-    logger.debug(
-        f"Getting tasks for course {course_id} with status filter: {status}")
+    logger.debug(f"Getting tasks for course {course_id} with status filter: {status}")
 
     result = service_tasks.get_tasks_by_course(course_id, status)
     return result["response"], result["code_status"]
@@ -105,51 +102,56 @@ def get_task_by_id(task_id=None):
     return result["response"], result["code_status"]
 
 
-@tasks_bp.post('/submission/<uuid_task>')
+@tasks_bp.post("/submission/<uuid_task>")
 def submit_task(uuid_task):
     """
     Student: Submit a task/exam response
     """
     try:
         data = request.json
-        if 'uuid_student' not in data:
+        if "uuid_student" not in data:
             raise BadRequest("The uuid_student field is missing from the request.")
-        if 'attachment_links' not in data:
+        if "attachment_links" not in data:
             raise BadRequest("The attachment_links is missing from the request.")
 
-        uuid_student = data.get('uuid_student')
-        attachment_links = data.get('attachment_links')
+        uuid_student = data.get("uuid_student")
+        attachment_links = data.get("attachment_links")
 
         task = service_tasks.submit_task(uuid_task, uuid_student, attachment_links)
         return jsonify(task.to_dict()), 200
 
     except BadRequest as e:
         # Captures malformed request errors
-        error = error_generator("Bad Request", str(e), 400, f"tasks/submission/{uuid_task}")
+        error = error_generator(
+            "Bad Request", str(e), 400, f"tasks/submission/{uuid_task}"
+        )
         return error["response"], error["code_status"]
 
     except Exception as e:
         # Catch-all for unexpected errors
-        error = error_generator("Internal Server Error", str(e), 500, f"tasks/submission/{uuid_task}")
+        error = error_generator(
+            "Internal Server Error", str(e), 500, f"tasks/submission/{uuid_task}"
+        )
         return error["response"], error["code_status"]
 
-@tasks_bp.post('/upload')
+
+@tasks_bp.post("/upload")
 def upload_task():
     """
     Student or teacher upload task or exman
     Body is form-data with uuid, attachment and task_number
     """
     try:
-        if 'uuid' not in request.form and 'task_number' not in request.form:
+        if "uuid" not in request.form and "task_number" not in request.form:
             raise BadRequest("The uuid field is missing from the form.")
-        if 'attachment' not in request.files:
+        if "attachment" not in request.files:
             raise BadRequest("The attachment is missing from the request.")
 
-        uuid = request.form.get('uuid')
-        task_number = request.form.get('task_number')
-        attachment = request.files.get('attachment')
+        uuid = request.form.get("uuid")
+        task_number = request.form.get("task_number")
+        attachment = request.files.get("attachment")
 
-        if not attachment or attachment.filename == '':
+        if not attachment or attachment.filename == "":
             raise FileNotFoundError("The attachment is empty or has no name.")
 
         task_link = service_tasks.upload_task(uuid, task_number, attachment)
@@ -170,6 +172,7 @@ def upload_task():
         error = error_generator("Internal Server Error", str(e), 500, f"tasks/upload")
         return error["response"], error["code_status"]
 
+
 @tasks_bp.get("/teachers/<string:teacher_id>")
 def get_tasks_by_teacher(teacher_id):
     try:
@@ -185,10 +188,15 @@ def get_tasks_by_teacher(teacher_id):
                 date = datetime.strptime(due_date, "%Y-%m-%d").date()
                 # Create range for full day
                 start = datetime.combine(date, datetime.min.time())  # 00:00:00
-                end = datetime.combine(date, datetime.max.time())    # 23:59:59.999999
+                end = datetime.combine(date, datetime.max.time())  # 23:59:59.999999
                 date_range = {"$gte": start, "$lte": end}
             except ValueError:
-                error = error_generator("Invalid date format.", "Use YYYY-MM-DD", 400, "teachers/<string:teacher_id>")
+                error = error_generator(
+                    "Invalid date format.",
+                    "Use YYYY-MM-DD",
+                    400,
+                    "teachers/<string:teacher_id>",
+                )
                 return error["response"], error["code_status"]
 
         tasks = service_tasks.get_tasks_by_teacher(
@@ -196,7 +204,7 @@ def get_tasks_by_teacher(teacher_id):
             status=status,
             due_date=date_range,
             page=page,
-            limit=limit
+            limit=limit,
         )
 
         return jsonify([t.to_dict() for t in tasks]), 200

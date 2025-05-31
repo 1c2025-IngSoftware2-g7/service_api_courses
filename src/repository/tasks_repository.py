@@ -9,7 +9,6 @@ class TasksRepository:
         self.collection = collection
         self.logger = logger
 
-
     def create_task(self, task: Task):
         try:
             result = self.collection.insert_one(task.to_dict())
@@ -29,15 +28,11 @@ class TasksRepository:
 
     def update_task(self, task_id: str, update_data: dict):
         try:
-            result = self.collection.update_one(
-                {"_id": task_id},
-                {"$set": update_data}
-            )
+            result = self.collection.update_one({"_id": task_id}, {"$set": update_data})
             return result.modified_count > 0
         except Exception as e:
             self.logger.error(f"Error updating task {task_id}: {str(e)}")
             raise e
-
 
     def delete_task(self, task_id: str):
         try:
@@ -47,7 +42,6 @@ class TasksRepository:
             self.logger.error(f"Error deleting task {task_id}: {str(e)}")
             raise e
 
-
     def get_tasks_by_query(self, query: dict):
         try:
             tasks = self.collection.find(query)
@@ -55,7 +49,7 @@ class TasksRepository:
         except Exception as e:
             self.logger.error(f"Error getting tasks by query: {str(e)}")
             raise e
-        
+
     def get_task_with_submission_for_student(self, task_id, student_id):
         query = {"_id": task_id}
         task = self.get_tasks_by_query(query)[0]
@@ -77,18 +71,22 @@ class TasksRepository:
 
         update_result = self.collection.update_one(
             {"_id": task_id},
-            {"$set": {f"submissions.{student_id}": submission.to_dict()}}
+            {"$set": {f"submissions.{student_id}": submission.to_dict()}},
         )
 
         if update_result.matched_count == 0:
             raise ValueError("Task not found")
 
-        self.logger.info(f"Submission recorded for student {student_id} on task {task_id}")
+        self.logger.info(
+            f"Submission recorded for student {student_id} on task {task_id}"
+        )
 
         task = self.get_task_with_submission_for_student(task_id, student_id)
         return task
-    
-    def get_tasks_by_course_ids(self, course_ids, status=None, due_date=None, page=1, limit=10):
+
+    def get_tasks_by_course_ids(
+        self, course_ids, status=None, due_date=None, page=1, limit=10
+    ):
         query = {"course_id": {"$in": course_ids}}
 
         if status:
@@ -99,8 +97,6 @@ class TasksRepository:
 
         skip = (page - 1) * limit
 
-        tasks = list(
-            self.collection.find(query).skip(skip).limit(limit)
-        )
+        tasks = list(self.collection.find(query).skip(skip).limit(limit))
 
         return [Task.from_dict(t) for t in tasks]
