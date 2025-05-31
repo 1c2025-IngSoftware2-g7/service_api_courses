@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from google.cloud import storage
 import os
 
@@ -36,12 +36,29 @@ class TaskService:
             )
 
         try:
+            # due_date string to datetime with hs
+            due_date = data["due_date"]
+            if isinstance(due_date, str):
+                try:
+                    due_date = datetime.strptime(due_date, "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    try:
+                        # If it fails, try only the date (add 00:00:00)
+                        due_date = datetime.strptime(due_date, "%Y-%m-%d")
+                    except ValueError:
+                        return error_generator(
+                            MISSING_FIELDS,
+                            "Invalid due_date format. Use 'YYYY-MM-DD' or 'YYYY-MM-DD HH:MM:SS'",
+                            400,
+                            "create_task"
+                        )
+
             # Crear la tarea
             task = Task(
                 title=data["title"],
                 description=data.get("description", ""),
                 instructions=data.get("instructions", ""),
-                due_date=data["due_date"],
+                due_date=due_date,
                 course_id=data["course_id"],
                 status=TaskStatus.INACTIVE,
                 task_type=TaskType(data.get("task_type", "task")),
@@ -310,3 +327,27 @@ class TaskService:
         storage_client = storage.Client.from_service_account_json(json_path)
         bucket = storage_client.bucket(os.getenv('GCS_BUCKET_NAME'))
         return bucket
+
+    def get_tasks_by_teacher(self, teacher_id, status=None, due_date=None, page=1, limit=10):
+        try:
+            courses = self.course_service.get_courses_owned_by_user(teacher_id)
+
+            if not courses:
+                self.logger.info(f"[TAKS][SERVICES] Teacher {teacher_id} has not courses.")
+                return []
+
+            course_ids = [c._id for c in courses]
+
+            tasks = self.repository.get_tasks_by_course_ids(
+                course_ids=course_ids,
+                status=status,
+                due_date=due_date,
+                page=page,
+                limit=limit
+            )
+
+            return tasks
+
+        except Exception as e:
+            self.logger.error(f"Error getting tasks for teacher {teacher_id}: {str(e)}")
+            raise e

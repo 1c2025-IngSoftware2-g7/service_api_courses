@@ -1,3 +1,4 @@
+from datetime import datetime
 from bson import ObjectId
 from models.submission import Submission
 from models.task import Task
@@ -86,3 +87,20 @@ class TasksRepository:
 
         task = self.get_task_with_submission_for_student(task_id, student_id)
         return task
+    
+    def get_tasks_by_course_ids(self, course_ids, status=None, due_date=None, page=1, limit=10):
+        query = {"course_id": {"$in": course_ids}}
+
+        if status:
+            query["status"] = status
+
+        if due_date:
+            query["due_date"] = due_date
+
+        skip = (page - 1) * limit
+
+        tasks = list(
+            self.collection.find(query).skip(skip).limit(limit)
+        )
+
+        return [Task.from_dict(t) for t in tasks]

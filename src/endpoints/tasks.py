@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, request, jsonify
 from werkzeug.exceptions import BadRequest
 
@@ -168,3 +169,37 @@ def upload_task():
         # Catch-all for unexpected errors
         error = error_generator("Internal Server Error", str(e), 500, f"tasks/upload")
         return error["response"], error["code_status"]
+
+@tasks_bp.get("/teachers/<string:teacher_id>")
+def get_tasks_by_teacher(teacher_id):
+    try:
+        status = request.args.get("status")
+        due_date = request.args.get("date")
+        page = int(request.args.get("page", 1))
+        limit = int(request.args.get("limit", 10))
+
+        date_range = None
+        if due_date:
+            try:
+                # Parse date string to date object (not datetime yet)
+                date = datetime.strptime(due_date, "%Y-%m-%d").date()
+                # Create range for full day
+                start = datetime.combine(date, datetime.min.time())  # 00:00:00
+                end = datetime.combine(date, datetime.max.time())    # 23:59:59.999999
+                date_range = {"$gte": start, "$lte": end}
+            except ValueError:
+                error = error_generator("Invalid date format.", "Use YYYY-MM-DD", 400, "teachers/<string:teacher_id>")
+                return error["response"], error["code_status"]
+
+        tasks = service_tasks.get_tasks_by_teacher(
+            teacher_id=teacher_id,
+            status=status,
+            due_date=date_range,
+            page=page,
+            limit=limit
+        )
+
+        return jsonify([t.to_dict() for t in tasks]), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
