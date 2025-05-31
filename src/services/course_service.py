@@ -578,33 +578,19 @@ class CourseService:
                 "get_course_by_id",
             )
 
-    def get_courses_owned_by_user(self, user_id, offset, max_per_page):
-        try:
-            courses = self.course_repository.get_courses_owned_by_user(
-                user_id, offset, max_per_page
-            )
-            if courses:
-                # we make a fix to _id since isn't serializable
-                courses = [Course.from_dict(course).to_dict() for course in courses]
 
-                return {"response": courses, "code_status": 200}
-            else:
-                return error_generator(
-                    COURSE_NOT_FOUND,
-                    f"No courses found for user with ID {user_id}",
-                    404,
-                    "get_courses_owned_by_user",
-                )
+    def get_courses_owned_by_user(self, user_id, offset=0, max_per_page=1000):
+        try:
+            courses = self.course_repository.get_courses_owned_by_user(user_id, offset, max_per_page)
+
+            if not courses:
+                return []
+
+            return [Course.from_dict(course) for course in courses]
+
         except Exception as e:
-            self.logger.error(
-                f"[Service Error] Error getting courses owned by user: {e}"
-            )
-            return error_generator(
-                INTERNAL_SERVER_ERROR,
-                f"An error occurred while getting the courses owned by user: {str(e)}",
-                500,
-                "get_courses_owned_by_user",
-            )
+            self.logger.error(f"[Service Error] Error getting courses: {e}")
+            raise e
 
     def add_assistant_to_course(self, course_id, assistant_id, owner_id):
         # Check if the course exists

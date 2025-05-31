@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 
 from src.error.error import error_generator
 from src.headers import MISSING_FIELDS
@@ -175,12 +175,15 @@ def get_courses_owned_by_user(user_id=None):
 
     if not user_id:
         error = error_generator(
-            MISSING_FIELDS, "User ID is required", 400, "get_courses_owned_by_user"
+            f"[COURSES][CONTROLLER] {MISSING_FIELDS}", "User ID is required", 400, "/courses_owned/<string:user_id>"
         )
         return error["response"], error["code_status"]
 
-    logger.debug(f"[APP] Getting all courses owned by user with ID: {user_id}")
+    logger.debug(f"[COURSES][CONTROLLER] Getting all courses owned by user with ID: {user_id}")
     # Call the service to get all courses
-    result = service_courses.get_courses_owned_by_user(user_id, offset, max_per_page)
-
-    return result["response"], result["code_status"]
+    try:
+        courses = service_courses.get_courses_owned_by_user(user_id, offset, max_per_page)
+        return jsonify([c.to_dict() for c in courses]), 200
+    except Exception as e:
+        error = error_generator("[COURSES][CONTROLLER] Error", e, 500, "/courses_owned/<string:user_id>")
+        return error["response"], error["code_status"]
