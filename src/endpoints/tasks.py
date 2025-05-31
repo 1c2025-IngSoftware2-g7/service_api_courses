@@ -16,12 +16,21 @@ def create_task():
     """
     data = request.json
 
+    headers = request.headers
+    creator_user_uuid = get_header_value_for_key(headers, "X-User-UUID")
+
+    if not creator_user_uuid:
+        error = error_generator(
+            MISSING_FIELDS, "User UUID is required", 400, "get_modules_from_course"
+        )
+        return error["response"], error["code_status"]
+
     if not data:
         error = error_generator(MISSING_FIELDS, "Request body is required", 400, "")
         return error["response"], error["code_status"]
 
     logger.debug(f"Creating task with data: {data}")
-    result = service_tasks.create_task(data)
+    result = service_tasks.create_task(data, creator_user_uuid)
 
     return result["response"], result["code_status"]
 
@@ -44,8 +53,17 @@ def update_task(task_id=None):
         )
         return error["response"], error["code_status"]
 
+    headers = request.headers
+    creator_user_uuid = get_header_value_for_key(headers, "X-User-UUID")
+
+    if not creator_user_uuid:
+        error = error_generator(
+            MISSING_FIELDS, "User UUID is required", 400, "get_modules_from_course"
+        )
+        return error["response"], error["code_status"]
+
     logger.debug(f"Updating task {task_id} with data: {data}")
-    result = service_tasks.update_task(task_id, data)
+    result = service_tasks.update_task(task_id, data, creator_user_uuid)
 
     return result["response"], result["code_status"]
 
@@ -61,8 +79,17 @@ def delete_task(task_id=None):
         )
         return error["response"], error["code_status"]
 
+    headers = request.headers
+    creator_user_uuid = get_header_value_for_key(headers, "X-User-UUID")
+
+    if not creator_user_uuid:
+        error = error_generator(
+            MISSING_FIELDS, "User UUID is required", 400, "get_modules_from_course"
+        )
+        return error["response"], error["code_status"]
+
     logger.debug(f"Deleting task {task_id}")
-    result = service_tasks.delete_task(task_id)
+    result = service_tasks.delete_task(task_id, creator_user_uuid)
 
     return result["response"], result["code_status"]
 
@@ -211,3 +238,14 @@ def get_tasks_by_teacher(teacher_id):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+def get_header_value_for_key(headers, key):
+    """
+    Helper function to get a header value in lowercase.
+    """
+    for k, v in headers.items():
+        if k.lower() == key.lower():
+            return v
+
+    return None

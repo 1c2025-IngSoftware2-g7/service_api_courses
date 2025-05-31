@@ -3,18 +3,22 @@ from google.cloud import storage
 import os
 
 from error.error import error_generator
-from src.headers import MISSING_FIELDS, COURSE_NOT_FOUND
+from src.headers import MISSING_FIELDS, COURSE_NOT_FOUND, USER_NOT_ALLOWED_TO_CREATE
 from models.task import Task, TaskStatus, TaskType
 from repository.tasks_repository import TasksRepository
 
 
 class TaskService:
-    def __init__(self, tasks_repository: TasksRepository, course_service, logger):
+    def __init__(
+        self, tasks_repository: TasksRepository, user_service, course_service, logger
+    ):
         self.repository = tasks_repository
+        self.service_users = user_service
         self.course_service = course_service
         self.logger = logger
 
-    def create_task(self, data: dict):
+    def create_task(self, data: dict, creator_user_uuid: str):
+
         required_fields = ["title", "due_date", "course_id"]
         for field in required_fields:
             if field not in data:
@@ -22,8 +26,35 @@ class TaskService:
                     MISSING_FIELDS, f"Field {field} is required", 400, "create_task"
                 )
 
+        course_id = data["course_id"]
+
+        perm_required = "Tasks" if data.get("task_type", "task") == "task" else "Exams"
+
+        has_permissions = self.service_users.check_assistants_permissions(
+            course_id, creator_user_uuid, perm_required
+        )
+        is_owner_course = self.repository_courses.is_user_owner(
+            course_id, creator_user_uuid
+        )
+
+        # Here we need to check if its either the owner of the course or an assistant
+        self.logger.debug(
+            f"[MODULE SERVICE TASK] has_permissions as assistant? : {has_permissions} <<<<<======="
+        )
+        self.logger.debug(
+            f"[MODULE SERVICE TAKS] is_owner_course? : {is_owner_course} <<<<<======="
+        )
+
+        if not has_permissions and not is_owner_course:
+            return error_generator(
+                USER_NOT_ALLOWED_TO_CREATE,
+                "User is not allowed to create module",
+                403,
+                "add_module_to_course",
+            )
+
         # Validar que el curso exista
-        course = self.course_service.get_course_by_id(data["course_id"])
+        course = self.course_service.get_course_by_id(course_id)
         if not course or course["code_status"] != 200:
             return error_generator(
                 COURSE_NOT_FOUND, "Course not found", 404, "create_task"
@@ -80,7 +111,7 @@ class TaskService:
                 "create_task",
             )
 
-    def update_task(self, task_id: str, data: dict):
+    def update_task(self, task_id: str, data: dict, creator_user_uuid: str):
         try:
             # Verificar que la tarea exista
             query = {"_id": task_id}
@@ -95,6 +126,35 @@ class TaskService:
                     "The specified task does not exist",
                     404,
                     "update_task",
+                )
+
+            course_id = existing_task.course_id
+            # This will give us the required flag to modify the item
+            perm_required_to_update_data = (
+                "Exams" if existing_task.task_type == TaskType.EXAM else "Tasks"
+            )
+
+            has_permissions = self.service_users.check_assistants_permissions(
+                course_id, creator_user_uuid, perm_required_to_update_data
+            )
+            is_owner_course = self.repository_courses.is_user_owner(
+                course_id, creator_user_uuid
+            )
+
+            # Here we need to check if its either the owner of the course or an assistant
+            self.logger.debug(
+                f"[MODULE SERVICE TASK] has_permissions as assistant? : {has_permissions} <<<<<======="
+            )
+            self.logger.debug(
+                f"[MODULE SERVICE TAKS] is_owner_course? : {is_owner_course} <<<<<======="
+            )
+
+            if not has_permissions and not is_owner_course:
+                return error_generator(
+                    USER_NOT_ALLOWED_TO_CREATE,
+                    "User is not allowed to create module",
+                    403,
+                    "add_module_to_course",
                 )
 
             # Validar que hay datos para actualizar
@@ -161,7 +221,7 @@ class TaskService:
                 "update_task",
             )
 
-    def delete_task(self, task_id: str):
+    def delete_task(self, task_id: str, creator_user_uuid: str):
         try:
             # Verificar que la tarea exista
             query = {"_id": task_id}
@@ -175,6 +235,35 @@ class TaskService:
                     "The specified task does not exist",
                     404,
                     "delete_task",
+                )
+
+            course_id = existing_task.course_id
+            # This will give us the required flag to modify the item
+            perm_required_to_update_data = (
+                "Exams" if existing_task.task_type == TaskType.EXAM else "Tasks"
+            )
+
+            has_permissions = self.service_users.check_assistants_permissions(
+                course_id, creator_user_uuid, perm_required_to_update_data
+            )
+            is_owner_course = self.repository_courses.is_user_owner(
+                course_id, creator_user_uuid
+            )
+
+            # Here we need to check if its either the owner of the course or an assistant
+            self.logger.debug(
+                f"[MODULE SERVICE TASK] has_permissions as assistant? : {has_permissions} <<<<<======="
+            )
+            self.logger.debug(
+                f"[MODULE SERVICE TAKS] is_owner_course? : {is_owner_course} <<<<<======="
+            )
+
+            if not has_permissions and not is_owner_course:
+                return error_generator(
+                    USER_NOT_ALLOWED_TO_CREATE,
+                    "User is not allowed to create module",
+                    403,
+                    "add_module_to_course",
                 )
 
             # Eliminar la tarea
