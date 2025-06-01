@@ -272,5 +272,7 @@ class CoursesRepository:
             courses = list(self.collection.find(query))
             return [Course.from_dict(course) for course in courses]
         except Exception as e:
-            self.logger.error(f"Error fetching courses for student {student_id}: {str(e)}")
+            self.logger.error(
+                f"Error fetching courses for student {student_id}: {str(e)}"
+            )
             raise e

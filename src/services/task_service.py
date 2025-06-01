@@ -33,7 +33,7 @@ class TaskService:
                     f"[TASKS][SERVICE] {MISSING_FIELDS}",
                     f"Field {field} is required",
                     400,
-                    "create_task"
+                    "create_task",
                 )
 
         course_id = data["course_id"]
@@ -68,10 +68,7 @@ class TaskService:
         course = self.course_service.get_course_by_id(course_id)
         if not course or course["code_status"] != 200:
             return error_generator(
-                COURSE_NOT_FOUND,
-                "Course not found",
-                404,
-                "create_task"
+                COURSE_NOT_FOUND, "Course not found", 404, "create_task"
             )
 
         try:
@@ -88,7 +85,7 @@ class TaskService:
                         due_date_dt = datetime.strptime(due_date_raw, "%Y-%m-%d")
                     except ValueError:
                         return error_generator(
-                             f"[TASKS][SERVICE] {MISSING_FIELDS}",
+                            f"[TASKS][SERVICE] {MISSING_FIELDS}",
                             "Invalid due_date format. Use 'YYYY-MM-DD' or 'YYYY-MM-DD HH:MM:SS'",
                             400,
                             "create_task",
@@ -97,14 +94,14 @@ class TaskService:
                     due_date_dt = due_date_dt.replace(tzinfo=timezone.utc)
                 else:
                     due_date_dt = due_date_dt.astimezone(timezone.utc)
-                
+
                 due_date_timestamp = int(due_date_dt.timestamp() * 1000)
             else:
                 return error_generator(
-                     f"[TASKS][SERVICE] {MISSING_FIELDS}",
+                    f"[TASKS][SERVICE] {MISSING_FIELDS}",
                     "due_date must be int (timestamp ms) or string",
                     400,
-                    "create_task"
+                    "create_task",
                 )
 
             task = Task(
@@ -189,10 +186,10 @@ class TaskService:
             # Validar que hay datos para actualizar
             if not data:
                 return error_generator(
-                     f"[TASKS][SERVICE] {MISSING_FIELDS}",
+                    f"[TASKS][SERVICE] {MISSING_FIELDS}",
                     "No fields provided for update",
                     400,
-                    "update_task"
+                    "update_task",
                 )
 
             # Campos permitidos para actualización
@@ -222,14 +219,14 @@ class TaskService:
                                     f"[TASKS][SERVICE] {MISSING_FIELDS}",
                                     "Invalid due_date format. Use 'YYYY-MM-DD' or 'YYYY-MM-DD HH:MM:SS'",
                                     400,
-                                    "update_task"
+                                    "update_task",
                                 )
                         elif not isinstance(new_value, int):
                             return error_generator(
-                                 f"[TASKS][SERVICE] {MISSING_FIELDS}",
+                                f"[TASKS][SERVICE] {MISSING_FIELDS}",
                                 "due_date must be an integer (timestamp in ms) or a valid date string",
                                 400,
-                                "update_task"
+                                "update_task",
                             )
 
                     # Solo guardar si realmente cambió
@@ -245,7 +242,9 @@ class TaskService:
                 )
 
             # Timestamp de actualización en ms
-            update_data['updated_at'] = int(datetime.now(timezone.utc).timestamp() * 1000)
+            update_data["updated_at"] = int(
+                datetime.now(timezone.utc).timestamp() * 1000
+            )
 
             updated = self.repository.update_task(task_id, update_data)
 
@@ -351,8 +350,9 @@ class TaskService:
                 "delete_task",
             )
 
-
-    def get_tasks_by_course(self, course_id: str, status: str = None, module_id: str = None):
+    def get_tasks_by_course(
+        self, course_id: str, status: str = None, module_id: str = None
+    ):
         try:
             # Validar que el curso exista
             course = self.course_service.get_course_by_id(course_id)
@@ -361,7 +361,7 @@ class TaskService:
                     f"[TASKS][SERVICE] {COURSE_NOT_FOUND}",
                     "Course not found",
                     404,
-                    "get_tasks_by_course"
+                    "get_tasks_by_course",
                 )
 
             # Construir query de búsqueda
@@ -385,7 +385,9 @@ class TaskService:
 
             return {"response": [task.to_dict() for task in tasks], "code_status": 200}
         except Exception as e:
-            self.logger.error(f"[TASKS][SERVICE] Error getting tasks by course: {str(e)}")
+            self.logger.error(
+                f"[TASKS][SERVICE] Error getting tasks by course: {str(e)}"
+            )
             return error_generator(
                 "[TASKS][SERVICE] Internal server error",
                 "An error occurred while getting tasks",
@@ -430,8 +432,10 @@ class TaskService:
         return file_link
 
     def _upload_element(self, uuid, num, file):
-        if file.filename == '':
-            return FileNotFoundError("[TASKS][SERVICE] No selected file: Missing file.filename in the request")
+        if file.filename == "":
+            return FileNotFoundError(
+                "[TASKS][SERVICE] No selected file: Missing file.filename in the request"
+            )
 
         url = self._save_file(uuid, num, file)
         self.logger.info(f"[TASKS][SERVICE] File saved in Google Cloud Storage ")
@@ -491,10 +495,14 @@ class TaskService:
             return tasks
 
         except Exception as e:
-            self.logger.error(f"[TASKS][SERVICE] Error getting tasks for teacher {teacher_id}: {str(e)}")
+            self.logger.error(
+                f"[TASKS][SERVICE] Error getting tasks for teacher {teacher_id}: {str(e)}"
+            )
             raise e
 
-    def get_tasks_by_student(self, student_id, status=None, course_id=None, due_date=None, page=1, limit=10):
+    def get_tasks_by_student(
+        self, student_id, status=None, course_id=None, due_date=None, page=1, limit=10
+    ):
         try:
             # Obtain courses you are enrolled in
             courses = self.course_service.get_courses_by_student_id(student_id)
@@ -511,7 +519,7 @@ class TaskService:
                 status=status,
                 due_date=due_date,
                 page=page,
-                limit=limit
+                limit=limit,
             )
 
             final_tasks = []
@@ -522,7 +530,9 @@ class TaskService:
 
             return final_tasks
         except Exception as e:
-            self.logger.error(f"[TASKS][SERVICE] Error getting tasks for student {student_id}: {str(e)}")
+            self.logger.error(
+                f"[TASKS][SERVICE] Error getting tasks for student {student_id}: {str(e)}"
+            )
             raise e
 
     def _calculate_status(self, task: Task, student_id: str) -> str:

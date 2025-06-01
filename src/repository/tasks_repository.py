@@ -12,7 +12,9 @@ class TasksRepository:
     def create_task(self, task: Task):
         try:
             result = self.collection.insert_one(task.to_dict())
-            self.logger.debug(f"[TASKS][REPOSITORY] Task created with id: {result.inserted_id}")
+            self.logger.debug(
+                f"[TASKS][REPOSITORY] Task created with id: {result.inserted_id}"
+            )
             return str(result.inserted_id)
         except Exception as e:
             self.logger.error(f"[TASKS][REPOSITORY] Error creating task: {str(e)}")
@@ -23,7 +25,9 @@ class TasksRepository:
             task = self.collection.find_one({"_id": task_id})
             return Task.from_dict(task) if task else None
         except Exception as e:
-            self.logger.error(f"[TASKS][REPOSITORY] Error getting task {task_id}: {str(e)}")
+            self.logger.error(
+                f"[TASKS][REPOSITORY] Error getting task {task_id}: {str(e)}"
+            )
             raise e
 
     def update_task(self, task_id: str, update_data: dict):
@@ -31,7 +35,9 @@ class TasksRepository:
             result = self.collection.update_one({"_id": task_id}, {"$set": update_data})
             return result.modified_count > 0
         except Exception as e:
-            self.logger.error(f"[TASKS][REPOSITORY] Error updating task {task_id}: {str(e)}")
+            self.logger.error(
+                f"[TASKS][REPOSITORY] Error updating task {task_id}: {str(e)}"
+            )
             raise e
 
     def delete_task(self, task_id: str):
@@ -39,7 +45,9 @@ class TasksRepository:
             result = self.collection.delete_one({"_id": task_id})
             return result.deleted_count > 0
         except Exception as e:
-            self.logger.error(f"[TASKS][REPOSITORY] Error deleting task {task_id}: {str(e)}")
+            self.logger.error(
+                f"[TASKS][REPOSITORY] Error deleting task {task_id}: {str(e)}"
+            )
             raise e
 
     def get_tasks_by_query(self, query: dict):
@@ -47,7 +55,9 @@ class TasksRepository:
             tasks = self.collection.find(query)
             return [Task.from_dict(task) for task in tasks]
         except Exception as e:
-            self.logger.error(f"[TASKS][REPOSITORY] Error getting tasks by query: {str(e)}")
+            self.logger.error(
+                f"[TASKS][REPOSITORY] Error getting tasks by query: {str(e)}"
+            )
             raise e
 
     def get_task_with_submission_for_student(self, task_id, student_id):
@@ -77,7 +87,9 @@ class TasksRepository:
         if update_result.matched_count == 0:
             raise ValueError("Task not found")
 
-        self.logger.info(f"[TASKS][REPOSITORY] Submission recorded for student {student_id} on task {task_id}")
+        self.logger.info(
+            f"[TASKS][REPOSITORY] Submission recorded for student {student_id} on task {task_id}"
+        )
 
         task = self.get_task_with_submission_for_student(task_id, student_id)
         return task

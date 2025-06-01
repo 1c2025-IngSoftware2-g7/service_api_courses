@@ -37,7 +37,7 @@ class Task:
         submissions: Optional[dict[str, Submission]] = None,
         _id: Optional[ObjectId] = None,
         created_at: Optional[int] = None,  # timestamp ms
-        updated_at: Optional[int] = None   # timestamp ms
+        updated_at: Optional[int] = None,  # timestamp ms
     ):
         self._id = _id if _id else ObjectId()
         self.title = title
@@ -50,8 +50,12 @@ class Task:
         self.task_type = task_type
         self.file_url = file_url
         self.submissions = submissions if submissions is not None else {}
-        self.created_at = created_at if created_at is not None else parse_to_timestamp_ms_now()
-        self.updated_at = updated_at if updated_at is not None else parse_to_timestamp_ms_now()
+        self.created_at = (
+            created_at if created_at is not None else parse_to_timestamp_ms_now()
+        )
+        self.updated_at = (
+            updated_at if updated_at is not None else parse_to_timestamp_ms_now()
+        )
 
     def to_dict(self):
         return {
@@ -88,5 +92,5 @@ class Task:
             file_url=data.get("file_url"),
             submissions=submissions,
             created_at=parse_date_to_timestamp_ms(data.get("created_at")),
-            updated_at=parse_date_to_timestamp_ms(data.get("updated_at"))
+            updated_at=parse_date_to_timestamp_ms(data.get("updated_at")),
         )
