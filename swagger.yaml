@@ -660,6 +660,32 @@ paths:
         '404':
           description: Course not found
 
+    put:
+      tags:
+        - Assistants
+      summary: Update an assistant's permissions for a course
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistantPermission'
+      responses:
+        '200':
+          description: Assistant permissions updated
+        '400':
+          description: Missing parameters
+        '403':
+          description: User is not the owner of the course
+        '404':
+          description: Course or assistant not found
+
   /{course_id}/delete_assistant/{assistant_id}/with_owner_id/{owner_id}:
     delete:
       tags:
@@ -688,6 +714,32 @@ paths:
           description: Missing parameters
         '403':
           description: User is not the owner to remove the assistant
+        '404':
+          description: Course or assistant not found
+
+  /{course_id}/assistant/{assistant_id}:
+    get:
+      tags:
+        - Assistants
+      summary: Get an assistant's permissions for a course
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: assistant_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Assistant permissions retrieved
+        '400':
+          description: Missing parameters
+        '403':
+          description: User is not the owner of the course
         '404':
           description: Course or assistant not found
 

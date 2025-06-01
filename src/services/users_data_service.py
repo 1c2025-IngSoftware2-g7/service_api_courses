@@ -577,3 +577,40 @@ class UsersDataService:
         return self.repository.check_assistants_permissions(
             course_id, attempt_user_id, permission
         )
+
+    def get_assistant_permissions(self, course_id, assistant_to_check):
+        """Get the permissions of an assistant in a course."""
+
+        self.logger.debug(
+            f"[UsersDataService] Attemptying to get perms for ID: {assistant_to_check} to course with ID: {course_id}"
+        )
+
+        # now lets check if
+        # Check if the course exists
+        course_exists = self.service_courses.get_course(course_id)
+
+        if course_exists["code_status"] != 200:
+            return error_generator(
+                COURSE_NOT_FOUND,
+                "Course ID not found",
+                404,
+                "modify_assistant_permissions",
+            )
+
+        # Now lets get retrieve the assistant permissions
+        assistant_permissions = self.repository.get_assistant_permissions_for_course(
+            course_id, assistant_to_check
+        )
+
+        if not assistant_permissions:
+            return error_generator(
+                ASSISTANT_DOESNT_EXISTS,
+                "Assistant not found",
+                404,
+                "get_assistant_permissions",
+            )
+
+        return {
+            "response": assistant_permissions,
+            "code_status": 200,
+        }
