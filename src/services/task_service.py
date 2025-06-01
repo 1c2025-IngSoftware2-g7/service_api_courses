@@ -10,10 +10,16 @@ from repository.tasks_repository import TasksRepository
 
 class TaskService:
     def __init__(
-        self, tasks_repository: TasksRepository, user_service, course_service, logger
+        self,
+        tasks_repository: TasksRepository,
+        course_service,
+        user_service,
+        repository_courses,
+        logger,
     ):
         self.repository = tasks_repository
         self.service_users = user_service
+        self.repository_courses = repository_courses
         self.course_service = course_service
         self.logger = logger
 
@@ -33,6 +39,7 @@ class TaskService:
         has_permissions = self.service_users.check_assistants_permissions(
             course_id, creator_user_uuid, perm_required
         )
+
         is_owner_course = self.repository_courses.is_user_owner(
             course_id, creator_user_uuid
         )
