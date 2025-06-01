@@ -702,3 +702,6 @@ class CourseService:
 
     def is_user_owner_of_course(self, course_id, user_id):
         return self.course_repository.is_user_owner(course_id, user_id)
+
+    def get_courses_by_student_id(self, student_id):
+        return self.course_repository.get_courses_by_student_id(student_id)

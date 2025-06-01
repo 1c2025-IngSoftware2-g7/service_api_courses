@@ -1,11 +1,12 @@
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, timezone
 from google.cloud import storage
 import os
 
 from error.error import error_generator
-from src.headers import MISSING_FIELDS, COURSE_NOT_FOUND
+from headers import MISSING_FIELDS, COURSE_NOT_FOUND
 from models.task import Task, TaskStatus, TaskType
 from repository.tasks_repository import TasksRepository
+from utils import parse_date_to_timestamp_ms, parse_to_timestamp_ms_now
 
 
 class TaskService:
@@ -36,15 +37,17 @@ class TaskService:
             )
 
         try:
-            # due_date string to datetime with hs
-            due_date = data["due_date"]
-            if isinstance(due_date, str):
+            due_date_raw = data["due_date"]
+            due_date_timestamp = None
+
+            if isinstance(due_date_raw, int):
+                due_date_timestamp = due_date_raw
+            elif isinstance(due_date_raw, str):
                 try:
-                    due_date = datetime.strptime(due_date, "%Y-%m-%d %H:%M:%S")
+                    due_date_dt = datetime.strptime(due_date_raw, "%Y-%m-%d %H:%M:%S")
                 except ValueError:
                     try:
-                        # If it fails, try only the date (add 00:00:00)
-                        due_date = datetime.strptime(due_date, "%Y-%m-%d")
+                        due_date_dt = datetime.strptime(due_date_raw, "%Y-%m-%d")
                     except ValueError:
                         return error_generator(
                             MISSING_FIELDS,
@@ -52,13 +55,25 @@ class TaskService:
                             400,
                             "create_task"
                         )
+                if due_date_dt.tzinfo is None:
+                    due_date_dt = due_date_dt.replace(tzinfo=timezone.utc)
+                else:
+                    due_date_dt = due_date_dt.astimezone(timezone.utc)
+                
+                due_date_timestamp = int(due_date_dt.timestamp() * 1000)
+            else:
+                return error_generator(
+                    MISSING_FIELDS,
+                    "due_date must be int (timestamp ms) or string",
+                    400,
+                    "create_task"
+                )
 
-            # Crear la tarea
             task = Task(
                 title=data["title"],
                 description=data.get("description", ""),
                 instructions=data.get("instructions", ""),
-                due_date=due_date,
+                due_date=due_date_timestamp,
                 course_id=data["course_id"],
                 status=TaskStatus.INACTIVE,
                 task_type=TaskType(data.get("task_type", "task")),
@@ -122,10 +137,33 @@ class TaskService:
             # Filtrar solo campos permitidos y que sean diferentes al valor actual
             update_data = {}
             for field in allowed_fields:
-                if field in data and data[field] != getattr(existing_task, field):
-                    update_data[field] = data[field]
+                if field in data:
+                    new_value = data[field]
 
-            # Verificar que haya al menos un campo válido para actualizar
+                    # Manejo especial para due_date si viene como string
+                    if field == "due_date":
+                        if isinstance(new_value, str):
+                            try:
+                                new_value = parse_date_to_timestamp_ms(new_value)
+                            except ValueError:
+                                return error_generator(
+                                    MISSING_FIELDS,
+                                    "Invalid due_date format. Use 'YYYY-MM-DD' or 'YYYY-MM-DD HH:MM:SS'",
+                                    400,
+                                    "update_task"
+                                )
+                        elif not isinstance(new_value, int):
+                            return error_generator(
+                                MISSING_FIELDS,
+                                "due_date must be an integer (timestamp in ms) or a valid date string",
+                                400,
+                                "update_task"
+                            )
+
+                    # Solo guardar si realmente cambió
+                    if new_value != getattr(existing_task, field):
+                        update_data[field] = new_value
+
             if not update_data:
                 return error_generator(
                     "No changes detected",
@@ -134,9 +172,9 @@ class TaskService:
                     "update_task"
                 )
 
-            # Agregar marca de tiempo de actualización
-            update_data['updated_at'] = datetime.now()
-            # Realizar la actualización en la base de datos
+            # Timestamp de actualización en ms
+            update_data['updated_at'] = int(datetime.now(timezone.utc).timestamp() * 1000)
+
             updated = self.repository.update_task(task_id, update_data)
 
             if updated:
@@ -351,3 +389,60 @@ class TaskService:
         except Exception as e:
             self.logger.error(f"Error getting tasks for teacher {teacher_id}: {str(e)}")
             raise e
+
+    def get_tasks_by_student(self, student_id, status=None, course_id=None, due_date=None, page=1, limit=10):
+        try:
+            # Obtain courses you are enrolled in
+            courses = self.course_service.get_courses_by_student_id(student_id)
+            if not courses:
+                return []
+
+            course_ids = [c._id for c in courses]
+
+            if course_id and course_id in course_ids:
+                course_ids = [course_id]  # filter by course
+
+            tasks = self.repository.get_tasks_by_course_ids(
+                course_ids=course_ids,
+                status=status,
+                due_date=due_date,
+                page=page,
+                limit=limit
+            )
+
+            final_tasks = []
+            for task in tasks:
+                task = task.to_dict()
+                task["status"] = self._calculate_status(task, student_id)
+                final_tasks.append(task)
+
+            return final_tasks
+        except Exception as e:
+            self.logger.error(f"Error getting tasks for student {student_id}: {str(e)}")
+            raise e
+
+    def _calculate_status(self, task: dict, student_id: str) -> str:
+        """
+        Determines the status of a task for a given student.
+
+        The status is calculated based on whether the student has submitted the task
+        and whether the due date has passed.
+
+        Returns:
+            - "completed" if the student has submitted the task.
+            - "overdue" if the due date has passed and the student has not submitted.
+            - "pending" if the due date has not passed and there is no submission.
+        """
+        submissions = task.get("submissions", {})
+
+        if student_id in submissions:
+            return "completed"
+
+        due_date_ts = task.get("due_date")
+
+        if due_date_ts and isinstance(due_date_ts, int):
+            now_ts = parse_to_timestamp_ms_now()
+            if now_ts > due_date_ts:
+                return "overdue"
+
+        return "pending"

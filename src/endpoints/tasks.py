@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify
 from werkzeug.exceptions import BadRequest
 
 from error.error import error_generator
 from headers import MISSING_FIELDS
 from services import service_tasks, logger
+from utils import parse_date_to_timestamp_ms
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/courses/tasks")
 
@@ -176,25 +177,72 @@ def get_tasks_by_teacher(teacher_id):
         status = request.args.get("status")
         due_date = request.args.get("date")
         page = int(request.args.get("page", 1))
-        limit = int(request.args.get("limit", 10))
+        limit = int(request.args.get("limit", 1000))
 
         date_range = None
         if due_date:
             try:
-                # Parse date string to date object (not datetime yet)
                 date = datetime.strptime(due_date, "%Y-%m-%d").date()
-                # Create range for full day
-                start = datetime.combine(date, datetime.min.time())  # 00:00:00
-                end = datetime.combine(date, datetime.max.time())    # 23:59:59.999999
-                date_range = {"$gte": start, "$lte": end}
+                start_dt = datetime.combine(date, datetime.min.time(), tzinfo=timezone.utc)
+                end_dt = datetime.combine(date, datetime.max.time(), tzinfo=timezone.utc)
+
+                start_ts = parse_date_to_timestamp_ms(start_dt)
+                end_ts = parse_date_to_timestamp_ms(end_dt)
+
+                date_range = {"$gte": start_ts, "$lte": end_ts}
             except ValueError:
-                error = error_generator("Invalid date format.", "Use YYYY-MM-DD", 400, "teachers/<string:teacher_id>")
+                error = error_generator(
+                    "Invalid date format.",
+                    "Use YYYY-MM-DD",
+                    400,
+                    "teachers/<string:teacher_id>"
+                )
                 return error["response"], error["code_status"]
 
         tasks = service_tasks.get_tasks_by_teacher(
             teacher_id=teacher_id,
             status=status,
             due_date=date_range,
+            page=page,
+            limit=limit
+        )
+
+        return jsonify([t.to_dict() for t in tasks]), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@tasks_bp.get("/students/<string:student_id>")
+def get_tasks_for_student(student_id):
+    try:
+        status = request.args.get("status")
+        course_id = request.args.get("course_id")
+        due_date = request.args.get("date")
+        page = int(request.args.get("page", 1))
+        limit = int(request.args.get("limit", 1000))
+
+        due_date_ts = None
+        if due_date:
+            try:
+                dt = datetime.fromisoformat(due_date)
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                due_date_ts = parse_date_to_timestamp_ms(dt)
+            except Exception:
+                error = error_generator(
+                    "Invalid date format.",
+                    "Use ISO 8601 format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS",
+                    400,
+                    "students/<string:student_id>"
+                )
+                return error["response"], error["code_status"]
+
+        tasks = service_tasks.get_tasks_by_student(
+            student_id=student_id,
+            status=status,
+            course_id=course_id,
+            due_date=due_date_ts,
             page=page,
             limit=limit
         )
