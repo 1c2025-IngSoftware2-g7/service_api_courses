@@ -2,8 +2,12 @@ from typing import List, Optional
 
 
 class Submission:
-    def __init__(self, attachment_links: List[str], feedback: Optional[str] = None):
-        self.attachment_links = attachment_links
+    def __init__(
+        self,
+        attachment_links: Optional[List[str]] = None,
+        feedback: Optional[str] = None
+    ):
+        self.attachment_links = attachment_links or []
         self.feedback = feedback
 
     def to_dict(self):
