@@ -90,12 +90,6 @@ class CoursesRepository:
 
     """ This method is used to find all courses that a student is enrolled in. """
 
-    def find_by_student_id(self, student_id):
-        courses = self.collection.find({"students": student_id})
-        return list(courses)
-
-    """ This method is used to find all courses that a student is enrolled in. """
-
     def get_course_owner(self, course_id):
         course = self.get_course_by_id(course_id)
         if course:
@@ -271,3 +265,12 @@ class CoursesRepository:
             {"_id": ObjectId(course_id)}, {"$pull": {"modules": module_id}}
         )
         return result.modified_count > 0
+
+    def get_courses_by_student_id(self, student_id):
+        try:
+            query = {"students": student_id}
+            courses = list(self.collection.find(query))
+            return [Course.from_dict(course) for course in courses]
+        except Exception as e:
+            self.logger.error(f"Error fetching courses for student {student_id}: {str(e)}")
+            raise e
