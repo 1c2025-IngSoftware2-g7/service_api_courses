@@ -28,6 +28,7 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/courses/tasks")
                     'instructions': {'type': 'string'},
                     'due_date': {'type': 'integer'},
                     'course_id': {'type': 'string'},
+                    'module_id': {'type': 'string'},
                     'status': {'type': 'string', 'enum': ['inactive', 'open', 'closed']},
                     'task_type': {'type': 'string', 'enum': ['task', 'exam']},
                     'file_url': {'type': 'string'}
@@ -170,6 +171,12 @@ def delete_task(task_id=None):
             'in': 'query',
             'type': 'string',
             'required': False
+        },
+        {
+            'name': 'module_id',
+            'in': 'query',
+            'type': 'string',
+            'required': False
         }
     ],
     'responses': {
@@ -191,10 +198,11 @@ def get_tasks_by_course(course_id=None):
         return error["response"], error["code_status"]
 
     status = request.args.get("status", None)
+    module_id = request.args.get("module_id", None)
     logger.debug(
-        f"[TASKS][CONTROLLER] Getting tasks for course {course_id} with status filter: {status}")
+        f"[TASKS][CONTROLLER] Getting tasks for course {course_id} with status filter: {status}. And module_id filter: {module_id}")
 
-    result = service_tasks.get_tasks_by_course(course_id, status)
+    result = service_tasks.get_tasks_by_course(course_id, status, module_id)
     return result["response"], result["code_status"]
 
 

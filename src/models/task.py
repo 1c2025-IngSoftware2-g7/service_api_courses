@@ -28,6 +28,7 @@ class Task:
         title: str,
         due_date: Optional[int],  # timestamp ms
         course_id: str,
+        module_id: str,
         description: str = "",
         instructions: str = "",
         status: TaskStatus = TaskStatus.INACTIVE,
@@ -44,6 +45,7 @@ class Task:
         self.instructions = instructions
         self.due_date = due_date
         self.course_id = course_id
+        self.module_id = module_id
         self.status = status
         self.task_type = task_type
         self.file_url = file_url
@@ -59,6 +61,7 @@ class Task:
             "instructions": self.instructions,
             "due_date": self.due_date,
             "course_id": self.course_id,
+            "module_id": self.module_id,
             "status": self.status.value,
             "task_type": self.task_type.value,
             "file_url": self.file_url,
@@ -79,6 +82,7 @@ class Task:
             instructions=data.get("instructions", ""),
             due_date=parse_date_to_timestamp_ms(data.get("due_date")),
             course_id=data["course_id"],
+            module_id=data["module_id"],
             status=TaskStatus(data.get("status", TaskStatus.INACTIVE)),
             task_type=TaskType(data.get("task_type", TaskType.TASK)),
             file_url=data.get("file_url"),

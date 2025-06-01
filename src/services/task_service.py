@@ -75,6 +75,7 @@ class TaskService:
                 instructions=data.get("instructions", ""),
                 due_date=due_date_timestamp,
                 course_id=data["course_id"],
+                module_id=data.get("module_id", ""),
                 status=TaskStatus.INACTIVE,
                 task_type=TaskType(data.get("task_type", "task")),
                 file_url=data.get("file_url")
@@ -252,7 +253,7 @@ class TaskService:
             )
 
 
-    def get_tasks_by_course(self, course_id: str, status: str = None):
+    def get_tasks_by_course(self, course_id: str, status: str = None, module_id: str = None):
         try:
             # Validar que el curso exista
             course = self.course_service.get_course_by_id(course_id)
@@ -276,6 +277,9 @@ class TaskService:
                         "get_tasks_by_course"
                     )
                 query["status"] = status.lower()
+
+            if module_id:
+                query["module_id"] = module_id
 
             # Obtener tareas
             tasks = self.repository.get_tasks_by_query(query)
