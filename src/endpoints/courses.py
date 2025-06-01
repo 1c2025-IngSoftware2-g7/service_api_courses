@@ -175,15 +175,24 @@ def get_courses_owned_by_user(user_id=None):
 
     if not user_id:
         error = error_generator(
-            f"[COURSES][CONTROLLER] {MISSING_FIELDS}", "User ID is required", 400, "/courses_owned/<string:user_id>"
+            f"[COURSES][CONTROLLER] {MISSING_FIELDS}",
+            "User ID is required",
+            400,
+            "/courses_owned/<string:user_id>",
         )
         return error["response"], error["code_status"]
 
-    logger.debug(f"[COURSES][CONTROLLER] Getting all courses owned by user with ID: {user_id}")
+    logger.debug(
+        f"[COURSES][CONTROLLER] Getting all courses owned by user with ID: {user_id}"
+    )
     # Call the service to get all courses
     try:
-        courses = service_courses.get_courses_owned_by_user(user_id, offset, max_per_page)
+        courses = service_courses.get_courses_owned_by_user(
+            user_id, offset, max_per_page
+        )
         return jsonify([c.to_dict() for c in courses]), 200
     except Exception as e:
-        error = error_generator("[COURSES][CONTROLLER] Error", e, 500, "/courses_owned/<string:user_id>")
+        error = error_generator(
+            "[COURSES][CONTROLLER] Error", e, 500, "/courses_owned/<string:user_id>"
+        )
         return error["response"], error["code_status"]

@@ -76,7 +76,9 @@ service_feedbacks = FeedbackService(
     repository_feedbacks, service_courses, service_users, logger
 )
 
-service_tasks = TaskService(repository_tasks, service_courses, logger)
+service_tasks = TaskService(
+    repository_tasks, service_courses, service_users, repository_courses_data, logger
+)
 
 service_enrollment = EnrollmentService(
     repository_courses_data, repository_users_data, logger
