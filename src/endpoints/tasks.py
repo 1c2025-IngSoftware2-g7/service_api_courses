@@ -535,3 +535,79 @@ def get_header_value_for_key(headers, key):
             return v
 
     return None
+
+
+@tasks_bp.put("/submission/<string:task_id>")
+@swag_from({
+    "tags": ["Tasks"],
+    "summary": "Add or update feedback for a task submission",
+    "parameters": [
+        {"name": "task_id", "in": "path", "type": "string", "required": True},
+        {
+            "name": "body",
+            "in": "body",
+            "required": True,
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "uuid_student": {"type": "string"},
+                    "uuid_corrector": {"type": "string"},
+                    "nota": {"type": "number", "format": "float"},
+                    "comentario": {"type": "string"}
+                },
+                "required": ["uuid_student", "uuid_corrector"]
+            }
+        }
+    ],
+    "responses": {
+        200: {"description": "Feedback added/updated successfully"},
+        400: {"description": "Missing required fields"},
+        403: {"description": "User not authorized to provide feedback"},
+        404: {"description": "Task or submission not found"},
+        500: {"description": "Internal server error"}
+    }
+})
+def add_or_update_feedback(task_id):
+    try:
+        data = request.json
+        required_fields = ["uuid_student", "uuid_corrector"]
+
+        for field in required_fields:
+            if field not in data:
+                return error_generator(
+                    MISSING_FIELDS,
+                    f"Field {field} is required",
+                    400,
+                    "add_or_update_feedback"
+                )
+
+        student_id = data["uuid_student"]
+        corrector_id = data["uuid_corrector"]
+        grade = data.get("nota")
+        comment = data.get("comentario")
+
+        # Verificar permisos
+        task = service_tasks.get_task_by_id(task_id)
+        if task["code_status"] != 200:
+            return task["response"], task["code_status"]
+
+        # Actualizar o crear la retroalimentación
+        result = service_tasks.add_or_update_feedback(
+            task_id,
+            student_id,
+            corrector_id,
+            grade,
+            comment
+        )
+
+        return result["response"], result["code_status"]
+
+    except Exception as e:
+        logger.error(
+            f"[TASKS][CONTROLLER] Error in add_or_update_feedback: {str(e)}")
+        return error_generator(
+            "Internal Server Error",
+            str(e),
+            500,
+            "add_or_update_feedback"
+        )
