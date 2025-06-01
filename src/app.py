@@ -1,6 +1,7 @@
 import os
 from flask import Flask
 from flask_cors import CORS
+from flasgger import Swagger
 
 # Importing the blueprints..
 from endpoints.courses import courses_bp
@@ -20,6 +21,26 @@ CORS(courses_app, origins=["*"], methods=["GET", "POST", "PUT", "DELETE", "OPTIO
 # Session config
 courses_app.secret_key = os.getenv("SECRET_KEY_SESSION")
 
+# Swagger config
+swagger_config = {
+    "headers": [],
+    "title": "Courses API",
+    "version": "1.0.0",
+    "description": "Courses API Documentation",
+    "termsOfService": "",
+    "specs_route": "/docs/",
+    "static_url_path": "/flasgger_static",
+    "specs": [
+        {
+            "endpoint": 'apispec_1',
+            "route": '/apispec_1.json',
+            "rule_filter": lambda rule: True,
+            "model_filter": lambda tag: True,
+        }
+    ]
+}
+
+Swagger(courses_app, config=swagger_config)
 
 @courses_app.get("/courses/health")
 def health_check():

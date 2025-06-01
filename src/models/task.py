@@ -3,13 +3,18 @@ from enum import Enum
 from typing import Optional
 
 from models.submission import Submission
-from utils import parse_to_timestamp_ms, parse_to_timestamp_ms_now
+from utils import parse_date_to_timestamp_ms, parse_to_timestamp_ms_now
 
 
 class TaskStatus(str, Enum):
-    INACTIVE = "inactivo"
-    OPEN = "abierto"
-    CLOSED = "cerrado"
+    # for teachers:
+    INACTIVE = "inactive"
+    OPEN = "open"
+    CLOSED = "closed"
+    # for students:
+    COMPLETED = "completed"
+    OVERDUE = "overdue"
+    PENDING = "pending"
 
 
 class TaskType(str, Enum):
@@ -72,12 +77,12 @@ class Task:
             title=data["title"],
             description=data.get("description", ""),
             instructions=data.get("instructions", ""),
-            due_date=parse_to_timestamp_ms(data.get("due_date")),
+            due_date=parse_date_to_timestamp_ms(data.get("due_date")),
             course_id=data["course_id"],
             status=TaskStatus(data.get("status", TaskStatus.INACTIVE)),
             task_type=TaskType(data.get("task_type", TaskType.TASK)),
             file_url=data.get("file_url"),
             submissions=submissions,
-            created_at=parse_to_timestamp_ms(data.get("created_at")),
-            updated_at=parse_to_timestamp_ms(data.get("updated_at"))
+            created_at=parse_date_to_timestamp_ms(data.get("created_at")),
+            updated_at=parse_date_to_timestamp_ms(data.get("updated_at"))
         )
