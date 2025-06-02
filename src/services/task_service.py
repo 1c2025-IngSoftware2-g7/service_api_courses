@@ -423,9 +423,9 @@ class TaskService:
                 "get_task_by_id",
             )
 
-    def submit_task(self, task_id, student_id, attachment_links):
+    def submit_task(self, task_id, student_id, attachments):
         return self.repository.add_task_submission(
-            task_id, student_id, attachment_links
+            task_id, student_id, attachments
         )
 
     def upload_task(self, uuid, num_task, file):

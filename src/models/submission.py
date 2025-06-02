@@ -36,10 +36,10 @@ class Feedback:
 class Submission:
     def __init__(
         self,
-        attachment_links: Optional[List[str]] = None,
+        attachments: Optional[List[Dict[str, str]]] = None,
         feedbacks: Optional[Dict[str, Dict[str, Any]]] = None
     ):
-        self.attachment_links = attachment_links or []
+        self.attachments = attachments or []
         self.feedbacks = {}
         if feedbacks:
             for corrector_id, feedback_data in feedbacks.items():
@@ -48,13 +48,13 @@ class Submission:
 
     def to_dict(self):
         return {
-            "attachment_links": self.attachment_links,
+            "attachments": self.attachments,
             "feedbacks": {k: v.to_dict() for k, v in self.feedbacks.items()}
         }
 
     @staticmethod
     def from_dict(data: dict):
         return Submission(
-            attachment_links=data.get("attachment_links", []),
+            attachments=data.get("attachments", []),
             feedbacks=data.get("feedbacks", {})
         )
