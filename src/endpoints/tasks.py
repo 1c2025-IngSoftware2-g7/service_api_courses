@@ -36,11 +36,14 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/courses/tasks")
                         },
                         "task_type": {"type": "string", "enum": ["task", "exam"]},
                         "attachments": {
-                            "type": "object",
-                            "properties": {
-                                "title": {"type": "string"},
-                                "url": {"type": "string"},
-                                "mimetype": {"type": "string"}
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {"type": "string"},
+                                    "url": {"type": "string"},
+                                    "mimetype": {"type": "string"}
+                                }
                             }
                         },
                     },
@@ -106,11 +109,14 @@ def create_task():
                         "status": {"type": "string"},
                         "task_type": {"type": "string"},
                         "attachments": {
-                            "type": "object",
-                            "properties": {
-                                "title": {"type": "string"},
-                                "url": {"type": "string"},
-                                "mimetype": {"type": "string"}
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {"type": "string"},
+                                    "url": {"type": "string"},
+                                    "mimetype": {"type": "string"}
+                                }
                             }
                         },
                     },
