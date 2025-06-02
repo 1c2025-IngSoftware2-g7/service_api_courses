@@ -83,7 +83,7 @@ class UsersDataRepository:
             )
             return False
 
-        if course_id in user["favourite_courses"]:
+        if course_id in user.get("favourite_courses", []):
             return True
 
         return False
@@ -98,7 +98,7 @@ class UsersDataRepository:
 
         user = self.collection.find_one({"student_id": student_id})
 
-        return user["favourite_courses"] if user else None
+        return user.get("favourite_courses", []) if user else None
 
     def check_student_enrollment(self, student_id, course_id, list_students_in_course):
         """
