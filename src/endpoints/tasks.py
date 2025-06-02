@@ -298,12 +298,19 @@ def get_task_by_id(task_id=None):
                     "type": "object",
                     "properties": {
                         "uuid_student": {"type": "string"},
-                        "attachment_links": {
+                        "attachments": {
                             "type": "array",
-                            "items": {"type": "string"},
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {"type": "string"},
+                                    "url": {"type": "string"},
+                                    "mimetype": {"type": "string"}
+                                }
+                            }
                         },
                     },
-                    "required": ["uuid_student", "attachment_links"],
+                    "required": ["uuid_student", "attachments"],
                 },
             },
         ],
@@ -322,13 +329,13 @@ def submit_task(uuid_task):
         data = request.json
         if "uuid_student" not in data:
             raise BadRequest("The uuid_student field is missing from the request.")
-        if "attachment_links" not in data:
-            raise BadRequest("The attachment_links is missing from the request.")
+        if "attachments" not in data:
+            raise BadRequest("The attachments is missing from the request.")
 
         uuid_student = data.get("uuid_student")
-        attachment_links = data.get("attachment_links")
+        attachments = data.get("attachments")
 
-        task = service_tasks.submit_task(uuid_task, uuid_student, attachment_links)
+        task = service_tasks.submit_task(uuid_task, uuid_student, attachments)
         return jsonify(task.to_dict()), 200
 
     except BadRequest as e:
