@@ -114,7 +114,7 @@ class TaskService:
                 module_id=data.get("module_id", ""),
                 status=TaskStatus.INACTIVE,
                 task_type=TaskType(data.get("task_type", "task")),
-                file_url=data.get("file_url"),
+                attachments=data.get("attachments", {}),
             )
 
             task_id = self.repository.create_task(task)
@@ -200,7 +200,7 @@ class TaskService:
                 "instructions",
                 "due_date",
                 "task_type",
-                "file_url",
+                "attachments",
                 "status",
             }
 

@@ -35,7 +35,14 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/courses/tasks")
                             "enum": ["inactive", "open", "closed"],
                         },
                         "task_type": {"type": "string", "enum": ["task", "exam"]},
-                        "file_url": {"type": "string"},
+                        "attachments": {
+                            "type": "object",
+                            "properties": {
+                                "title": {"type": "string"},
+                                "url": {"type": "string"},
+                                "mimetype": {"type": "string"}
+                            }
+                        },
                     },
                     "required": ["title", "course_id", "due_date"],
                 },
@@ -98,7 +105,14 @@ def create_task():
                         "due_date": {"type": "integer"},
                         "status": {"type": "string"},
                         "task_type": {"type": "string"},
-                        "file_url": {"type": "string"},
+                        "attachments": {
+                            "type": "object",
+                            "properties": {
+                                "title": {"type": "string"},
+                                "url": {"type": "string"},
+                                "mimetype": {"type": "string"}
+                            }
+                        },
                     },
                 },
             },
