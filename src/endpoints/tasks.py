@@ -580,8 +580,8 @@ def get_header_value_for_key(headers, key):
                     "properties": {
                         "uuid_student": {"type": "string"},
                         "uuid_corrector": {"type": "string"},
-                        "nota": {"type": "number", "format": "float"},
-                        "comentario": {"type": "string"},
+                        "grade": {"type": "number", "format": "float"},
+                        "comment": {"type": "string"},
                     },
                     "required": ["uuid_student", "uuid_corrector"],
                 },
@@ -612,8 +612,8 @@ def add_or_update_feedback(task_id):
 
         student_id = data["uuid_student"]
         corrector_id = data["uuid_corrector"]
-        grade = data.get("nota")
-        comment = data.get("comentario")
+        grade = data.get("grade")
+        comment = data.get("comment")
 
         # Verificar permisos
         task = service_tasks.get_task_by_id(task_id)
