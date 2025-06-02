@@ -4,6 +4,7 @@ from google.cloud import storage
 import os
 
 from error.error import error_generator
+from models.submission import Feedback
 from headers import MISSING_FIELDS, COURSE_NOT_FOUND, USER_NOT_ALLOWED_TO_CREATE
 from models.task import Task, TaskStatus, TaskType
 from repository.tasks_repository import TasksRepository
@@ -572,7 +573,7 @@ class TaskService:
         student_id: str,
         corrector_id: str,
         grade: Optional[float] = None,
-        comment: Optional[str] = None,
+        comment: Optional[str] = None
     ):
         try:
             # Obtener la tarea actual
@@ -583,7 +584,7 @@ class TaskService:
                     "Task not found",
                     "The specified task does not exist",
                     404,
-                    "add_or_update_feedback",
+                    "add_or_update_feedback"
                 )
 
             task = tasks[0]
@@ -594,26 +595,32 @@ class TaskService:
                     "Submission not found",
                     "The student has not submitted this task",
                     404,
-                    "add_or_update_feedback",
+                    "add_or_update_feedback"
                 )
 
-            # Obtener o crear el feedback
+            # Obtener la submission
             submission = task.submissions[student_id]
-            feedback_data = submission.feedbacks.get(corrector_id, {})
 
-            # Actualizar solo los campos proporcionados
-            if grade is not None:
-                feedback_data["grade"] = grade
-            if comment is not None:
-                feedback_data["comment"] = comment
+            # Crear o actualizar el feedback
+            if corrector_id in submission.feedbacks:
+                # Actualizar feedback existente
+                feedback = submission.feedbacks[corrector_id]
+                if grade is not None:
+                    feedback.grade = grade
+                if comment is not None:
+                    feedback.comment = comment
+                feedback.created_at = parse_to_timestamp_ms_now()
+            else:
+                # Crear nuevo feedback
+                feedback = Feedback(
+                    corrector_id=corrector_id,
+                    grade=grade,
+                    comment=comment
+                )
 
-            # Siempre actualizamos el corrector y la fecha
-            feedback_data["corrector_id"] = corrector_id
-            feedback_data["created_at"] = parse_to_timestamp_ms_now()
-
-            # Actualizar en la base de datos
+            # Preparar datos para actualización
             update_data = {
-                f"submissions.{student_id}.feedbacks.{corrector_id}": feedback_data
+                f"submissions.{student_id}.feedbacks.{corrector_id}": feedback.to_dict()
             }
 
             updated = self.repository.update_task(task_id, update_data)
@@ -625,22 +632,24 @@ class TaskService:
                         "title": "Feedback updated",
                         "status": 200,
                         "detail": f"Feedback for student {student_id} updated successfully",
-                        "instance": f"/courses/tasks/submission/{task_id}",
+                        "instance": f"/courses/tasks/submission/{task_id}"
                     },
-                    "code_status": 200,
+                    "code_status": 200
                 }
             else:
                 return error_generator(
                     "Update failed",
                     "Failed to update feedback",
                     500,
-                    "add_or_update_feedback",
+                    "add_or_update_feedback"
                 )
 
         except Exception as e:
             self.logger.error(
-                f"[TASK SERVICE] Error in add_or_update_feedback: {str(e)}"
-            )
+                f"[TASK SERVICE] Error in add_or_update_feedback: {str(e)}")
             return error_generator(
-                "Internal Server Error", str(e), 500, "add_or_update_feedback"
+                "Internal Server Error",
+                str(e),
+                500,
+                "add_or_update_feedback"
             )
