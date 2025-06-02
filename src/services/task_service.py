@@ -571,7 +571,7 @@ class TaskService:
         self,
         task_id: str,
         student_id: str,
-        corrector_id: str,
+        corrector_id: Optional[str] = None,
         grade: Optional[float] = None,
         comment: Optional[str] = None
     ):
@@ -600,6 +600,53 @@ class TaskService:
 
             # Obtener la submission
             submission = task.submissions[student_id]
+            existing_corrector_id = next(
+                iter(submission.feedbacks.keys()), None)
+
+            # Caso 1: Desasignar corrector (corrector_id es None)
+            if corrector_id is None:
+                if existing_corrector_id:
+                    # Eliminar el feedback existente
+                    update_data = {
+                        f"submissions.{student_id}.feedbacks.{existing_corrector_id}": None
+                    }
+                    updated = self.repository.update_task(task_id, update_data)
+
+                    if updated:
+                        return {
+                            "response": {
+                                "type": "about:blank",
+                                "title": "Corrector unassigned",
+                                "status": 200,
+                                "detail": f"Corrector unassigned from student {student_id}'s submission",
+                                "instance": f"/courses/tasks/submission/{task_id}"
+                            },
+                            "code_status": 200
+                        }
+                    else:
+                        return error_generator(
+                            "Update failed",
+                            "Failed to unassign corrector",
+                            500,
+                            "add_or_update_feedback"
+                        )
+                else:
+                    return error_generator(
+                        "No corrector assigned",
+                        "There was no corrector assigned to unassign",
+                        400,
+                        "add_or_update_feedback"
+                    )
+
+            # Caso 2: Asignar/Actualizar corrector
+            # Validación: Si ya hay un corrector diferente
+            if existing_corrector_id and existing_corrector_id != corrector_id:
+                return error_generator(
+                    "Invalid corrector change",
+                    "Cannot change the assigned corrector. You can only update the current corrector or unassign.",
+                    400,
+                    "add_or_update_feedback"
+                )
 
             # Crear o actualizar el feedback
             if corrector_id in submission.feedbacks:
