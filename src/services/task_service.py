@@ -601,26 +601,39 @@ class TaskService:
             # Obtener la submission
             submission = task.submissions[student_id]
             existing_corrector_id = next(
-                iter(submission.feedbacks.keys()), None)
+                iter(submission.feedbacks.keys()), None) if submission.feedbacks else None
+
+            # Validación: Si ya hay un corrector diferente
+            if existing_corrector_id and existing_corrector_id != corrector_id and corrector_id is not None:
+                return error_generator(
+                    "Invalid corrector change",
+                    "Cannot change the assigned corrector. You can only update the current corrector or unassign.",
+                    400,
+                    "add_or_update_feedback"
+                )
+
+            # Preparar datos para actualización
+            update_data = {}
 
             # Caso 1: Desasignar corrector (corrector_id es None)
             if corrector_id is None:
-                if submission.feedbacks:
+                if existing_corrector_id:
                     # Mantener el feedback pero con corrector_id como None
-                    feedback = next(iter(submission.feedbacks.values()))
-                    feedback.corrector_id = None
-                    feedback.created_at = parse_to_timestamp_ms_now()
-
-                    update_data = {
-                        f"submissions.{student_id}.feedbacks.{None}": feedback.to_dict()
+                    feedback = submission.feedbacks[existing_corrector_id]
+                    feedback_data = {
+                        "corrector_id": None,
+                        "grade": feedback.grade,
+                        "comment": feedback.comment,
+                        "created_at": parse_to_timestamp_ms_now()
                     }
 
-                    # Eliminar el feedback anterior
-                    self.repository.update_task(task_id, {
-                        f"submissions.{student_id}.feedbacks.$unset": {list(submission.feedbacks.keys())[0]: ""}
-                    })
+                    # Primero eliminar el feedback existente
+                    update_data[f"submissions.{student_id}.feedbacks.{existing_corrector_id}"] = None
+                    # Luego agregar el feedback sin corrector
+                    update_data[f"submissions.{student_id}.feedbacks.null"] = feedback_data
 
-                    updated = self.repository.update_task(task_id, update_data)
+                    updated = self.repository.update_task(
+                        task_id, {"$set": update_data})
 
                     if updated:
                         return {
@@ -642,38 +655,21 @@ class TaskService:
                     )
 
             # Caso 2: Asignar/Actualizar corrector
-            # Validación: Si ya hay un corrector diferente
-            if existing_corrector_id and existing_corrector_id != corrector_id:
-                return error_generator(
-                    "Invalid corrector change",
-                    "Cannot change the assigned corrector. You can only update the current corrector or unassign.",
-                    400,
-                    "add_or_update_feedback"
-                )
-
-            # Crear o actualizar el feedback
-            if corrector_id in submission.feedbacks:
-                # Actualizar feedback existente
-                feedback = submission.feedbacks[corrector_id]
-                if grade is not None:
-                    feedback.grade = grade
-                if comment is not None:
-                    feedback.comment = comment
-                feedback.created_at = parse_to_timestamp_ms_now()
-            else:
-                # Crear nuevo feedback
-                feedback = Feedback(
-                    corrector_id=corrector_id,
-                    grade=grade,
-                    comment=comment
-                )
-
-            # Preparar datos para actualización
-            update_data = {
-                f"submissions.{student_id}.feedbacks.{corrector_id}": feedback.to_dict()
+            feedback_data = {
+                "corrector_id": corrector_id,
+                "grade": grade,
+                "comment": comment,
+                "created_at": parse_to_timestamp_ms_now()
             }
 
-            updated = self.repository.update_task(task_id, update_data)
+            # Si ya existe un feedback, primero lo eliminamos
+            if existing_corrector_id:
+                update_data[f"submissions.{student_id}.feedbacks.{existing_corrector_id}"] = None
+
+            # Agregamos el nuevo feedback
+            update_data[f"submissions.{student_id}.feedbacks.{corrector_id}"] = feedback_data
+
+            updated = self.repository.update_task(task_id, {"$set": update_data})
 
             if updated:
                 return {
