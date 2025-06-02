@@ -33,7 +33,7 @@ class Task:
         instructions: str = "",
         status: TaskStatus = TaskStatus.INACTIVE,
         task_type: TaskType = TaskType.TASK,
-        attachments: Optional[str] = None,
+        attachments: Optional[list[dict]] = None,
         submissions: Optional[dict[str, Submission]] = None,
         _id: Optional[ObjectId] = None,
         created_at: Optional[int] = None,  # timestamp ms
@@ -48,7 +48,7 @@ class Task:
         self.module_id = module_id
         self.status = status
         self.task_type = task_type
-        self.attachments = attachments if attachments is not None else {}
+        self.attachments = attachments if attachments is not None else []
         self.submissions = submissions if submissions is not None else {}
         self.created_at = (
             created_at if created_at is not None else parse_to_timestamp_ms_now()
@@ -92,7 +92,7 @@ class Task:
             module_id=data["module_id"],
             status=TaskStatus(data.get("status", TaskStatus.INACTIVE)),
             task_type=TaskType(data.get("task_type", TaskType.TASK)),
-            attachments=data.get("attachments", {}),
+            attachments=data.get("attachments", []),
             submissions=submissions,
             created_at=parse_date_to_timestamp_ms(data.get("created_at")),
             updated_at=parse_date_to_timestamp_ms(data.get("updated_at")),

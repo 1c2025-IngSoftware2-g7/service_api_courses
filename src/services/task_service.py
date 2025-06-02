@@ -114,7 +114,7 @@ class TaskService:
                 module_id=data.get("module_id", ""),
                 status=TaskStatus.INACTIVE,
                 task_type=TaskType(data.get("task_type", "task")),
-                attachments=data.get("attachments", {}),
+                attachments=data.get("attachments", []),
             )
 
             task_id = self.repository.create_task(task)
