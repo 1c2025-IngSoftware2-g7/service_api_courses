@@ -77,7 +77,10 @@ class Task:
     @staticmethod
     def from_dict(data: dict):
         submissions_data = data.get("submissions", {})
-        submissions = {k: Submission.from_dict(v) for k, v in submissions_data.items()}
+        submissions = {}
+        for k, v in submissions_data.items():
+            if v:  # Solo procesar si no es None
+                submissions[k] = Submission.from_dict(v)
 
         return Task(
             _id=ObjectId(data["_id"]) if data.get("_id") else None,

@@ -605,11 +605,21 @@ class TaskService:
 
             # Caso 1: Desasignar corrector (corrector_id es None)
             if corrector_id is None:
-                if existing_corrector_id:
-                    # Eliminar el feedback existente
+                if submission.feedbacks:
+                    # Mantener el feedback pero con corrector_id como None
+                    feedback = next(iter(submission.feedbacks.values()))
+                    feedback.corrector_id = None
+                    feedback.created_at = parse_to_timestamp_ms_now()
+
                     update_data = {
-                        f"submissions.{student_id}.feedbacks.{existing_corrector_id}": None
+                        f"submissions.{student_id}.feedbacks.{None}": feedback.to_dict()
                     }
+
+                    # Eliminar el feedback anterior
+                    self.repository.update_task(task_id, {
+                        f"submissions.{student_id}.feedbacks.$unset": {list(submission.feedbacks.keys())[0]: ""}
+                    })
+
                     updated = self.repository.update_task(task_id, update_data)
 
                     if updated:
@@ -618,22 +628,15 @@ class TaskService:
                                 "type": "about:blank",
                                 "title": "Corrector unassigned",
                                 "status": 200,
-                                "detail": f"Corrector unassigned from student {student_id}'s submission",
+                                "detail": "Corrector unassigned but feedback preserved",
                                 "instance": f"/courses/tasks/submission/{task_id}"
                             },
                             "code_status": 200
                         }
-                    else:
-                        return error_generator(
-                            "Update failed",
-                            "Failed to unassign corrector",
-                            500,
-                            "add_or_update_feedback"
-                        )
                 else:
                     return error_generator(
-                        "No corrector assigned",
-                        "There was no corrector assigned to unassign",
+                        "No feedback found",
+                        "There is no feedback to unassign",
                         400,
                         "add_or_update_feedback"
                     )

@@ -6,7 +6,7 @@ from utils import parse_to_timestamp_ms_now
 class Feedback:
     def __init__(
         self,
-        corrector_id: str,
+        corrector_id: Optional[str] = None,
         grade: Optional[float] = None,
         comment: Optional[str] = None,
         created_at: Optional[int] = None,
@@ -27,7 +27,7 @@ class Feedback:
     @staticmethod
     def from_dict(data: dict):
         return Feedback(
-            corrector_id=data["corrector_id"],
+            corrector_id=data.get("corrector_id"),
             grade=data.get("grade"),
             comment=data.get("comment"),
             created_at=data.get("created_at"),
