@@ -77,7 +77,7 @@ class TasksRepository:
 
     def add_task_submission(self, task_id, student_id, attachments: list[dict]):
 
-        submission = Submission(attachments=attachments, feedback=None)
+        submission = Submission(attachments=attachments, feedbacks=None)
 
         update_result = self.collection.update_one(
             {"_id": task_id},
