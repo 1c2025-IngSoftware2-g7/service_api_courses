@@ -110,3 +110,16 @@ class TasksRepository:
         tasks = list(self.collection.find(query).skip(skip).limit(limit))
 
         return [Task.from_dict(t) for t in tasks]
+
+
+    def update_task(self, task_id: str, update_data: dict):
+        try:
+            result = self.collection.update_one(
+                {"_id": task_id},
+                {"$set": update_data}
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            self.logger.error(
+                f"[TASKS][REPOSITORY] Error updating task {task_id}: {str(e)}")
+            raise e

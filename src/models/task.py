@@ -33,7 +33,7 @@ class Task:
         instructions: str = "",
         status: TaskStatus = TaskStatus.INACTIVE,
         task_type: TaskType = TaskType.TASK,
-        file_url: Optional[str] = None,
+        attachments: Optional[str] = None,
         submissions: Optional[dict[str, Submission]] = None,
         _id: Optional[ObjectId] = None,
         created_at: Optional[int] = None,  # timestamp ms
@@ -48,7 +48,7 @@ class Task:
         self.module_id = module_id
         self.status = status
         self.task_type = task_type
-        self.file_url = file_url
+        self.attachments = attachments if attachments is not None else {}
         self.submissions = submissions if submissions is not None else {}
         self.created_at = (
             created_at if created_at is not None else parse_to_timestamp_ms_now()
@@ -68,7 +68,7 @@ class Task:
             "module_id": self.module_id,
             "status": self.status.value,
             "task_type": self.task_type.value,
-            "file_url": self.file_url,
+            "attachments": self.attachments,
             "submissions": {k: v.to_dict() for k, v in self.submissions.items()},
             "created_at": self.created_at,
             "updated_at": self.updated_at,
@@ -77,7 +77,10 @@ class Task:
     @staticmethod
     def from_dict(data: dict):
         submissions_data = data.get("submissions", {})
-        submissions = {k: Submission.from_dict(v) for k, v in submissions_data.items()}
+        submissions = {
+            k: Submission.from_dict(v)
+            for k, v in submissions_data.items()
+        }
 
         return Task(
             _id=ObjectId(data["_id"]) if data.get("_id") else None,
@@ -89,7 +92,7 @@ class Task:
             module_id=data["module_id"],
             status=TaskStatus(data.get("status", TaskStatus.INACTIVE)),
             task_type=TaskType(data.get("task_type", TaskType.TASK)),
-            file_url=data.get("file_url"),
+            attachments=data.get("attachments", {}),
             submissions=submissions,
             created_at=parse_date_to_timestamp_ms(data.get("created_at")),
             updated_at=parse_date_to_timestamp_ms(data.get("updated_at")),

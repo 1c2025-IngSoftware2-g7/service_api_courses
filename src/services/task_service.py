@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 from google.cloud import storage
 import os
 
@@ -113,7 +114,7 @@ class TaskService:
                 module_id=data.get("module_id", ""),
                 status=TaskStatus.INACTIVE,
                 task_type=TaskType(data.get("task_type", "task")),
-                file_url=data.get("file_url"),
+                attachments=data.get("attachments", {}),
             )
 
             task_id = self.repository.create_task(task)
@@ -199,7 +200,7 @@ class TaskService:
                 "instructions",
                 "due_date",
                 "task_type",
-                "file_url",
+                "attachments",
                 "status",
             }
 
@@ -566,3 +567,85 @@ class TaskService:
         if submission:
             return {student_id: submission}
         return {}
+
+
+    def add_or_update_feedback(
+        self,
+        task_id: str,
+        student_id: str,
+        corrector_id: str,
+        grade: Optional[float] = None,
+        comment: Optional[str] = None
+    ):
+        try:
+            # Obtener la tarea actual
+            task_query = {"_id": task_id}
+            tasks = self.repository.get_tasks_by_query(task_query)
+            if not tasks:
+                return error_generator(
+                    "Task not found",
+                    "The specified task does not exist",
+                    404,
+                    "add_or_update_feedback"
+                )
+
+            task = tasks[0]
+
+            # Verificar que existe una submission del estudiante
+            if student_id not in task.submissions:
+                return error_generator(
+                    "Submission not found",
+                    "The student has not submitted this task",
+                    404,
+                    "add_or_update_feedback"
+                )
+
+            # Obtener o crear el feedback
+            submission = task.submissions[student_id]
+            feedback_data = submission.feedbacks.get(corrector_id, {})
+
+            # Actualizar solo los campos proporcionados
+            if grade is not None:
+                feedback_data["grade"] = grade
+            if comment is not None:
+                feedback_data["comment"] = comment
+
+            # Siempre actualizamos el corrector y la fecha
+            feedback_data["corrector_id"] = corrector_id
+            feedback_data["created_at"] = parse_to_timestamp_ms_now()
+
+            # Actualizar en la base de datos
+            update_data = {
+                f"submissions.{student_id}.feedbacks.{corrector_id}": feedback_data
+            }
+
+            updated = self.repository.update_task(task_id, update_data)
+
+            if updated:
+                return {
+                    "response": {
+                        "type": "about:blank",
+                        "title": "Feedback updated",
+                        "status": 200,
+                        "detail": f"Feedback for student {student_id} updated successfully",
+                        "instance": f"/courses/tasks/submission/{task_id}"
+                    },
+                    "code_status": 200
+                }
+            else:
+                return error_generator(
+                    "Update failed",
+                    "Failed to update feedback",
+                    500,
+                    "add_or_update_feedback"
+                )
+
+        except Exception as e:
+            self.logger.error(
+                f"[TASK SERVICE] Error in add_or_update_feedback: {str(e)}")
+            return error_generator(
+                "Internal Server Error",
+                str(e),
+                500,
+                "add_or_update_feedback"
+            )
