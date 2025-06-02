@@ -42,9 +42,9 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/courses/tasks")
                                 "properties": {
                                     "title": {"type": "string"},
                                     "url": {"type": "string"},
-                                    "mimetype": {"type": "string"}
-                                }
-                            }
+                                    "mimetype": {"type": "string"},
+                                },
+                            },
                         },
                     },
                     "required": ["title", "course_id", "due_date"],
@@ -115,9 +115,9 @@ def create_task():
                                 "properties": {
                                     "title": {"type": "string"},
                                     "url": {"type": "string"},
-                                    "mimetype": {"type": "string"}
-                                }
-                            }
+                                    "mimetype": {"type": "string"},
+                                },
+                            },
                         },
                     },
                 },
@@ -311,9 +311,9 @@ def get_task_by_id(task_id=None):
                                 "properties": {
                                     "title": {"type": "string"},
                                     "url": {"type": "string"},
-                                    "mimetype": {"type": "string"}
-                                }
-                            }
+                                    "mimetype": {"type": "string"},
+                                },
+                            },
                         },
                     },
                     "required": ["uuid_student", "attachments"],
@@ -565,35 +565,37 @@ def get_header_value_for_key(headers, key):
 
 
 @tasks_bp.put("/submission/<string:task_id>")
-@swag_from({
-    "tags": ["Tasks"],
-    "summary": "Add or update feedback for a task submission",
-    "parameters": [
-        {"name": "task_id", "in": "path", "type": "string", "required": True},
-        {
-            "name": "body",
-            "in": "body",
-            "required": True,
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "uuid_student": {"type": "string"},
-                    "uuid_corrector": {"type": "string"},
-                    "nota": {"type": "number", "format": "float"},
-                    "comentario": {"type": "string"}
+@swag_from(
+    {
+        "tags": ["Tasks"],
+        "summary": "Add or update feedback for a task submission",
+        "parameters": [
+            {"name": "task_id", "in": "path", "type": "string", "required": True},
+            {
+                "name": "body",
+                "in": "body",
+                "required": True,
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "uuid_student": {"type": "string"},
+                        "uuid_corrector": {"type": "string"},
+                        "nota": {"type": "number", "format": "float"},
+                        "comentario": {"type": "string"},
+                    },
+                    "required": ["uuid_student", "uuid_corrector"],
                 },
-                "required": ["uuid_student", "uuid_corrector"]
-            }
-        }
-    ],
-    "responses": {
-        200: {"description": "Feedback added/updated successfully"},
-        400: {"description": "Missing required fields"},
-        403: {"description": "User not authorized to provide feedback"},
-        404: {"description": "Task or submission not found"},
-        500: {"description": "Internal server error"}
+            },
+        ],
+        "responses": {
+            200: {"description": "Feedback added/updated successfully"},
+            400: {"description": "Missing required fields"},
+            403: {"description": "User not authorized to provide feedback"},
+            404: {"description": "Task or submission not found"},
+            500: {"description": "Internal server error"},
+        },
     }
-})
+)
 def add_or_update_feedback(task_id):
     try:
         data = request.json
@@ -605,7 +607,7 @@ def add_or_update_feedback(task_id):
                     MISSING_FIELDS,
                     f"Field {field} is required",
                     400,
-                    "add_or_update_feedback"
+                    "add_or_update_feedback",
                 )
 
         student_id = data["uuid_student"]
@@ -620,21 +622,13 @@ def add_or_update_feedback(task_id):
 
         # Actualizar o crear la retroalimentación
         result = service_tasks.add_or_update_feedback(
-            task_id,
-            student_id,
-            corrector_id,
-            grade,
-            comment
+            task_id, student_id, corrector_id, grade, comment
         )
 
         return result["response"], result["code_status"]
 
     except Exception as e:
-        logger.error(
-            f"[TASKS][CONTROLLER] Error in add_or_update_feedback: {str(e)}")
+        logger.error(f"[TASKS][CONTROLLER] Error in add_or_update_feedback: {str(e)}")
         return error_generator(
-            "Internal Server Error",
-            str(e),
-            500,
-            "add_or_update_feedback"
+            "Internal Server Error", str(e), 500, "add_or_update_feedback"
         )

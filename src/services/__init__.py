@@ -46,7 +46,6 @@ collection_approved_courses_students = db[
 
 # Indexes for courses will be the student id.
 collection_users_data.create_index(["student_id"], unique=True)
-collection_users_data.create_index(["course_id"], unique=True)
 
 """ REPOSITORY CREATION """
 repository_courses_data = CoursesRepository(collection_courses_data, logger)

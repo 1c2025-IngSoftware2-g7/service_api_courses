@@ -424,9 +424,7 @@ class TaskService:
             )
 
     def submit_task(self, task_id, student_id, attachments):
-        return self.repository.add_task_submission(
-            task_id, student_id, attachments
-        )
+        return self.repository.add_task_submission(task_id, student_id, attachments)
 
     def upload_task(self, uuid, num_task, file):
         file_link = self._upload_element(uuid, num_task, file)
@@ -568,14 +566,13 @@ class TaskService:
             return {student_id: submission}
         return {}
 
-
     def add_or_update_feedback(
         self,
         task_id: str,
         student_id: str,
         corrector_id: str,
         grade: Optional[float] = None,
-        comment: Optional[str] = None
+        comment: Optional[str] = None,
     ):
         try:
             # Obtener la tarea actual
@@ -586,7 +583,7 @@ class TaskService:
                     "Task not found",
                     "The specified task does not exist",
                     404,
-                    "add_or_update_feedback"
+                    "add_or_update_feedback",
                 )
 
             task = tasks[0]
@@ -597,7 +594,7 @@ class TaskService:
                     "Submission not found",
                     "The student has not submitted this task",
                     404,
-                    "add_or_update_feedback"
+                    "add_or_update_feedback",
                 )
 
             # Obtener o crear el feedback
@@ -628,24 +625,22 @@ class TaskService:
                         "title": "Feedback updated",
                         "status": 200,
                         "detail": f"Feedback for student {student_id} updated successfully",
-                        "instance": f"/courses/tasks/submission/{task_id}"
+                        "instance": f"/courses/tasks/submission/{task_id}",
                     },
-                    "code_status": 200
+                    "code_status": 200,
                 }
             else:
                 return error_generator(
                     "Update failed",
                     "Failed to update feedback",
                     500,
-                    "add_or_update_feedback"
+                    "add_or_update_feedback",
                 )
 
         except Exception as e:
             self.logger.error(
-                f"[TASK SERVICE] Error in add_or_update_feedback: {str(e)}")
+                f"[TASK SERVICE] Error in add_or_update_feedback: {str(e)}"
+            )
             return error_generator(
-                "Internal Server Error",
-                str(e),
-                500,
-                "add_or_update_feedback"
+                "Internal Server Error", str(e), 500, "add_or_update_feedback"
             )
