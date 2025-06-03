@@ -118,15 +118,12 @@ class TaskService:
                 attachments=data.get("attachments", []),
             )
 
-            task_id = self.repository.create_task(task)
+            task._id = self.repository.create_task(task)
 
             return {
                 "response": {
-                    "type": "about:blank",
-                    "title": "Task created",
-                    "status": 201,
-                    "detail": f"Task created with ID {task_id}",
-                    "instance": f"/courses/tasks/{task_id}",
+                    "message": "Task created successfully",
+                    "data": task.to_dict()
                 },
                 "code_status": 201,
             }
