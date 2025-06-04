@@ -484,8 +484,18 @@ def get_tasks_by_teacher(teacher_id):
 
         return jsonify([t.to_dict() for t in tasks]), 200
 
+    except ValueError as e:
+        error = error_generator(
+            "[TASKS][CONTROLLER] Invalid date format.",
+            f"Use ISO 8601 format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS. {e}",
+            400,
+            "students/<string:student_id>",
+        )
+        return error["response"], error["code_status"]
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        error = error_generator("[TASKS][CONTROLLER] Error", str(e), 500, "students/<string:student_id>")
+        return error["response"], error["code_status"]
 
 
 @tasks_bp.get("/students/<string:student_id>")
