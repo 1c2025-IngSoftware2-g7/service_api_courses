@@ -453,37 +453,31 @@ def get_tasks_by_teacher(teacher_id):
     try:
         status = request.args.get("status")
         due_date = request.args.get("date")
+        start_date = request.args.get("start_date")
+        end_date = request.args.get("end_date")
         page = int(request.args.get("page", 1))
         limit = int(request.args.get("limit", 1000))
 
-        date_range = None
-        if due_date:
-            try:
-                date = datetime.strptime(due_date, "%Y-%m-%d").date()
-                start_dt = datetime.combine(
-                    date, datetime.min.time(), tzinfo=timezone.utc
-                )
-                end_dt = datetime.combine(
-                    date, datetime.max.time(), tzinfo=timezone.utc
-                )
+        logger.debug(f"due_date raw: {due_date}, start_date raw: {start_date}, end_date raw: {end_date}")
 
-                start_ts = parse_date_to_timestamp_ms(start_dt)
-                end_ts = parse_date_to_timestamp_ms(end_dt)
-
-                date_range = {"$gte": start_ts, "$lte": end_ts}
-            except ValueError:
-                error = error_generator(
-                    "[TASKS][CONTROLLER] Invalid date format.",
-                    "Use YYYY-MM-DD",
-                    400,
-                    "teachers/<string:teacher_id>",
-                )
-                return error["response"], error["code_status"]
+        if due_date is not None:
+            logger.debug("Parsing due_date")
+            due_date = parse_date_to_timestamp_ms(due_date)
+            
+        if start_date is not None and end_date is not None:
+            logger.debug("Parsing start_date and end_date")
+            start_date = parse_date_to_timestamp_ms(start_date)
+            end_date = parse_date_to_timestamp_ms(end_date)
+        else:
+            start_date = None
+            end_date = None
 
         tasks = service_tasks.get_tasks_by_teacher(
             teacher_id=teacher_id,
             status=status,
-            due_date=date_range,
+            due_date=due_date,
+            start_date=start_date,
+            end_date=end_date,
             page=page,
             limit=limit,
         )
