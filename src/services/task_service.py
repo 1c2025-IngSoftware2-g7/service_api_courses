@@ -246,7 +246,10 @@ class TaskService:
                 datetime.now(timezone.utc).timestamp() * 1000
             )
 
-            updated = self.repository.update_task(task_id, update_data)
+            #updated = self.repository.update_task(task_id, update_data)
+            updated = self.repository.update_task(
+                task_id, {"$set": update_data})
+
 
             if updated:
                 return {
