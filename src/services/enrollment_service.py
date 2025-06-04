@@ -125,6 +125,7 @@ class EnrollmentService:
                         "status": 200,
                         "detail": f"Student with ID {student_id} enrolled in course with ID {course_id}",
                         "instance": f"/courses/enroll/{course_id}",
+                        "student_id": f"{student_id}"
                     },
                     "code_status": 200,
                 }
