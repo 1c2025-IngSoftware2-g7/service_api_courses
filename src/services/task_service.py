@@ -143,7 +143,17 @@ class TaskService:
             query = {"_id": task_id}
 
             # Obtener tareas
-            existing_task = self.repository.get_tasks_by_query(query)[0]
+            #existing_task = self.repository.get_tasks_by_query(query)[0]
+            tasks = self.repository.get_tasks_by_query(query)
+
+            if not tasks:  # Si no hay tareas
+                return error_generator(
+                    "[TASKS][SERVICE] Task not found",
+                    "The specified task does not exist",
+                    404,
+                    "update_task",
+                )
+            existing_task = tasks[0]
             # Verificar que la tarea exista
             # existing_task = self.repository.get_task_by_id(task_id)
             if not existing_task:
