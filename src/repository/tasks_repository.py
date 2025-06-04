@@ -1,7 +1,6 @@
-from datetime import datetime
-from bson import ObjectId
 from models.submission import Submission
 from models.task import Task
+from pymongo import ReturnDocument
 
 
 class TasksRepository:
@@ -113,8 +112,12 @@ class TasksRepository:
 
     def update_task(self, task_id: str, update_data: dict):
         try:
-            result = self.collection.update_one({"_id": task_id}, {"$set": update_data})
-            return result.modified_count > 0
+            updated_task = self.collection.find_one_and_update(
+                {"_id": task_id},
+                update_data,
+                return_document=ReturnDocument.AFTER
+            )
+            return Task.from_dict(updated_task)
         except Exception as e:
             self.logger.error(
                 f"[TASKS][REPOSITORY] Error updating task {task_id}: {str(e)}"

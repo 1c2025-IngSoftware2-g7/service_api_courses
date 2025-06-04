@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from google.cloud import storage
+from flask import jsonify
 import os
 
 from error.error import error_generator
@@ -401,7 +402,7 @@ class TaskService:
             query = {"_id": task_id}
 
             # Obtener tareas
-            task = self.repository.get_tasks_by_query(query)[0]
+            task = self.repository.get_tasks_by_query(query)
             # task = self.repository.get_task_by_id(task_id)
             if not task:
                 return error_generator(
@@ -411,7 +412,7 @@ class TaskService:
                     "get_task_by_id",
                 )
 
-            return {"response": task.to_dict(), "code_status": 200}
+            return {"response": task[0].to_dict(), "code_status": 200}
         except Exception as e:
             self.logger.error(f"[TASKS][SERVICE] Error getting task: {str(e)}")
             return error_generator(
@@ -573,6 +574,10 @@ class TaskService:
         comment: Optional[str] = None
     ):
         try:
+            self.logger.debug(f"[TASK][SERVICE] Update feedback in task: {task_id}")
+            self.logger.debug(f"[TASK][SERVICE] With corretor_id: {corrector_id}")
+            self.logger.debug(f"[TASK][SERVICE] For student_id: {student_id}")
+
             # Obtener la tarea actual
             task_query = {"_id": task_id}
             tasks = self.repository.get_tasks_by_query(task_query)
@@ -597,8 +602,10 @@ class TaskService:
 
             # Obtener la submission
             submission = task.submissions[student_id]
-            existing_corrector_id = next(
-                iter(submission.feedbacks.keys()), None) if submission.feedbacks else None
+            self.logger.debug(f"[TASK][SERVICE] Update feedback in submisssion: {submission}")
+
+            existing_corrector_id = next(iter(submission.feedbacks.keys()), None) if submission.feedbacks else None
+            self.logger.debug(f"[TASK][SERVICE] Was there already a teacher assigned to grade?: {existing_corrector_id}")
 
             # Validación: Si ya hay un corrector diferente
             if existing_corrector_id and existing_corrector_id != corrector_id and corrector_id is not None:
@@ -609,41 +616,46 @@ class TaskService:
                     "add_or_update_feedback"
                 )
 
+
             # Crear o actualizar el feedback
             if corrector_id in submission.feedbacks:
-                # Actualizar feedback existente
+                self.logger.debug(f"[TASK][SERVICE] Corrector had already been assigned. Update existing feedback.")
                 feedback = submission.feedbacks[corrector_id]
                 if grade is not None:
                     feedback.grade = grade
                 if comment is not None:
                     feedback.comment = comment
                 feedback.created_at = parse_to_timestamp_ms_now()
-            else:
-                # Crear nuevo feedback
+                update_data = {
+                    "$set": {
+                        f"submissions.{student_id}.feedbacks.{corrector_id}": feedback.to_dict()
+                    }
+                }
+            elif corrector_id is not None:
+                self.logger.debug(f"[TASK][SERVICE] Corrector had not been assigned. Create new feedback.")
                 feedback = Feedback(
                     corrector_id=corrector_id,
                     grade=grade,
                     comment=comment
                 )
-
-            # Preparar datos para actualización
-            update_data = {}
-
-            update_data = {
-                f"submissions.{student_id}.feedbacks.{corrector_id}": feedback.to_dict()
-            }
+                update_data = {
+                    "$set": {
+                        f"submissions.{student_id}.feedbacks.{corrector_id}": feedback.to_dict()
+                    }
+                }
+            elif existing_corrector_id and corrector_id is None:
+                self.logger.debug(f"[TASK][SERVICE] A corrector is unassigned, setting it to null")
+                update_data = {
+                    "$unset": {
+                        f"submissions.{student_id}.feedbacks.{existing_corrector_id}": ""
+                    }
+                }
 
             updated = self.repository.update_task(task_id, update_data)
 
             if updated:
                 return {
-                    "response": {
-                        "type": "about:blank",
-                        "title": "Feedback updated",
-                        "status": 200,
-                        "detail": f"Feedback for student {student_id} updated successfully",
-                        "instance": f"/courses/tasks/submission/{task_id}"
-                    },
+                    "response": jsonify(updated.to_dict()),
                     "code_status": 200
                 }
             else:

@@ -599,7 +599,7 @@ def get_header_value_for_key(headers, key):
 def add_or_update_feedback(task_id):
     try:
         data = request.json
-        required_fields = ["uuid_student", "uuid_corrector"]
+        required_fields = ["uuid_student"]
 
         for field in required_fields:
             if field not in data:
@@ -611,7 +611,7 @@ def add_or_update_feedback(task_id):
                 )
 
         student_id = data["uuid_student"]
-        corrector_id = data["uuid_corrector"]
+        corrector_id = data.get("uuid_corrector")
         grade = data.get("grade")
         comment = data.get("comment")
 
