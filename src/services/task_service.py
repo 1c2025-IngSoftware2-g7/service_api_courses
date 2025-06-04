@@ -499,7 +499,7 @@ class TaskService:
             raise e
 
     def get_tasks_by_student(
-        self, student_id, status=None, course_id=None, due_date=None, page=1, limit=10
+        self, student_id, status=None, course_id=None, due_date=None, start_date=None, end_date=None, page=1, limit=10
     ):
         try:
             # Obtain courses you are enrolled in
@@ -516,6 +516,8 @@ class TaskService:
                 course_ids=course_ids,
                 status=status,
                 due_date=due_date,
+                start_date=start_date,
+                end_date=end_date,
                 page=page,
                 limit=limit,
             )

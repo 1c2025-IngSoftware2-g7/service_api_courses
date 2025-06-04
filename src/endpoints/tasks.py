@@ -519,38 +519,50 @@ def get_tasks_for_student(student_id):
         status = request.args.get("status")
         course_id = request.args.get("course_id")
         due_date = request.args.get("date")
+        start_date = request.args.get("start_date")
+        end_date = request.args.get("end_date")
         page = int(request.args.get("page", 1))
         limit = int(request.args.get("limit", 1000))
 
-        due_date_ts = None
-        if due_date:
-            try:
-                dt = datetime.fromisoformat(due_date)
-                if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=timezone.utc)
-                due_date_ts = parse_date_to_timestamp_ms(dt)
-            except Exception:
-                error = error_generator(
-                    "[TASKS][CONTROLLER] Invalid date format.",
-                    "Use ISO 8601 format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS",
-                    400,
-                    "students/<string:student_id>",
-                )
-                return error["response"], error["code_status"]
+        logger.debug(f"due_date raw: {due_date}, start_date raw: {start_date}, end_date raw: {end_date}")
+
+        if due_date is not None:
+            logger.debug("Parsing due_date")
+            due_date = parse_date_to_timestamp_ms(due_date)
+            
+        if start_date is not None and end_date is not None:
+            logger.debug("Parsing start_date and end_date")
+            start_date = parse_date_to_timestamp_ms(start_date)
+            end_date = parse_date_to_timestamp_ms(end_date)
+        else:
+            start_date = None
+            end_date = None
 
         tasks = service_tasks.get_tasks_by_student(
             student_id=student_id,
             status=status,
             course_id=course_id,
-            due_date=due_date_ts,
+            due_date=due_date,
+            start_date=start_date,
+            end_date=end_date,
             page=page,
             limit=limit,
         )
 
         return jsonify([t.to_dict() for t in tasks]), 200
+    
+    except ValueError as e:
+        error = error_generator(
+            "[TASKS][CONTROLLER] Invalid date format.",
+            f"Use ISO 8601 format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS. {e}",
+            400,
+            "students/<string:student_id>",
+        )
+        return error["response"], error["code_status"]
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        error = error_generator("[TASKS][CONTROLLER] Error", str(e), 500, "students/<string:student_id>")
+        return error["response"], error["code_status"]
 
 
 def get_header_value_for_key(headers, key):

@@ -94,15 +94,24 @@ class TasksRepository:
         return task
 
     def get_tasks_by_course_ids(
-        self, course_ids, status=None, due_date=None, page=1, limit=10
+        self, course_ids, status=None, due_date=None, start_date=None, end_date=None, page=1, limit=10
     ):
         query = {"course_id": {"$in": course_ids}}
 
         if status:
             query["status"] = status
 
+        # If exact due_date was passed:
         if due_date:
             query["due_date"] = due_date
+        # If a date range was passed:
+        elif start_date and end_date:
+            date_range = {}
+            if start_date:
+                date_range["$gte"] = start_date  # timestamp in ms
+            if end_date:
+                date_range["$lte"] = end_date
+            query["due_date"] = date_range
 
         skip = (page - 1) * limit
 
