@@ -583,7 +583,7 @@ def get_header_value_for_key(headers, key):
                         "grade": {"type": "number", "format": "float"},
                         "comment": {"type": "string"},
                     },
-                    "required": ["uuid_student", "uuid_corrector"],
+                    "required": ["uuid_student"],
                 },
             },
         ],
