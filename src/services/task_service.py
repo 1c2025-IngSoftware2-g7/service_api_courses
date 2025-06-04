@@ -143,7 +143,6 @@ class TaskService:
             query = {"_id": task_id}
 
             # Obtener tareas
-            #existing_task = self.repository.get_tasks_by_query(query)[0]
             tasks = self.repository.get_tasks_by_query(query)
 
             if not tasks:  # Si no hay tareas
@@ -256,7 +255,6 @@ class TaskService:
                 datetime.now(timezone.utc).timestamp() * 1000
             )
 
-            #updated = self.repository.update_task(task_id, update_data)
             updated = self.repository.update_task(
                 task_id, {"$set": update_data})
 

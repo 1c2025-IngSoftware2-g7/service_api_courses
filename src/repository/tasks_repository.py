@@ -29,16 +29,6 @@ class TasksRepository:
             )
             raise e
 
-    # def update_task(self, task_id: str, update_data: dict):
-    #     try:
-    #         result = self.collection.update_one({"_id": task_id}, {"$set": update_data})
-    #         return result.modified_count > 0
-    #     except Exception as e:
-    #         self.logger.error(
-    #             f"[TASKS][REPOSITORY] Error updating task {task_id}: {str(e)}"
-    #         )
-    #         raise e
-
     def delete_task(self, task_id: str):
         try:
             result = self.collection.delete_one({"_id": task_id})
