@@ -54,6 +54,7 @@ class Submission:
 
     @staticmethod
     def from_dict(data: dict):
+        data = data or {}
         return Submission(
             attachments=data.get("attachments", []), feedbacks=data.get("feedbacks", {})
         )

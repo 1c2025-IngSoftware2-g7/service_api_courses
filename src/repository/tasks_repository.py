@@ -42,7 +42,7 @@ class TasksRepository:
     def get_tasks_by_query(self, query: dict):
         try:
             tasks = self.collection.find(query)
-            return [Task.from_dict(task) for task in tasks]
+            return [Task.from_dict(task) for task in tasks if task is not None]
         except Exception as e:
             self.logger.error(
                 f"[TASKS][REPOSITORY] Error getting tasks by query: {str(e)}"

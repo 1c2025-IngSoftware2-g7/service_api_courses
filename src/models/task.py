@@ -76,7 +76,8 @@ class Task:
 
     @staticmethod
     def from_dict(data: dict):
-        submissions_data = data.get("submissions", {})
+        data = data or {}
+        submissions_data = data.get("submissions", {}) or {}
         submissions = {}
         for k, v in submissions_data.items():
             if v:  # Solo procesar si no es None
