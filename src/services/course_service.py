@@ -81,6 +81,7 @@ class CourseService:
             self.logger.debug(f"[SERVICE] CREATE: course created with ID: {course_id}")
             return {
                 "response": {
+                    "data": course_id,
                     "type": "about:blank",
                     "title": COURSE_CREATED,
                     "status": 201,
@@ -623,7 +624,15 @@ class CourseService:
             )
 
         # now lets add it to the course
-        self.course_repository.add_assistant_to_course(course_id, assistant_id)
+        success = self.course_repository.add_assistant_to_course(course_id, assistant_id)
+
+        if not success:
+            return error_generator(
+                COURSE_NOT_FOUND,
+                f"Course with ID {course_id} not found",
+                404,
+                "/courses/add_assistant"
+            )
 
         return {
             "response": {
@@ -638,49 +647,58 @@ class CourseService:
 
     def remove_assistant_from_course(self, course_id, assistant_id, owner_id):
         # Check if the course exists
-        course = self.course_repository.get_course_by_id(course_id)
+        try:
+            course = self.course_repository.get_course_by_id(course_id)
 
-        if not course:
+            if not course:
+                return error_generator(
+                    "Course not found",
+                    COURSE_NOT_FOUND,
+                    404,
+                    "remove_assistant_from_course",
+                )
+
+            # Check if the user is the owner of the course
+            course = Course.from_dict(course)
+
+            if course.creator_id != owner_id:
+                return error_generator(
+                    "User is not the owner of the course",
+                    USER_NOT_ALLOWED_TO_ADD_ASSISTANT,
+                    403,
+                    "remove_assistant_from_course",
+                )
+
+            # Check if the assistant is already in the course
+            if assistant_id not in course.assistants:
+                return error_generator(
+                    "Assistant not in course",
+                    USER_NOT_AN_ASSISTANT,
+                    400,
+                    "remove_assistant_from_course",
+                )
+
+            # now lets remove it from the course
+            self.course_repository.remove_assistant_from_course(course_id, assistant_id)
+
+            return {
+                "response": {
+                    "type": "about:blank",
+                    "title": ASSISTANT_REMOVED,
+                    "status": 200,
+                    "detail": f"Assistant with ID {assistant_id} removed from course with ID {course_id}",
+                    "instance": f"/courses/assistants/{course_id}",
+                },
+                "code_status": 200,
+            }
+        except Exception as e:
             return error_generator(
-                "Course not found",
-                COURSE_NOT_FOUND,
-                404,
-                "remove_assistant_from_course",
+                INTERNAL_SERVER_ERROR,
+                f"An error occurred while remove assistant: {str(e)}",
+                500,
+                "remove_assistant",
             )
 
-        # Check if the user is the owner of the course
-        course = Course.from_dict(course)
-
-        if course.creator_id != owner_id:
-            return error_generator(
-                "User is not the owner of the course",
-                USER_NOT_ALLOWED_TO_ADD_ASSISTANT,
-                403,
-                "remove_assistant_from_course",
-            )
-
-        # Check if the assistant is already in the course
-        if assistant_id not in course.assistants:
-            return error_generator(
-                "Assistant not in course",
-                USER_NOT_AN_ASSISTANT,
-                400,
-                "remove_assistant_from_course",
-            )
-
-        # now lets remove it from the course
-        self.course_repository.remove_assistant_from_course(course_id, assistant_id)
-
-        return {
-            "response": {
-                "type": "about:blank",
-                "title": ASSISTANT_REMOVED,
-                "status": 200,
-                "detail": f"Assistant with ID {assistant_id} removed from course with ID {course_id}",
-                "instance": f"/courses/assistants/{course_id}",
-            },
-            "code_status": 200,
-        }
 
     def get_students_in_course(self, course_id):
         # Check if the course exists
