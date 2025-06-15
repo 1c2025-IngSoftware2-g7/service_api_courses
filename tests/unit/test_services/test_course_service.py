@@ -3,12 +3,6 @@ from flask import Flask
 from unittest.mock import patch, MagicMock
 
 
-@pytest.fixture(scope="session", autouse=True)
-def patch_mongo():
-    with patch("pymongo.MongoClient") as mock_client:
-        mock_client.return_value = MagicMock()
-        yield
-
 @pytest.fixture(scope="session")
 def app():
     app = Flask(__name__)

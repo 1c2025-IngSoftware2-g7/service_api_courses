@@ -8,6 +8,7 @@ from headers import (
     COURSE_ADDED_TO_FAVOURITES,
     COURSE_ALREADY_IN_FAVOURITES,
     COURSE_NOT_FOUND,
+    COURSE_NOT_IN_FAVORITES,
     COURSE_REMOVED_FROM_FAVOURITES,
     MISSING_FIELDS,
     USER_NOT_ENROLLED_INTO_THE_COURSE,
@@ -100,7 +101,7 @@ class UsersDataService:
 
         if not course_already_fav:
             return error_generator(
-                COURSE_ALREADY_IN_FAVOURITES,
+                COURSE_NOT_IN_FAVORITES,
                 "Course not in favourites",
                 400,
                 "remove_course_from_favourites",
