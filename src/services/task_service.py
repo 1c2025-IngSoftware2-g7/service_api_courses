@@ -292,8 +292,7 @@ class TaskService:
             query = {"_id": task_id}
 
             # Obtener tareas
-            existing_task = self.repository.get_tasks_by_query(query)[0]
-            # existing_task = self.repository.get_task_by_id(task_id)
+            existing_task = self.repository.get_tasks_by_query(query)
             if not existing_task:
                 return error_generator(
                     "[TASKS][SERVICE] Task not found",
@@ -301,6 +300,7 @@ class TaskService:
                     404,
                     "delete_task",
                 )
+            existing_task = existing_task[0]
 
             course_id = existing_task.course_id
             # This will give us the required flag to modify the item
@@ -442,7 +442,7 @@ class TaskService:
 
     def _upload_element(self, uuid, num, file):
         if file.filename == "":
-            return FileNotFoundError(
+            raise FileNotFoundError(
                 "[TASKS][SERVICE] No selected file: Missing file.filename in the request"
             )
 
