@@ -678,7 +678,7 @@ def get_tasks_done_by_student(student_id, course_id):
 
         tasks = service_tasks.get_tasks_done_by_student(student_id, course_id)
 
-        return jsonify([task.to_dict() for task in tasks]), 200
+        return jsonify(tasks), 200
 
     except Exception as e:
         logger.error(f"[TASKS][CONTROLLER] Error in get_tasks_done_by_student: {str(e)}")
