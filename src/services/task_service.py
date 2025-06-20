@@ -690,3 +690,23 @@ class TaskService:
                 500,
                 "add_or_update_feedback"
             )
+    def get_tasks_done_by_student(
+        self, student_id: str, course_id: Optional[str] = None
+    ):
+        try:
+            tasks = self.repository.get_tasks_done_by_student(
+                student_id=student_id,
+                course_id=course_id,
+            )
+            return {
+                "response": [task.to_dict() for task in tasks],
+                "code_status": 200
+            }
+        except Exception as e:
+            self.logger.error(f"[TASKS][SERVICE] Error getting tasks done by student {student_id}: {str(e)}")
+            return error_generator(
+                "[TASKS][SERVICE] Internal server error",
+                "An error occurred while getting tasks done by student",
+                500,
+                "get_tasks_done_by_student"
+            )

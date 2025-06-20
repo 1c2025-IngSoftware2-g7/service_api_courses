@@ -648,3 +648,40 @@ def add_or_update_feedback(task_id):
         return error_generator(
             "Internal Server Error", str(e), 500, "add_or_update_feedback"
         )
+
+# Lets get the task done by the student for a certain course
+@tasks_bp.get("/students/<string:student_id>/course/<string:course_id>")
+@swag_from(
+    {
+        "tags": ["Tasks"],
+        "summary": "Get tasks done by a student for a specific course",
+        "parameters": [
+            {"name": "student_id", "in": "path", "type": "string", "required": True},
+            {"name": "course_id", "in": "path", "type": "string", "required": True},
+        ],
+        "responses": {
+            200: {"description": "Tasks retrieved successfully"},
+            400: {"description": "Invalid parameters"},
+            500: {"description": "Internal server error"},
+        },
+    }
+)
+def get_tasks_done_by_student(student_id, course_id):
+    try:
+        if not student_id or not course_id:
+            return error_generator(
+                MISSING_FIELDS,
+                "Both student_id and course_id are required",
+                400,
+                "get_tasks_done_by_student",
+            )
+
+        tasks = service_tasks.get_tasks_done_by_student(student_id, course_id)
+
+        return jsonify([task.to_dict() for task in tasks]), 200
+
+    except Exception as e:
+        logger.error(f"[TASKS][CONTROLLER] Error in get_tasks_done_by_student: {str(e)}")
+        return error_generator(
+            "Internal Server Error", str(e), 500, "get_tasks_done_by_student"
+        )

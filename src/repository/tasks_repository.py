@@ -122,3 +122,27 @@ class TasksRepository:
                 f"[TASKS][REPOSITORY] Error updating task {task_id}: {str(e)}"
             )
             raise e
+
+    def get_tasks_done_by_student(self, student_id: str, course_id: str = None):
+        """
+        Get all tasks done by a student for a certain course.
+        A task is completed if status == completed
+        The query start as 
+        First filter by course_id
+        then search submittions with status completed
+        """
+    
+        query = {
+            "course_id": course_id,
+            "status": "completed",
+            # Now search on submissions (dictionary) contains the # student_id as key
+            "submissions": { "$exists": True, "$ne": {} },
+            "submissions." + student_id: { "$exists": True }
+        }
+        
+        task = self.collection.find(query)
+        
+        return [Task.from_dict(t) for t in task if t is not None]
+        
+        
+        
