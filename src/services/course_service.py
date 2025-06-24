@@ -786,10 +786,9 @@ class CourseService:
                 )
 
             course = self.course_repository.close_course(course_id)
-            course = Course.from_dict(course).to_dict()
-
             self.logger.debug(f"[SERVICE] Course Close: {course}")
             if course:
+                course = Course.from_dict(course).to_dict()
                 return {
                     "response": {
                         "course": course,

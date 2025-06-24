@@ -48,7 +48,6 @@ collection_approved_courses_students = db[
 collection_users_data.create_index(["student_id"], unique=True)
 
 """ REPOSITORY CREATION """
-repository_courses_data = CoursesRepository(collection_courses_data, logger)
 
 repository_users_data = UsersDataRepository(
     collection_users_data, collection_approved_courses_students, logger
@@ -59,6 +58,9 @@ repository_feedbacks = FeedBackRepository(
 )
 
 repository_tasks = TasksRepository(collection_tasks, logger)
+
+repository_courses_data = CoursesRepository(collection_courses_data, repository_tasks, logger)
+
 repository_modules_and_resources = ModuleRepository(
     collection_modules_and_resources, collection_courses_data, logger
 )

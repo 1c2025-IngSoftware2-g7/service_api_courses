@@ -5,8 +5,9 @@ from datetime import datetime, timedelta
 
 
 class CoursesRepository:
-    def __init__(self, collection, logger):
+    def __init__(self, collection, task_repository, logger):
         self.collection = collection
+        self.task_repository = task_repository
         self.logger = logger
 
     def create_course(self, course_dict):
@@ -300,7 +301,8 @@ class CoursesRepository:
                 "$set": {
                     "status": "open",
                     "course_start_date": course_start_date,
-                    "course_end_date": course_end_date
+                    "course_end_date": course_end_date,
+                    "students": []
                 }
             }
         )
@@ -309,6 +311,13 @@ class CoursesRepository:
             return None
         
         self.logger.debug(f"[REPOSITORY] UPDATE: Course with ID: {course_id} open")
+
+        tasks = self.task_repository.get_tasks_by_course_ids([course_id])
+        for task in tasks:
+            task_id = task._id
+            self.logger.debug(f"[REPOSITORY] Clean task: {task_id}")
+            result = self.task_repository.clean_task(task_id)
+
         updated_course = self.collection.find_one({"_id": ObjectId(course_id)})
         return updated_course
     
@@ -321,8 +330,6 @@ class CoursesRepository:
             {
                 "$set": {
                     "status": "closed",
-                    "students": [],
-                    "modules": []
                 }
             }
         )
