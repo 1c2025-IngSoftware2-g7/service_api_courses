@@ -181,9 +181,9 @@ class UsersDataRepository:
         )
 
         if not user:
-            return None
+            return []
 
-        return list(user["approved_courses"]) if user else None
+        return list(user["approved_courses"])
 
     def check_assistant_already_in_course(self, course_id, assistant_id):
         """

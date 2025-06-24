@@ -294,14 +294,6 @@ class UsersDataService:
         # Check if the student has any approved signatures
         approved_signatures = self.repository.get_approved_signatures(student_id)
 
-        if not approved_signatures:
-            return error_generator(
-                MISSING_FIELDS,
-                "No approved signatures found",
-                404,
-                "get_approved_signatures_from_user_id",
-            )
-
         return {"response": approved_signatures, "code_status": 200}
     
     def see_if_student_approved(self, course_id, student_id):
@@ -310,11 +302,16 @@ class UsersDataService:
         Otherwise, None.
         """
         approved_signatures = self.get_approved_signatures_from_user_id(student_id)
+        self.logger.debug(
+            f"[UsersDataService] approved_signatures - Return {approved_signatures}"
+        )
+
+        approved_signatures = approved_signatures["response"]
         for course in approved_signatures:
             if course["course_id"] == course_id:
-                return course
-        return None
-
+                return {"response": {"result": course}, "code_status": 200}
+        
+        return {"response": {"result": False}, "code_status": 200}
 
     def add_assistant_to_course(
         self, course_id: str, assistant_id: str, owner_id: str, data: str
