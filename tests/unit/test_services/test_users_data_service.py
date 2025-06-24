@@ -216,8 +216,8 @@ def test_get_approved_signatures_empty(service, repository_mock):
 
     result = service.get_approved_signatures_from_user_id("student123")
 
-    assert result["code_status"] == 404
-    assert result["response"].get_json()["title"] == MISSING_FIELDS
+    assert result["code_status"] == 200
+    assert result["response"]["result"] == []
 
 def test_add_assistant_success(service, repository_mock, course_service_mock):
     course_service_mock.is_user_owner_of_course.return_value = True
