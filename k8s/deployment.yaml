@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-courses
+  labels:
+    app: api-courses
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-courses
+  template:
+    metadata:
+      labels:
+        app: api-courses
+    spec:
+      containers:
+        - name: api-courses
+          image: us-central1-docker.pkg.dev/crypto-isotope-463815-t0/docker-repository/api-courses:v1
+          ports:
+            - containerPort: 8080
+          imagePullPolicy: Always
+          env:
+            - name: SECRET_KEY_SESSION
+              value: ids2g71c2025
+            - name: OAUTH_REDIRECT_URI
+              value: https://service-api-courses.onrender.com/courses/authorize
+            - name: GOOGLE_CLIENT_SECRET
+              value: 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
+            - name: GOOGLE_CLIENT_ID
+              value: 985128316026-v767el5qp9lanikh52up5m4ifs5usqdd.apps.googleusercontent.com
+            - name: COURSES_COLLECTION_NAME
+              value: courses_collection
+            - name: COURSE_DATABASE
+              value: mongodb_courses
+            - name: FLASK_ENV
+              value: development
+            - name: MODULES_AND_RESOURCES_COLLECTION_NAME
+              value: modules_collection
+            - name: MONGO_URI
+              value: "mongodb+srv://classconnect_admin:classconnect@classconnect-cluster.2ashbar.mongodb.net/?retryWrites=true&w=majority&appName=ClassConnect-Cluster"
+            - name: PORT
+              value: "8080"
+            - name: PYTHONPATH
+              value: /src
+            - name: USERS_COLLECTION_NAME
+              value: users_data_collection
