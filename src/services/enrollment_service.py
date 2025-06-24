@@ -88,7 +88,8 @@ class EnrollmentService:
             )
 
             # HOTFIX: Does the user already has approved this course?
-            if course_id in student_approved_courses:
+            course_ids = [item["course_id"] for item in student_approved_courses]
+            if course_id in course_ids:
                 self.logger.debug(
                     f"[SERVICE] Enroll: student with ID {student_id} already has approved course with ID {course_id}"
                 )
@@ -99,7 +100,7 @@ class EnrollmentService:
                     "enroll_student",
                 )
             if not self.user_available_to_enroll(
-                courses_correlatives, student_approved_courses
+                courses_correlatives, course_ids
             ):
                 self.logger.debug(
                     f"[SERVICE] Enroll: student with ID {student_id} does not have the correlatives signatures approved"

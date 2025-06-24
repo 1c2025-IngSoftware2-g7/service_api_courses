@@ -81,16 +81,23 @@ def approve_student(course_id=None):
     # Check if the student_id is in the request
     if "student_id" not in data:
         return error_generator(
-            MISSING_FIELDS, "Student ID is required", 400, "approve_student"
+            MISSING_FIELDS, "student_id is required", 400, "approve_student"
+        )
+    
+    # Check if the student_id is in the request
+    if "final_grade" not in data:
+        return error_generator(
+            MISSING_FIELDS, "final_grade is required", 400, "approve_student"
         )
 
     # Get the student_id from the request
     student_id = data["student_id"]
+    final_grade = data["final_grade"]
 
     logger.debug(
         f"[APP] Approving student with ID: {student_id} in course with ID: {course_id}"
     )
     # Call the service to approve the student
-    result = service_users.approve_student_in_course(course_id, student_id)
+    result = service_users.approve_student_in_course(course_id, student_id, final_grade)
 
     return result["response"], result["code_status"]

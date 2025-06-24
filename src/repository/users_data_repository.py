@@ -124,9 +124,9 @@ class UsersDataRepository:
         )
         return False
 
-    def approve_student(self, course_id, student_id):
+    def approve_student(self, course_id, student_id, final_grade):
         """
-        Approve a student in a course.
+        Approve a student in a course with a final grade.
         """
         self.logger.debug(
             f"[REPOSITORY] Approving student with ID: {student_id} in course with ID: {course_id}"
@@ -139,17 +139,17 @@ class UsersDataRepository:
         if not user:
             # If it isn't we add it.
             self.user_approved_courses_collection.insert_one(
-                {"student_id": student_id, "approved_courses": [course_id]},
+                {"student_id": student_id, "approved_courses": [{"course_id": course_id, "final_grade": final_grade}]},
             )
         else:
             # If it is, we update the field
             self.user_approved_courses_collection.update_one(
                 {"student_id": student_id},
-                {"$addToSet": {"approved_courses": course_id}},
+                {"$addToSet": {"approved_courses": {"course_id": course_id, "final_grade": final_grade}}},
             )
 
-        self.logger.debug(
-            f"[REPOSITORY] Student with ID: {student_id} approved in course with ID: {course_id}"
+        self.logger.info(
+            f"[REPOSITORY] Student with ID: {student_id} approved in course with ID: {course_id} with final grade: {final_grade}"
         )
 
         return True

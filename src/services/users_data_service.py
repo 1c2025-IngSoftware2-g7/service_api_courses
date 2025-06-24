@@ -211,7 +211,7 @@ class UsersDataService:
 
         return {"response": paginated_favourites, "code_status": 200}
 
-    def approve_student_in_course(self, course_id, student_id):
+    def approve_student_in_course(self, course_id, student_id, final_grade):
         try:
             # Check if the student is already enrolled in the course
             course_students_query = self.service_courses.get_students_in_course(
@@ -259,7 +259,7 @@ class UsersDataService:
             # If the course doesn't have any students, no need to do any checks
 
             # Approve the student in the course
-            self.repository.approve_student(course_id, student_id)
+            self.repository.approve_student(course_id, student_id, final_grade)
 
             # now we remove the student from the course list
             self.service_courses.remove_student_from_course(course_id, student_id)

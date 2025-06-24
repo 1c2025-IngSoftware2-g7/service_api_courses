@@ -44,7 +44,7 @@ def test_enroll_success(service, mock_course_repo, mock_user_repo):
     mock_course_repo.is_student_enrolled_in_course.return_value = False
     mock_course_repo.check_if_course_has_place_to_enroll.return_value = True
     mock_course_repo.get_course_correlatives.return_value = ["math1", "physics1"]
-    mock_user_repo.get_student_approved_courses.return_value = ["math1", "physics1"]
+    mock_user_repo.get_student_approved_courses.return_value = [{"course_id": "math1", "final_grade": 10}, {"course_id": "physics1", "final_grade": 9}]
     mock_course_repo.enroll_student_in_course.return_value = True
 
     response = service.enroll_student_in_course("course1", "student1")
@@ -84,7 +84,7 @@ def test_enroll_course_already_approved(service, mock_course_repo, mock_user_rep
     mock_course_repo.is_student_enrolled_in_course.return_value = False
     mock_course_repo.check_if_course_has_place_to_enroll.return_value = True
     mock_course_repo.get_course_correlatives.return_value = []
-    mock_user_repo.get_student_approved_courses.return_value = ["course1"]
+    mock_user_repo.get_student_approved_courses.return_value = [{"course_id": "course1", "final_grade": 90}]
 
     response = service.enroll_student_in_course("course1", "student1")
 

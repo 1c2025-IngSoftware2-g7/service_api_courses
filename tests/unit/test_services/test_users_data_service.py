@@ -163,17 +163,17 @@ def test_approve_student_success(service, course_service_mock, repository_mock):
     }
     repository_mock.check_student_enrollment.return_value = True
 
-    result = service.approve_student_in_course("course123", "student123")
+    result = service.approve_student_in_course("course123", "student123", 90)
 
     assert result["code_status"] == 200
     assert result["response"]["title"] == "Student Approved"
-    repository_mock.approve_student.assert_called_once_with("course123", "student123")
+    repository_mock.approve_student.assert_called_once_with("course123", "student123", 90)
     course_service_mock.remove_student_from_course.assert_called_once_with("course123", "student123")
 
 def test_approve_student_course_not_found(service, course_service_mock):
     course_service_mock.get_students_in_course.return_value = {"code_status": 404}
 
-    result = service.approve_student_in_course("courseX", "student123")
+    result = service.approve_student_in_course("courseX", "student123", 100)
 
     assert result["code_status"] == 404
     assert result["response"].get_json()["title"] == "Course not found"
@@ -185,7 +185,7 @@ def test_approve_student_not_enrolled(service, course_service_mock, repository_m
     }
     repository_mock.check_student_enrollment.return_value = False
 
-    result = service.approve_student_in_course("course123", "student123")
+    result = service.approve_student_in_course("course123", "student123", 60)
 
     assert result["code_status"] == 400
     assert result["response"].get_json()["title"] == "User not enrolled into the course"
@@ -197,7 +197,7 @@ def test_approve_student_id_not_in_course(service, course_service_mock, reposito
     }
     repository_mock.check_student_enrollment.return_value = True
 
-    result = service.approve_student_in_course("course123", "student123")
+    result = service.approve_student_in_course("course123", "student123", 70)
 
     assert result["code_status"] == 404
     assert result["response"].get_json()["title"] == "Missing required field(s)"
