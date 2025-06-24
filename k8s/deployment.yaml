@@ -38,7 +38,7 @@ spec:
             - name: MODULES_AND_RESOURCES_COLLECTION_NAME
               value: modules_collection
             - name: MONGO_URI
-              value: "mongodb+srv://classconnect_admin:classconnect@classconnect-cluster.2ashbar.mongodb.net/?retryWrites=true&w=majority&appName=ClassConnect-Cluster&tls=true&tlsAllowInvalidCertificates=false"
+              value: "mongodb+srv://classconnect_admin:classconnect@classconnect-cluster.2ashbar.mongodb.net/mongodb_courses?retryWrites=true&w=majority"
             - name: PORT
               value: "8080"
             - name: PYTHONPATH
