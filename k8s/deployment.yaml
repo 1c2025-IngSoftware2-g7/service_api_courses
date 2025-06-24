@@ -35,8 +35,6 @@ spec:
               value: mongodb_courses
             - name: FLASK_ENV
               value: development
-            - name: HOST
-              value: service_users
             - name: MODULES_AND_RESOURCES_COLLECTION_NAME
               value: modules_collection
             - name: MONGO_URI
