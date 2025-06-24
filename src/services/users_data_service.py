@@ -303,6 +303,18 @@ class UsersDataService:
             )
 
         return {"response": approved_signatures, "code_status": 200}
+    
+    def see_if_student_approved(self, course_id, student_id):
+        """
+        Return {course_id, final_grade} if student approved course_id.
+        Otherwise, None.
+        """
+        approved_signatures = self.get_approved_signatures_from_user_id(student_id)
+        for course in approved_signatures:
+            if course["course_id"] == course_id:
+                return course
+        return None
+
 
     def add_assistant_to_course(
         self, course_id: str, assistant_id: str, owner_id: str, data: str
