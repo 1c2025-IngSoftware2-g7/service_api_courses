@@ -1,6 +1,8 @@
+from pymongo import ReturnDocument
+from bson import ObjectId
+
 from models.submission import Submission
 from models.task import Task
-from pymongo import ReturnDocument
 
 
 class TasksRepository:
@@ -144,5 +146,15 @@ class TasksRepository:
         
         return [Task.from_dict(t) for t in task if t is not None]
         
-        
-        
+    def clean_task(self, task_id):
+        self.collection.update_one(
+            {
+                "_id": str(task_id),
+            },
+            {
+                "$set": {
+                    "status": "inactive",
+                    "submissions": {}
+                }
+            }
+        )
