@@ -161,9 +161,6 @@ def get_paginated_courses():
     return result["response"], result["code_status"]
 
 
-""" this endpoint is for getting the courses created by an user """
-
-
 @courses_bp.get("/courses_owned/<string:user_id>")
 def get_courses_owned_by_user(user_id=None):
     """
@@ -196,3 +193,61 @@ def get_courses_owned_by_user(user_id=None):
             "[COURSES][CONTROLLER] Error", e, 500, "/courses_owned/<string:user_id>"
         )
         return error["response"], error["code_status"]
+
+@courses_bp.put("/open/<string:course_id>")
+def open_course(course_id=None):
+    """
+    Open course.
+    """
+    if not course_id:
+        error = error_generator(
+            MISSING_FIELDS, "Course ID is required", 400, "open_course"
+        )
+        return error["response"], error["code_status"]
+    
+    logger.debug(f"[APP] Open course with request: {request.json}")
+    owner_id = request.json.get("owner_id", None)
+    if not owner_id:
+        error = error_generator(
+            MISSING_FIELDS, "Owner ID is required", 400, "open_course"
+        )
+        return error["response"], error["code_status"]
+    
+    course_start_date = request.json.get("start_date", None)
+    course_end_date = request.json.get("end_date", None)
+    if not owner_id:
+        error = error_generator(
+            MISSING_FIELDS, "Owner ID is required", 400, "close_course"
+        )
+        return error["response"], error["code_status"]
+    
+    if not course_start_date or not course_end_date:
+        error = error_generator(
+            MISSING_FIELDS, "star_date and end_date are required", 400, "close_course"
+        )
+        return error["response"], error["code_status"]
+
+    logger.debug(f"[APP] Open course with ID: {course_id}")
+    result = service_courses.open_course(course_id, owner_id, course_start_date, course_end_date)
+
+    return result["response"], result["code_status"]
+
+
+@courses_bp.put("/close/<string:course_id>")
+def close_course(course_id=None):
+    """
+    Close course.
+    """
+    if not course_id:
+        error = error_generator(
+            MISSING_FIELDS, "Course ID is required", 400, "close_course"
+        )
+        return error["response"], error["code_status"]
+    
+    logger.debug(f"[APP] Close course with request: {request.json}")
+    owner_id = request.json.get("owner_id", None)
+
+    logger.debug(f"[APP] Close course with ID: {course_id}")
+    result = service_courses.close_course(course_id, owner_id)
+
+    return result["response"], result["code_status"]

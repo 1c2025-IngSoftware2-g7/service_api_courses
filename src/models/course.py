@@ -1,5 +1,6 @@
 from bson import ObjectId
 from datetime import datetime
+from enum import Enum
 
 # background https://images.unsplash.com/photo-1517694712202-14dd9538aa97
 
@@ -7,6 +8,9 @@ DEFAULT_COURSE_BACKGOUND = (
     "https://images.unsplash.com/photo-1517694712202-14dd9538aa97"
 )
 
+class CourseStatus(str, Enum):
+    OPEN = "open"
+    CLOSED = "closed"
 
 class Course:
     def __init__(
@@ -26,6 +30,7 @@ class Course:
         assistants: list = None,
         correlatives_required_id: list = None,
         background: str = None,
+        status: CourseStatus = CourseStatus.OPEN
     ):
         self._id = str(_id) if _id else ObjectId()
         self.name = course_name
@@ -47,6 +52,7 @@ class Course:
             correlatives_required_id if correlatives_required_id else []
         )
         self.background = background if background else DEFAULT_COURSE_BACKGOUND
+        self.status = status
 
     def to_dict(self):
         return {
@@ -65,6 +71,7 @@ class Course:
             "assistants": self.assistants,
             "correlatives_required_id": self.correlatives_required_id,
             "background": self.background,
+            "status": self.status.value
         }
 
     @staticmethod
@@ -85,4 +92,5 @@ class Course:
             assistants=data.get("assistants", []),
             correlatives_required_id=data.get("correlatives_required_id", []),
             background=data.get("background", DEFAULT_COURSE_BACKGOUND),
+            status=CourseStatus(data.get("status", CourseStatus.OPEN))
         )

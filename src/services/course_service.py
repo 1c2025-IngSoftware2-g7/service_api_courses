@@ -1,3 +1,5 @@
+from flask import jsonify
+
 from headers import (
     ASSISTANT_ADDED,
     ASSISTANT_REMOVED,
@@ -106,7 +108,7 @@ class CourseService:
             "course_start_date",
             "course_end_date",
             "max_students",
-            "background",
+            "background"
         ]
 
         if len(data.keys()) == 0:
@@ -724,3 +726,93 @@ class CourseService:
 
     def get_courses_by_student_id(self, student_id):
         return self.course_repository.get_courses_by_student_id(student_id)
+
+    def open_course(self, course_id, owner_id, course_start_date, course_end_date):
+        try:
+            if not self.course_repository.is_user_owner(course_id, owner_id):
+                self.logger.debug(
+                    f"[SERVICE] Open: owner with id {owner_id} is not the owner of the course with id {course_id}, return error"
+                )
+                return error_generator(
+                    UNAUTHORIZED,
+                    f"User {owner_id} is not authorized to open this course",
+                    403,
+                    f"/open/{course_id}",
+                )
+
+            course = self.course_repository.open_course(course_id, course_start_date, course_end_date)
+            course = Course.from_dict(course).to_dict()
+
+            self.logger.debug(f"[SERVICE] Course Open: {course}")
+            if course:
+                return {
+                    "response": {
+                        "course": course,
+                        "type": "about:blank",
+                        "title": COURSE_CREATED,
+                        "status": 200,
+                        "detail": f"Course with ID {course_id} updated successfully",
+                        "instance": f"/courses/open/{course_id}",
+                    },
+                    "code_status": 200,
+                }
+            else:
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    f"Course with ID {course_id} not found orstatus not closed",
+                    404,
+                    f"/open/{course_id}",
+                )
+        except Exception as e:
+            self.logger.error(f"[Course Service Error] Error open course: {e}")
+            return error_generator(
+                INTERNAL_SERVER_ERROR,
+                f"An error occurred while opening the course: {str(e)}",
+                500,
+                f"/open/{course_id}",
+            )
+    
+    def close_course(self, course_id, owner_id):
+        try:
+            if not self.course_repository.is_user_owner(course_id, owner_id):
+                self.logger.debug(
+                    f"[SERVICE] Close: owner with id {owner_id} is not the owner of the course with id {course_id}, return error"
+                )
+                return error_generator(
+                    UNAUTHORIZED,
+                    f"User {owner_id} is not authorized to close this course",
+                    403,
+                    f"/close/{course_id}",
+                )
+
+            course = self.course_repository.close_course(course_id)
+            course = Course.from_dict(course).to_dict()
+
+            self.logger.debug(f"[SERVICE] Course Close: {course}")
+            if course:
+                return {
+                    "response": {
+                        "course": course,
+                        "type": "about:blank",
+                        "title": COURSE_CREATED,
+                        "status": 200,
+                        "detail": f"Course with ID {course_id} updated successfully",
+                        "instance": f"/courses/close/{course_id}",
+                    },
+                    "code_status": 200,
+                }
+            else:
+                return error_generator(
+                    COURSE_NOT_FOUND,
+                    f"Course with ID {course_id} not found or status not open",
+                    404,
+                    f"/close/{course_id}",
+                )
+        except Exception as e:
+            self.logger.error(f"[Course Service Error] Error close course: {e}")
+            return error_generator(
+                INTERNAL_SERVER_ERROR,
+                f"An error occurred while closing the course: {str(e)}",
+                500,
+                f"/close/{course_id}",
+            )

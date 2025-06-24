@@ -211,7 +211,7 @@ class UsersDataService:
 
         return {"response": paginated_favourites, "code_status": 200}
 
-    def approve_student_in_course(self, course_id, student_id):
+    def approve_student_in_course(self, course_id, student_id, final_grade):
         try:
             # Check if the student is already enrolled in the course
             course_students_query = self.service_courses.get_students_in_course(
@@ -259,7 +259,7 @@ class UsersDataService:
             # If the course doesn't have any students, no need to do any checks
 
             # Approve the student in the course
-            self.repository.approve_student(course_id, student_id)
+            self.repository.approve_student(course_id, student_id, final_grade)
 
             # now we remove the student from the course list
             self.service_courses.remove_student_from_course(course_id, student_id)
@@ -294,15 +294,24 @@ class UsersDataService:
         # Check if the student has any approved signatures
         approved_signatures = self.repository.get_approved_signatures(student_id)
 
-        if not approved_signatures:
-            return error_generator(
-                MISSING_FIELDS,
-                "No approved signatures found",
-                404,
-                "get_approved_signatures_from_user_id",
-            )
-
         return {"response": approved_signatures, "code_status": 200}
+    
+    def see_if_student_approved(self, course_id, student_id):
+        """
+        Return {course_id, final_grade} if student approved course_id.
+        Otherwise, None.
+        """
+        approved_signatures = self.get_approved_signatures_from_user_id(student_id)
+        self.logger.debug(
+            f"[UsersDataService] approved_signatures - Return {approved_signatures}"
+        )
+
+        approved_signatures = approved_signatures["response"]
+        for course in approved_signatures:
+            if course["course_id"] == course_id:
+                return {"response": {"result": course}, "code_status": 200}
+        
+        return {"response": {"result": False}, "code_status": 200}
 
     def add_assistant_to_course(
         self, course_id: str, assistant_id: str, owner_id: str, data: str

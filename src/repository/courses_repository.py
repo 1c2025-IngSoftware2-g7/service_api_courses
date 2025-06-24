@@ -1,7 +1,7 @@
 import os
 from bson import ObjectId
 from models.course import Course
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class CoursesRepository:
@@ -276,3 +276,60 @@ class CoursesRepository:
                 f"Error fetching courses for student {student_id}: {str(e)}"
             )
             raise e
+
+    def open_course(self, course_id, course_start_date, course_end_date):
+        try:
+            course_start_date = datetime.strptime(course_start_date, "%Y-%m-%d")
+            course_end_date = datetime.strptime(course_end_date, "%Y-%m-%d")
+        except ValueError as e:
+            raise ValueError(f"Invalid date format: {e}")
+
+        if course_start_date >= course_end_date:
+            raise ValueError("The start date must be before the end date")
+        
+        yesterday = (datetime.today() - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        if course_start_date <= yesterday:
+            raise ValueError("The start date cannot be earlier than the current date.")
+        
+        result = self.collection.update_one(
+            {
+                "_id": ObjectId(course_id),
+                "status": "closed" # Solo si estaba cerrado antes
+            },
+            {
+                "$set": {
+                    "status": "open",
+                    "course_start_date": course_start_date,
+                    "course_end_date": course_end_date
+                }
+            }
+        )
+        
+        if result.modified_count < 0:
+            return None
+        
+        self.logger.debug(f"[REPOSITORY] UPDATE: Course with ID: {course_id} open")
+        updated_course = self.collection.find_one({"_id": ObjectId(course_id)})
+        return updated_course
+    
+    def close_course(self, course_id):
+        result = self.collection.update_one(
+            {
+                "_id": ObjectId(course_id),
+                "status": "open"
+            },
+            {
+                "$set": {
+                    "status": "closed",
+                    "students": [],
+                    "modules": []
+                }
+            }
+        )
+        
+        if result.modified_count < 0:
+            return None
+        
+        self.logger.debug(f"[REPOSITORY] UPDATE: Course with ID: {course_id} closed")
+        updated_course = self.collection.find_one({"_id": ObjectId(course_id)})
+        return updated_course
