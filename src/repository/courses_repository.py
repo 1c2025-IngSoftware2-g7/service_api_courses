@@ -130,7 +130,7 @@ class CoursesRepository:
             return False
 
     def get_paginated_courses(self, offset, max_per_page):
-        courses = self.collection.find().skip(offset).limit(max_per_page)
+        courses = self.collection.find({"status": "open"}).skip(offset).limit(max_per_page)
         return list(courses)
 
     def check_if_course_inscription_is_available(self, course_id):
@@ -280,16 +280,16 @@ class CoursesRepository:
 
     def open_course(self, course_id, course_start_date, course_end_date):
         try:
-            course_start_date = datetime.strptime(course_start_date, "%Y-%m-%d")
-            course_end_date = datetime.strptime(course_end_date, "%Y-%m-%d")
+            start_date = datetime.strptime(course_start_date, "%Y-%m-%d")
+            end_date = datetime.strptime(course_end_date, "%Y-%m-%d")
         except ValueError as e:
             raise ValueError(f"Invalid date format: {e}")
 
-        if course_start_date >= course_end_date:
+        if start_date >= end_date:
             raise ValueError("The start date must be before the end date")
         
         yesterday = (datetime.today() - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        if course_start_date <= yesterday:
+        if start_date <= yesterday:
             raise ValueError("The start date cannot be earlier than the current date.")
         
         result = self.collection.update_one(
