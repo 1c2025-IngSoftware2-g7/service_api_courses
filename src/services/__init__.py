@@ -13,7 +13,6 @@ load_dotenv()
 import logging
 import os
 from pymongo import MongoClient
-import certifi
 from repository.courses_repository import CoursesRepository
 from repository.users_data_repository import UsersDataRepository
 from services.users_data_service import UsersDataService
@@ -21,9 +20,7 @@ from .course_service import CourseService
 from services.logger_config import get_logger
 
 client = MongoClient(
-    os.getenv("MONGO_URI"),
-    tls=True,
-    tlsCAFile=certifi.where()
+    os.getenv("MONGO_URI")
 )
 db = client[os.getenv("COURSE_DATABASE")]
 
