@@ -32,13 +32,13 @@ spec:
             - name: COURSES_COLLECTION_NAME
               value: courses_collection
             - name: COURSE_DATABASE
-              value: mongodb_courses
+              value: course_db
             - name: FLASK_ENV
               value: development
             - name: MODULES_AND_RESOURCES_COLLECTION_NAME
               value: modules_collection
             - name: MONGO_URI
-              value: "mongodb+srv://classconnect_admin:classconnect@classconnect-cluster.2ashbar.mongodb.net/mongodb_courses?retryWrites=true&w=majority"
+              value: "mongodb://user_mongo:classconnect_mongo_pass@courses-mongodb.default.svc.cluster.local:27017/course_db"
             - name: PORT
               value: "8080"
             - name: PYTHONPATH
