@@ -99,9 +99,7 @@ class EnrollmentService:
                     403,
                     "enroll_student",
                 )
-            if not self.user_available_to_enroll(
-                courses_correlatives, course_ids
-            ):
+            if not self.user_available_to_enroll(courses_correlatives, course_ids):
                 self.logger.debug(
                     f"[SERVICE] Enroll: student with ID {student_id} does not have the correlatives signatures approved"
                 )
@@ -126,7 +124,7 @@ class EnrollmentService:
                         "status": 200,
                         "detail": f"Student with ID {student_id} enrolled in course with ID {course_id}",
                         "instance": f"/courses/enroll/{course_id}",
-                        "student_id": f"{student_id}"
+                        "student_id": f"{student_id}",
                     },
                     "code_status": 200,
                 }

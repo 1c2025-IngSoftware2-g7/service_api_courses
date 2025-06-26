@@ -19,9 +19,7 @@ from services.users_data_service import UsersDataService
 from .course_service import CourseService
 from services.logger_config import get_logger
 
-client = MongoClient(
-    os.getenv("MONGO_URI")
-)
+client = MongoClient(os.getenv("MONGO_URI"))
 db = client[os.getenv("COURSE_DATABASE")]
 
 logging.basicConfig(level=logging.DEBUG)
@@ -60,7 +58,9 @@ repository_feedbacks = FeedBackRepository(
 
 repository_tasks = TasksRepository(collection_tasks, logger)
 
-repository_courses_data = CoursesRepository(collection_courses_data, repository_tasks, logger)
+repository_courses_data = CoursesRepository(
+    collection_courses_data, repository_tasks, logger
+)
 
 repository_modules_and_resources = ModuleRepository(
     collection_modules_and_resources, collection_courses_data, logger

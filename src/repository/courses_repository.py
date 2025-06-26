@@ -130,7 +130,9 @@ class CoursesRepository:
             return False
 
     def get_paginated_courses(self, offset, max_per_page):
-        courses = self.collection.find({"status": "open"}).skip(offset).limit(max_per_page)
+        courses = (
+            self.collection.find({"status": "open"}).skip(offset).limit(max_per_page)
+        )
         return list(courses)
 
     def check_if_course_inscription_is_available(self, course_id):
@@ -287,29 +289,31 @@ class CoursesRepository:
 
         if start_date >= end_date:
             raise ValueError("The start date must be before the end date")
-        
-        yesterday = (datetime.today() - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+
+        yesterday = (datetime.today() - timedelta(days=1)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
         if start_date <= yesterday:
             raise ValueError("The start date cannot be earlier than the current date.")
-        
+
         result = self.collection.update_one(
             {
                 "_id": ObjectId(course_id),
-                "status": "closed" # Solo si estaba cerrado antes
+                "status": "closed",  # Solo si estaba cerrado antes
             },
             {
                 "$set": {
                     "status": "open",
                     "course_start_date": course_start_date,
                     "course_end_date": course_end_date,
-                    "students": []
+                    "students": [],
                 }
-            }
+            },
         )
-        
+
         if result.modified_count < 0:
             return None
-        
+
         self.logger.debug(f"[REPOSITORY] UPDATE: Course with ID: {course_id} open")
 
         tasks = self.task_repository.get_tasks_by_course_ids([course_id])
@@ -320,23 +324,20 @@ class CoursesRepository:
 
         updated_course = self.collection.find_one({"_id": ObjectId(course_id)})
         return updated_course
-    
+
     def close_course(self, course_id):
         result = self.collection.update_one(
-            {
-                "_id": ObjectId(course_id),
-                "status": "open"
-            },
+            {"_id": ObjectId(course_id), "status": "open"},
             {
                 "$set": {
                     "status": "closed",
                 }
-            }
+            },
         )
-        
+
         if result.modified_count < 0:
             return None
-        
+
         self.logger.debug(f"[REPOSITORY] UPDATE: Course with ID: {course_id} closed")
         updated_course = self.collection.find_one({"_id": ObjectId(course_id)})
         return updated_course

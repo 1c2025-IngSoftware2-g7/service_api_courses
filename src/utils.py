@@ -32,7 +32,7 @@ def parse_date_to_timestamp_ms(value) -> int:
             if dt.tzinfo is None:
                 dt = dt.replace(tzinfo=timezone.utc)
             return int(dt.timestamp() * 1000)
-        
+
     except Exception as e:
         raise ValueError(e)
 

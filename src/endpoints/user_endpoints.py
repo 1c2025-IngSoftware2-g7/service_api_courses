@@ -84,7 +84,7 @@ def approve_student(course_id=None):
             MISSING_FIELDS, "student_id is required", 400, "approve_student"
         )
         return error["response"], error["code_status"]
-    
+
     # Check if the student_id is in the request
     if "final_grade" not in data:
         error = error_generator(
@@ -104,7 +104,10 @@ def approve_student(course_id=None):
 
     return result["response"], result["code_status"]
 
-@courses_enrollment_bp.route("/<string:course_id>/student/<string:student_id>/approve", methods=["GET"])
+
+@courses_enrollment_bp.route(
+    "/<string:course_id>/student/<string:student_id>/approve", methods=["GET"]
+)
 def see_if_student_approved(course_id=None, student_id=None):
     """
     Return True if a student passes a course. Otherwise, return False.
@@ -112,13 +115,19 @@ def see_if_student_approved(course_id=None, student_id=None):
 
     if not course_id:
         error = error_generator(
-            MISSING_FIELDS, "Course ID is required", 400, "/<string:course_id>/student/<string:student_id>/approve"
+            MISSING_FIELDS,
+            "Course ID is required",
+            400,
+            "/<string:course_id>/student/<string:student_id>/approve",
         )
         return error["response"], error["code_status"]
-    
+
     if not student_id:
         error = error_generator(
-            MISSING_FIELDS, "Student ID is required", 400, "/<string:course_id>/student/<string:student_id>/approve"
+            MISSING_FIELDS,
+            "Student ID is required",
+            400,
+            "/<string:course_id>/student/<string:student_id>/approve",
         )
         return error["response"], error["code_status"]
 

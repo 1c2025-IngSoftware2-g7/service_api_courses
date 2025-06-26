@@ -108,7 +108,7 @@ class CourseService:
             "course_start_date",
             "course_end_date",
             "max_students",
-            "background"
+            "background",
         ]
 
         if len(data.keys()) == 0:
@@ -626,14 +626,16 @@ class CourseService:
             )
 
         # now lets add it to the course
-        success = self.course_repository.add_assistant_to_course(course_id, assistant_id)
+        success = self.course_repository.add_assistant_to_course(
+            course_id, assistant_id
+        )
 
         if not success:
             return error_generator(
                 COURSE_NOT_FOUND,
                 f"Course with ID {course_id} not found",
                 404,
-                "/courses/add_assistant"
+                "/courses/add_assistant",
             )
 
         return {
@@ -701,7 +703,6 @@ class CourseService:
                 "remove_assistant",
             )
 
-
     def get_students_in_course(self, course_id):
         # Check if the course exists
         course = self.course_repository.get_course_by_id(course_id)
@@ -740,7 +741,9 @@ class CourseService:
                     f"/open/{course_id}",
                 )
 
-            course = self.course_repository.open_course(course_id, course_start_date, course_end_date)
+            course = self.course_repository.open_course(
+                course_id, course_start_date, course_end_date
+            )
             course = Course.from_dict(course).to_dict()
 
             self.logger.debug(f"[SERVICE] Course Open: {course}")
@@ -771,7 +774,7 @@ class CourseService:
                 500,
                 f"/open/{course_id}",
             )
-    
+
     def close_course(self, course_id, owner_id):
         try:
             if not self.course_repository.is_user_owner(course_id, owner_id):

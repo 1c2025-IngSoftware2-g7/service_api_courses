@@ -295,7 +295,7 @@ class UsersDataService:
         approved_signatures = self.repository.get_approved_signatures(student_id)
 
         return {"response": approved_signatures, "code_status": 200}
-    
+
     def see_if_student_approved(self, course_id, student_id):
         """
         Return {course_id, final_grade} if student approved course_id.
@@ -310,7 +310,7 @@ class UsersDataService:
         for course in approved_signatures:
             if course["course_id"] == course_id:
                 return {"response": {"result": course}, "code_status": 200}
-        
+
         return {"response": {"result": False}, "code_status": 200}
 
     def add_assistant_to_course(

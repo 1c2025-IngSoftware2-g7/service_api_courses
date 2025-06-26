@@ -124,7 +124,7 @@ class TaskService:
             return {
                 "response": {
                     "message": "Task created successfully",
-                    "data": task.to_dict()
+                    "data": task.to_dict(),
                 },
                 "code_status": 201,
             }
@@ -255,9 +255,7 @@ class TaskService:
                 datetime.now(timezone.utc).timestamp() * 1000
             )
 
-            updated = self.repository.update_task(
-                task_id, {"$set": update_data})
-
+            updated = self.repository.update_task(task_id, {"$set": update_data})
 
             if updated:
                 return {
@@ -480,7 +478,14 @@ class TaskService:
         return bucket
 
     def get_tasks_by_teacher(
-        self, teacher_id, status=None, due_date=None, start_date=None, end_date=None, page=1, limit=10
+        self,
+        teacher_id,
+        status=None,
+        due_date=None,
+        start_date=None,
+        end_date=None,
+        page=1,
+        limit=10,
     ):
         try:
             courses = self.course_service.get_courses_owned_by_user(teacher_id)
@@ -512,7 +517,15 @@ class TaskService:
             raise e
 
     def get_tasks_by_student(
-        self, student_id, status=None, course_id=None, due_date=None, start_date=None, end_date=None, page=1, limit=10
+        self,
+        student_id,
+        status=None,
+        course_id=None,
+        due_date=None,
+        start_date=None,
+        end_date=None,
+        page=1,
+        limit=10,
     ):
         try:
             # Obtain courses you are enrolled in
@@ -586,7 +599,7 @@ class TaskService:
         student_id: str,
         corrector_id: Optional[str] = None,
         grade: Optional[float] = None,
-        comment: Optional[str] = None
+        comment: Optional[str] = None,
     ):
         try:
             self.logger.debug(f"[TASK][SERVICE] Update feedback in task: {task_id}")
@@ -601,7 +614,7 @@ class TaskService:
                     "Task not found",
                     "The specified task does not exist",
                     404,
-                    "add_or_update_feedback"
+                    "add_or_update_feedback",
                 )
 
             task = tasks[0]
@@ -612,29 +625,42 @@ class TaskService:
                     "Submission not found",
                     "The student has not submitted this task",
                     404,
-                    "add_or_update_feedback"
+                    "add_or_update_feedback",
                 )
 
             # Obtener la submission
             submission = task.submissions[student_id]
-            self.logger.debug(f"[TASK][SERVICE] Update feedback in submisssion: {submission}")
+            self.logger.debug(
+                f"[TASK][SERVICE] Update feedback in submisssion: {submission}"
+            )
 
-            existing_corrector_id = next(iter(submission.feedbacks.keys()), None) if submission.feedbacks else None
-            self.logger.debug(f"[TASK][SERVICE] Was there already a teacher assigned to grade?: {existing_corrector_id}")
+            existing_corrector_id = (
+                next(iter(submission.feedbacks.keys()), None)
+                if submission.feedbacks
+                else None
+            )
+            self.logger.debug(
+                f"[TASK][SERVICE] Was there already a teacher assigned to grade?: {existing_corrector_id}"
+            )
 
             # Validación: Si ya hay un corrector diferente
-            if existing_corrector_id and existing_corrector_id != corrector_id and corrector_id is not None:
+            if (
+                existing_corrector_id
+                and existing_corrector_id != corrector_id
+                and corrector_id is not None
+            ):
                 return error_generator(
                     "Invalid corrector change",
                     "Cannot change the assigned corrector. You can only update the current corrector or unassign.",
                     400,
-                    "add_or_update_feedback"
+                    "add_or_update_feedback",
                 )
-
 
             # Crear o actualizar el feedback
             if corrector_id in submission.feedbacks:
-                self.logger.debug(f"[TASK][SERVICE] Corrector had already been assigned. Update existing feedback.")
+                self.logger.debug(
+                    f"[TASK][SERVICE] Corrector had already been assigned. Update existing feedback."
+                )
                 feedback = submission.feedbacks[corrector_id]
                 if grade is not None:
                     feedback.grade = grade
@@ -647,11 +673,11 @@ class TaskService:
                     }
                 }
             elif corrector_id is not None:
-                self.logger.debug(f"[TASK][SERVICE] Corrector had not been assigned. Create new feedback.")
+                self.logger.debug(
+                    f"[TASK][SERVICE] Corrector had not been assigned. Create new feedback."
+                )
                 feedback = Feedback(
-                    corrector_id=corrector_id,
-                    grade=grade,
-                    comment=comment
+                    corrector_id=corrector_id, grade=grade, comment=comment
                 )
                 update_data = {
                     "$set": {
@@ -659,7 +685,9 @@ class TaskService:
                     }
                 }
             elif existing_corrector_id and corrector_id is None:
-                self.logger.debug(f"[TASK][SERVICE] A corrector is unassigned, setting it to null")
+                self.logger.debug(
+                    f"[TASK][SERVICE] A corrector is unassigned, setting it to null"
+                )
                 update_data = {
                     "$unset": {
                         f"submissions.{student_id}.feedbacks.{existing_corrector_id}": ""
@@ -669,27 +697,23 @@ class TaskService:
             updated = self.repository.update_task(task_id, update_data)
 
             if updated:
-                return {
-                    "response": jsonify(updated.to_dict()),
-                    "code_status": 200
-                }
+                return {"response": jsonify(updated.to_dict()), "code_status": 200}
             else:
                 return error_generator(
                     "Update failed",
                     "Failed to update feedback",
                     500,
-                    "add_or_update_feedback"
+                    "add_or_update_feedback",
                 )
 
         except Exception as e:
             self.logger.error(
-                f"[TASK SERVICE] Error in add_or_update_feedback: {str(e)}")
-            return error_generator(
-                "Internal Server Error",
-                str(e),
-                500,
-                "add_or_update_feedback"
+                f"[TASK SERVICE] Error in add_or_update_feedback: {str(e)}"
             )
+            return error_generator(
+                "Internal Server Error", str(e), 500, "add_or_update_feedback"
+            )
+
     def get_tasks_done_by_student(
         self, student_id: str, course_id: Optional[str] = None
     ):
@@ -698,15 +722,14 @@ class TaskService:
                 student_id=student_id,
                 course_id=course_id,
             )
-            return {
-                "response": [task.to_dict() for task in tasks],
-                "code_status": 200
-            }
+            return {"response": [task.to_dict() for task in tasks], "code_status": 200}
         except Exception as e:
-            self.logger.error(f"[TASKS][SERVICE] Error getting tasks done by student {student_id}: {str(e)}")
+            self.logger.error(
+                f"[TASKS][SERVICE] Error getting tasks done by student {student_id}: {str(e)}"
+            )
             return error_generator(
                 "[TASKS][SERVICE] Internal server error",
                 "An error occurred while getting tasks done by student",
                 500,
-                "get_tasks_done_by_student"
+                "get_tasks_done_by_student",
             )

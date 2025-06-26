@@ -458,12 +458,14 @@ def get_tasks_by_teacher(teacher_id):
         page = int(request.args.get("page", 1))
         limit = int(request.args.get("limit", 1000))
 
-        logger.debug(f"due_date raw: {due_date}, start_date raw: {start_date}, end_date raw: {end_date}")
+        logger.debug(
+            f"due_date raw: {due_date}, start_date raw: {start_date}, end_date raw: {end_date}"
+        )
 
         if due_date is not None:
             logger.debug("Parsing due_date")
             due_date = parse_date_to_timestamp_ms(due_date)
-            
+
         if start_date is not None and end_date is not None:
             logger.debug("Parsing start_date and end_date")
             start_date = parse_date_to_timestamp_ms(start_date)
@@ -494,7 +496,9 @@ def get_tasks_by_teacher(teacher_id):
         return error["response"], error["code_status"]
 
     except Exception as e:
-        error = error_generator("[TASKS][CONTROLLER] Error", str(e), 500, "students/<string:student_id>")
+        error = error_generator(
+            "[TASKS][CONTROLLER] Error", str(e), 500, "students/<string:student_id>"
+        )
         return error["response"], error["code_status"]
 
 
@@ -528,12 +532,14 @@ def get_tasks_for_student(student_id):
         page = int(request.args.get("page", 1))
         limit = int(request.args.get("limit", 1000))
 
-        logger.debug(f"due_date raw: {due_date}, start_date raw: {start_date}, end_date raw: {end_date}")
+        logger.debug(
+            f"due_date raw: {due_date}, start_date raw: {start_date}, end_date raw: {end_date}"
+        )
 
         if due_date is not None:
             logger.debug("Parsing due_date")
             due_date = parse_date_to_timestamp_ms(due_date)
-            
+
         if start_date is not None and end_date is not None:
             logger.debug("Parsing start_date and end_date")
             start_date = parse_date_to_timestamp_ms(start_date)
@@ -554,7 +560,7 @@ def get_tasks_for_student(student_id):
         )
 
         return jsonify([t.to_dict() for t in tasks]), 200
-    
+
     except ValueError as e:
         error = error_generator(
             "[TASKS][CONTROLLER] Invalid date format.",
@@ -565,7 +571,9 @@ def get_tasks_for_student(student_id):
         return error["response"], error["code_status"]
 
     except Exception as e:
-        error = error_generator("[TASKS][CONTROLLER] Error", str(e), 500, "students/<string:student_id>")
+        error = error_generator(
+            "[TASKS][CONTROLLER] Error", str(e), 500, "students/<string:student_id>"
+        )
         return error["response"], error["code_status"]
 
 
@@ -649,6 +657,7 @@ def add_or_update_feedback(task_id):
             "Internal Server Error", str(e), 500, "add_or_update_feedback"
         )
 
+
 # Lets get the task done by the student for a certain course
 @tasks_bp.get("/students/<string:student_id>/course/<string:course_id>")
 @swag_from(
@@ -681,7 +690,9 @@ def get_tasks_done_by_student(student_id, course_id):
         return jsonify(tasks), 200
 
     except Exception as e:
-        logger.error(f"[TASKS][CONTROLLER] Error in get_tasks_done_by_student: {str(e)}")
+        logger.error(
+            f"[TASKS][CONTROLLER] Error in get_tasks_done_by_student: {str(e)}"
+        )
         return error_generator(
             "Internal Server Error", str(e), 500, "get_tasks_done_by_student"
         )

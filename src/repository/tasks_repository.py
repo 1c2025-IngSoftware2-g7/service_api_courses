@@ -86,7 +86,14 @@ class TasksRepository:
         return task
 
     def get_tasks_by_course_ids(
-        self, course_ids, status=None, due_date=None, start_date=None, end_date=None, page=1, limit=10
+        self,
+        course_ids,
+        status=None,
+        due_date=None,
+        start_date=None,
+        end_date=None,
+        page=1,
+        limit=10,
     ):
         query = {"course_id": {"$in": course_ids}}
 
@@ -114,9 +121,7 @@ class TasksRepository:
     def update_task(self, task_id: str, update_data: dict):
         try:
             updated_task = self.collection.find_one_and_update(
-                {"_id": task_id},
-                update_data,
-                return_document=ReturnDocument.AFTER
+                {"_id": task_id}, update_data, return_document=ReturnDocument.AFTER
             )
             return Task.from_dict(updated_task)
         except Exception as e:
@@ -129,32 +134,27 @@ class TasksRepository:
         """
         Get all tasks done by a student for a certain course.
         A task is completed if status == completed
-        The query start as 
+        The query start as
         First filter by course_id
         then search submittions with status completed
         """
-    
+
         query = {
             "course_id": course_id,
             "status": "completed",
             # Now search on submissions (dictionary) contains the # student_id as key
-            "submissions": { "$exists": True, "$ne": {} },
-            "submissions." + student_id: { "$exists": True }
+            "submissions": {"$exists": True, "$ne": {}},
+            "submissions." + student_id: {"$exists": True},
         }
-        
+
         task = self.collection.find(query)
-        
+
         return [Task.from_dict(t) for t in task if t is not None]
-        
+
     def clean_task(self, task_id):
         self.collection.update_one(
             {
                 "_id": str(task_id),
             },
-            {
-                "$set": {
-                    "status": "inactive",
-                    "submissions": {}
-                }
-            }
+            {"$set": {"status": "inactive", "submissions": {}}},
         )
