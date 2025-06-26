@@ -136,12 +136,10 @@ class UsersDataService:
         favourites = self.repository.get_favourites_from_student_id(student_id)
 
         if not favourites:
-            return error_generator(
-                MISSING_FIELDS,
-                "No favourites found",
-                404,
-                "get_favourites_from_student_id",
-            )
+            return {
+                "response": [],
+                "code_status": 204,
+            }
 
         # lets apply the pagionation
         start = offset * max_per_page
@@ -176,12 +174,10 @@ class UsersDataService:
         favourites = self.get_favourites_from_student_id(student_id, 0, 1337)
 
         if not favourites:
-            return error_generator(
-                MISSING_FIELDS,
-                "No favourites found",
-                404,
-                "search_favourite_courses",
-            )
+            return {
+                "response": [],
+                "code_status": 204,
+            }
 
         # Filter the favourites list based on the query
         # To be helpful, lets convert it to a Instance of Courses then return as dict

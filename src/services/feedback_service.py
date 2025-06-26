@@ -167,15 +167,11 @@ class FeedbackService:
 
             if not feedback:
                 return {
-                    "response": {
-                        "type": "about:blank",
-                        "title": "No feedback found",
-                        "status": 404,
-                        "detail": f"No feedback found for student {student_id} in course {course_id}.",
-                        "instance": f"/feedback/student/{student_id}",
-                    },
-                    "code_status": 404,
-                }
+                "response": (
+                    []
+                ),
+                "code_status": 204,
+            }
 
             return {
                 "response": (

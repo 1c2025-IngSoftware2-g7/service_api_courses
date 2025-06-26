@@ -48,12 +48,10 @@ class ModuleService:
         modules = self.repository_modules.get_modules_from_course(course_id)
 
         if not modules:
-            return error_generator(
-                MODULE_NOT_FOUND_IN_COURSE,
-                "No modules found in this course",
-                404,
-                "get_modules_from_course",
-            )
+            return {
+            "response": [],
+            "code_status": 204,
+            }
 
         return {
             "response": modules,
