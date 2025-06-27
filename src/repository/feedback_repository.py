@@ -1,5 +1,5 @@
 from bson import ObjectId
-from src.models.feedback import FeedbackCourse, FeedbackStudent
+from models.feedback import FeedbackCourse, FeedbackStudent
 
 
 class FeedBackRepository:

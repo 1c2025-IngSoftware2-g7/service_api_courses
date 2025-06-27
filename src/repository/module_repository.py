@@ -1,6 +1,6 @@
 from bson import ObjectId
-from src.models.module import Module
-from src.models.resource import Resource
+from models.module import Module
+from models.resource import Resource
 
 
 class ModuleRepository:

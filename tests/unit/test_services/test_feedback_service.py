@@ -161,8 +161,8 @@ def test_get_student_feedback_not_found(service, mock_service_courses, mock_repo
 
     response = service.get_student_feedback("student1", "course1")
 
-    assert response["code_status"] == 404
-    assert "No feedback found" in response["response"]["detail"]
+    assert response["code_status"] == 204
+    assert [] == response["response"]
 
 def test_get_student_feedback_exception(service, mock_service_courses):
     mock_service_courses.get_course_by_id.side_effect = Exception("Boom")

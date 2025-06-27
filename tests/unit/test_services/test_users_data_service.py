@@ -112,8 +112,7 @@ def test_get_favourites_no_favourites(service, repository_mock):
 
     result = service.get_favourites_from_student_id("student123", 0, 10)
 
-    assert result["code_status"] == 404
-    assert result["response"].get_json()["title"] == "Missing required field(s)"
+    assert result["code_status"] == 204
 
 def test_get_favourites_course_data_missing(service, repository_mock, course_service_mock):
     repository_mock.get_favourites_from_student_id.return_value = ["courseX"]
@@ -153,8 +152,7 @@ def test_search_favourite_courses_no_favourites(service, mocker):
 
     result = service.search_favourite_courses("student123", "anything", 0, 10)
 
-    assert result["code_status"] == 404
-    assert result["response"].get_json()["title"] == "Missing required field(s)"
+    assert result["code_status"] == 204
 
 def test_approve_student_success(service, course_service_mock, repository_mock):
     course_service_mock.get_students_in_course.return_value = {
