@@ -1,4 +1,3 @@
-from error.error import error_generator
 from headers import (
     COURSE_ALREADY_APPROVED,
     COURSE_IS_FULL,
@@ -10,7 +9,7 @@ from headers import (
 from models.course import Course
 from repository.courses_repository import CoursesRepository
 from repository.users_data_repository import UsersDataRepository
-
+from error.error import error_generator
 
 class EnrollmentService:
     def __init__(

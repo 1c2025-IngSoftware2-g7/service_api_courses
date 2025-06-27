@@ -1,5 +1,3 @@
-from flask import jsonify
-
 from headers import (
     ASSISTANT_ADDED,
     ASSISTANT_REMOVED,
