@@ -9,7 +9,7 @@ from headers import (
 from models.course import Course
 from repository.courses_repository import CoursesRepository
 from repository.users_data_repository import UsersDataRepository
-from error.error import error_generator
+from src.error.error import error_generator
 
 class EnrollmentService:
     def __init__(
