@@ -743,6 +743,433 @@ paths:
         '404':
           description: Course or assistant not found
 
+  /courses/tasks/:
+    post:
+      tags:
+        - Tasks
+      summary: Create a new task or exam
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - course_id
+                - due_date
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                instructions:
+                  type: string
+                due_date:
+                  type: integer
+                course_id:
+                  type: string
+                module_id:
+                  type: string
+                status:
+                  type: string
+                  enum: [inactive, open, closed]
+                task_type:
+                  type: string
+                  enum: [task, exam]
+                attachments:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      url:
+                        type: string
+                      mimetype:
+                        type: string
+      responses:
+        '201':
+          description: Task created successfully
+        '400':
+          description: Missing required fields or malformed request
+        '500':
+          description: Internal server error
+
+  /courses/tasks/{task_id}:
+    put:
+      tags:
+        - Tasks
+      summary: Update a task or exam
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                instructions:
+                  type: string
+                due_date:
+                  type: integer
+                status:
+                  type: string
+                task_type:
+                  type: string
+                attachments:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      url:
+                        type: string
+                      mimetype:
+                        type: string
+      responses:
+        '200':
+          description: Task updated successfully
+        '400':
+          description: Missing or invalid fields
+        '404':
+          description: Task not found
+        '500':
+          description: Internal server error
+
+    delete:
+      tags:
+        - Tasks
+      summary: Delete a task or exam
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task deleted successfully
+        '400':
+          description: Task ID required
+        '404':
+          description: Task not found
+        '500':
+          description: Internal server error
+
+    get:
+      tags:
+        - Tasks
+      summary: Get task by ID
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task retrieved successfully
+        '400':
+          description: Missing task ID
+        '404':
+          description: Task not found
+        '500':
+          description: Internal server error
+
+  /courses/tasks/course/{course_id}:
+    get:
+      tags:
+        - Tasks
+      summary: Get tasks for a course
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: module_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+        '400':
+          description: Missing course ID
+        '404':
+          description: Course not found
+        '500':
+          description: Internal server error
+
+  /courses/tasks/submission/{uuid_task}:
+    post:
+      tags:
+        - Tasks
+      summary: Submit a task or exam
+      parameters:
+        - name: uuid_task
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - uuid_student
+                - attachments
+              properties:
+                uuid_student:
+                  type: string
+                attachments:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      url:
+                        type: string
+                      mimetype:
+                        type: string
+      responses:
+        '200':
+          description: Task submitted successfully
+        '400':
+          description: Missing required fields
+        '500':
+          description: Internal server error
+
+  /courses/tasks/upload:
+    post:
+      tags:
+        - Tasks
+      summary: Upload a task file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - uuid
+                - task_number
+                - attachment
+              properties:
+                uuid:
+                  type: string
+                  format: uuid
+                task_number:
+                  type: string
+                attachment:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: File uploaded successfully
+        '400':
+          description: Missing fields in form data
+        '422':
+          description: Invalid or empty file
+        '500':
+          description: Internal server error
+
+  /courses/tasks/teachers/{teacher_id}:
+    get:
+      tags:
+        - Tasks
+      summary: Get tasks by teacher
+      parameters:
+        - name: teacher_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: date
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+        '400':
+          description: Invalid parameters
+        '500':
+          description: Internal server error
+
+  /courses/tasks/students/{student_id}:
+    get:
+      tags:
+        - Tasks
+      summary: Get tasks for a student
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: course_id
+          in: query
+          schema:
+            type: string
+        - name: date
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+        '400':
+          description: Invalid parameters
+        '500':
+          description: Internal server error
+
+
+  /students/{student_id}:
+    get:
+      tags:
+        - Tasks
+      summary: Get tasks for a student
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: course_id
+          in: query
+          schema:
+            type: string
+        - name: date
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+        '400':
+          description: Invalid parameters
+        '500':
+          description: Internal server error
+
+  /submission/{task_id}:
+    put:
+      tags:
+        - Tasks
+      summary: Add or update feedback for a task submission
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - uuid_student
+              properties:
+                uuid_student:
+                  type: string
+                uuid_corrector:
+                  type: string
+                grade:
+                  type: number
+                  format: float
+                comment:
+                  type: string
+      responses:
+        '200':
+          description: Feedback added/updated successfully
+        '400':
+          description: Missing required fields
+        '403':
+          description: User not authorized to provide feedback
+        '404':
+          description: Task or submission not found
+        '500':
+          description: Internal server error
+
+  /students/{student_id}/course/{course_id}:
+    get:
+      tags:
+        - Tasks
+      summary: Get tasks done by a student for a specific course
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+        '400':
+          description: Invalid parameters
+        '500':
+          description: Internal server error
 
 components:
   schemas:

@@ -2,8 +2,7 @@
 
 ## Contenidos
 1. Introducción
-2. 
-3. Pre-requisitos
+2. Arquitectura de componentes, CI-CD, Despliegue en la nube3. Pre-requisitos
 4. Documentacion técnica
 5. Tests
 6. Comandos para construir la imagen de Docker
@@ -23,7 +22,9 @@ Historias de usuario realizadas:
  - [x] Organización de modulos y recursos
  - [x] Visualización de cursos
 
-## 2. CI
+# 2. Arquitectura de componentes, CI-CD, Despliegue en la nube
+
+[Explicados en API Gateway](https://github.com/1c2025-IngSoftware2-g7/api_gateway)
 
 ### Test coverage
 
