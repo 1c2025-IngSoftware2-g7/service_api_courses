@@ -8,8 +8,8 @@ from headers import (
     USER_ENROLLED,
 )
 from models.course import Course
-from src.repository.courses_repository import CoursesRepository
-from src.repository.users_data_repository import UsersDataRepository
+from repository.courses_repository import CoursesRepository
+from repository.users_data_repository import UsersDataRepository
 
 
 class EnrollmentService:

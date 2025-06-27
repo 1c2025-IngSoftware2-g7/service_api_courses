@@ -1,10 +1,8 @@
 from flask import Blueprint, request
 
-from src.error.error import error_generator
-from src.headers import MISSING_FIELDS
-from services import service_users, logger
-from src.models.course import Course
-from src.models.permissions import AssistantPermissions
+from error.error import error_generator
+from headers import MISSING_FIELDS
+from services import service_users
 from flasgger import swag_from
 
 courses_assistants = Blueprint(

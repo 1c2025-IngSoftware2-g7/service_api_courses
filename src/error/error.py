@@ -1,5 +1,5 @@
 from flask import jsonify
-from src.services.logger_config import get_logger
+from services.logger_config import get_logger
 
 logger = get_logger("api-courses")
 

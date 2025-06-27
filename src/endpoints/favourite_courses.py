@@ -1,8 +1,8 @@
 from flask import Blueprint, request
 
-from src.error.error import error_generator
-from src.headers import MISSING_FIELDS
-from services import service_users, logger, service_courses
+from error.error import error_generator
+from headers import MISSING_FIELDS
+from services import service_users, logger
 
 courses_favourites = Blueprint(
     "courses_favourites", __name__, url_prefix="/courses/favourites"

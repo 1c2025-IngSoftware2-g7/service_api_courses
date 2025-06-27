@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 from services import service_modules, logger
 from error.error import error_generator
-from src.headers import MISSING_FIELDS
+from headers import MISSING_FIELDS
 
 
 modules_bp = Blueprint("modules", __name__, url_prefix="/courses")

@@ -1,12 +1,12 @@
 from dotenv import load_dotenv
 
-from src.repository.feedback_repository import FeedBackRepository
-from src.repository.module_repository import ModuleRepository
-from src.services.enrollment_service import EnrollmentService
-from src.services.feedback_service import FeedbackService
-from src.repository.tasks_repository import TasksRepository
-from src.services.task_service import TaskService
-from src.services.module_service import ModuleService
+from repository.feedback_repository import FeedBackRepository
+from repository.module_repository import ModuleRepository
+from services.enrollment_service import EnrollmentService
+from services.feedback_service import FeedbackService
+from repository.tasks_repository import TasksRepository
+from services.task_service import TaskService
+from services.module_service import ModuleService
 
 load_dotenv()
 

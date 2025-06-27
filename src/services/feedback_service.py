@@ -1,15 +1,12 @@
-import datetime
-
-from flask import jsonify
 from error.error import error_generator
-from src.headers import (
+from headers import (
     COURSE_NOT_FOUND,
     FEEDBACK_CREATED,
     INTERNAL_SERVER_ERROR,
     USER_NOT_ALLOWED_TO_CREATE_FEEDBACK,
 )
-from src.models.feedback import FeedbackCourse, FeedbackStudent
-from src.repository.feedback_repository import FeedBackRepository
+from models.feedback import FeedbackCourse, FeedbackStudent
+from repository.feedback_repository import FeedBackRepository
 
 
 class FeedbackService:
