@@ -37,7 +37,6 @@ def enroll_student(course_id=None):
     return result["response"], result["code_status"]
 
 
-# This method is for list all the courses an user is enrolled
 @courses_enrollment_bp.get("/enrolled_courses/<string:student_id>")
 def get_enrolled_courses(student_id=None):
     """
@@ -60,7 +59,25 @@ def get_enrolled_courses(student_id=None):
 users_approvation_bp = Blueprint("users_approve", __name__, url_prefix="/courses")
 
 
-# This method is for setting a user as approved
+@courses_enrollment_bp.get("/approved_courses/<string:student_id>")
+def get_approved_courses(student_id=None):
+    """
+    Get all courses a student is approved in.
+    """
+
+    if not student_id:
+        error = error_generator(
+            MISSING_FIELDS, "Student ID is required", 400, "aproveded_courses"
+        )
+        return error["response"], error["code_status"]
+
+    logger.debug(f"[APP] Getting all approved courses for student with ID: {student_id}")
+
+    result = service_users.get_approved_signatures_from_user_id(student_id)
+
+    return result["response"], result["code_status"]
+
+
 @courses_enrollment_bp.route("/<string:course_id>/approve", methods=["POST"])
 def approve_student(course_id=None):
     """
