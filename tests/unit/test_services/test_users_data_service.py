@@ -200,13 +200,39 @@ def test_approve_student_id_not_in_course(service, course_service_mock, reposito
     assert result["response"].get_json()["title"] == "Missing required field(s)"
 
 
-def test_get_approved_signatures_success(service, repository_mock):
-    repository_mock.get_approved_signatures.return_value = ["SIG1", "SIG2"]
+def test_get_approved_signatures_success(service, repository_mock, course_service_mock):
+    repository_mock.get_approved_signatures.return_value = [
+        {"course_id": "course123", "final_grade": 85}
+    ]
+
+    course_data = {
+        "_id": "course123",
+        "assistants": [],
+        "background": "https://example.com/image.jpg",
+        "correlatives_required_id": [],
+        "course_end_date": "2026-03-10",
+        "course_start_date": "2025-10-10",
+        "creator_id": "creator123",
+        "creator_name": "Profe Test",
+        "description": "Test Course",
+        "enroll_date_end": None,
+        "enroll_date_start": "Sat, 28 Jun 2025 16:46:16 GMT",
+        "max_students": 40,
+        "modules": [],
+        "name": "Curso Test",
+        "status": "open",
+        "students": []
+    }
+    course_service_mock.get_course.return_value = {
+        "response": course_data,
+        "code_status": 200
+    }
 
     result = service.get_approved_signatures_from_user_id("student123")
 
+    expected_response = [dict(course_data, final_grade=85)]
     assert result["code_status"] == 200
-    assert result["response"] == ["SIG1", "SIG2"]
+    assert result["response"] == expected_response
 
 def test_get_approved_signatures_empty(service, repository_mock):
     repository_mock.get_approved_signatures.return_value = []
