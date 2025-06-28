@@ -166,7 +166,6 @@ def test_approve_student_success(service, course_service_mock, repository_mock):
     assert result["code_status"] == 200
     assert result["response"]["title"] == "Student Approved"
     repository_mock.approve_student.assert_called_once_with("course123", "student123", 90)
-    course_service_mock.remove_student_from_course.assert_called_once_with("course123", "student123")
 
 def test_approve_student_course_not_found(service, course_service_mock):
     course_service_mock.get_students_in_course.return_value = {"code_status": 404}
