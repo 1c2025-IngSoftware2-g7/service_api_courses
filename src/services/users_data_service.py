@@ -258,7 +258,7 @@ class UsersDataService:
             self.repository.approve_student(course_id, student_id, final_grade)
 
             # now we remove the student from the course list
-            self.service_courses.remove_student_from_course(course_id, student_id)
+            #self.service_courses.remove_student_from_course(course_id, student_id)
 
             return {
                 "response": {
