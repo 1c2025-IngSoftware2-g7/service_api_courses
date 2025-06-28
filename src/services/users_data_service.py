@@ -281,7 +281,7 @@ class UsersDataService:
 
     def get_approved_signatures_from_user_id(self, student_id):
         """
-        Get the approved signatures for a student.
+        Get the approved signatures for a student, including full course data.
         """
         self.logger.debug(
             f"[UsersDataService] Getting approved signatures for student with ID: {student_id}"
@@ -290,7 +290,26 @@ class UsersDataService:
         # Check if the student has any approved signatures
         approved_signatures = self.repository.get_approved_signatures(student_id)
 
-        return {"response": approved_signatures, "code_status": 200}
+        enriched_signatures = []
+
+        for signature in approved_signatures:
+            course_id = signature["course_id"]
+            final_grade = signature["final_grade"]
+
+            # Obtener información del curso
+            course_response = self.service_courses.get_course(course_id)
+            if course_response["code_status"] == 200:
+                course_data = course_response["response"]
+
+                # Agregar la nota final al dict del curso
+                course_data["final_grade"] = final_grade
+
+                enriched_signatures.append(course_data)
+            else:
+                self.logger.warning(f"[UsersDataService] Could not retrieve course with ID: {course_id}")
+
+        return {"response": enriched_signatures, "code_status": 200}
+
 
     def see_if_student_approved(self, course_id, student_id):
         """
