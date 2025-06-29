@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import time
 from typing import Optional
 from google.cloud import storage
 from flask import jsonify
@@ -432,7 +433,16 @@ class TaskService:
             )
 
     def submit_task(self, task_id, student_id, attachments):
-        return self.repository.add_task_submission(task_id, student_id, attachments)
+        query = {"_id": task_id}
+        task = self.repository.get_tasks_by_query(query)[0]
+        due_date = task.due_date
+        due_timestamp = due_date / 1000  # Convertir de ms a segundos
+        current_timestamp = time.time()
+        on_time = False
+        if current_timestamp <= due_timestamp:
+            on_time = True
+
+        return self.repository.add_task_submission(task_id, student_id, attachments, on_time)
 
     def upload_task(self, uuid, num_task, file):
         file_link = self._upload_element(uuid, num_task, file)

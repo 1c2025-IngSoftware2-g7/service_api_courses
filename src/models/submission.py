@@ -39,9 +39,11 @@ class Submission:
         self,
         attachments: Optional[List[Dict[str, str]]] = None,
         feedbacks: Optional[Dict[str, Dict[str, Any]]] = None,
+        on_time: bool = True
     ):
         self.attachments = attachments or []
         self.feedbacks = {}
+        self.on_time = on_time
         if feedbacks:
             for corrector_id, feedback_data in feedbacks.items():
                 self.feedbacks[corrector_id] = Feedback.from_dict(feedback_data)
@@ -50,11 +52,14 @@ class Submission:
         return {
             "attachments": self.attachments,
             "feedbacks": {k: v.to_dict() for k, v in self.feedbacks.items()},
+            "on_time": self.on_time
         }
 
     @staticmethod
     def from_dict(data: dict):
         data = data or {}
         return Submission(
-            attachments=data.get("attachments", []), feedbacks=data.get("feedbacks", {})
+            attachments=data.get("attachments", []), 
+            feedbacks=data.get("feedbacks", {}),
+            on_time=data.get("on_time", True),
         )
