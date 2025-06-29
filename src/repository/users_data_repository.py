@@ -138,6 +138,7 @@ class UsersDataRepository:
 
         if not user:
             # If it isn't we add it.
+            self.logger.debug(f"[Repository] course_id: {course_id}, final_grade: {final_grade}")
             self.user_approved_courses_collection.insert_one(
                 {
                     "student_id": student_id,

@@ -322,8 +322,9 @@ class UsersDataService:
         )
 
         approved_signatures = approved_signatures["response"]
+        self.logger.debug(f"[UsersDataService] approved_signatures: {approved_signatures}")
         for course in approved_signatures:
-            if course["course_id"] == course_id:
+            if course["_id"] == course_id:
                 return {"response": {"result": course}, "code_status": 200}
 
         return {"response": {"result": False}, "code_status": 200}
