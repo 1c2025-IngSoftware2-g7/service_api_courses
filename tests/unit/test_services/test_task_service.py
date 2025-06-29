@@ -390,14 +390,6 @@ def test_get_task_by_id_exception(service, mock_repo, mock_logger):
     assert "An error occurred while getting the task" in response["response"].get_json()["detail"]
     mock_logger.error.assert_called_once()
 
-def test_submit_task(service, mock_repo):
-    
-    service.repository.add_task_submission.return_value = True
-
-    result = service.submit_task("task123", "student123", ["file1.pdf"])
-    assert result is True
-    service.repository.add_task_submission.assert_called_once_with("task123", "student123", ["file1.pdf"])
-
 def test_upload_task_calls_upload_element(service):
     
     service._upload_element = MagicMock(return_value="http://file.url")

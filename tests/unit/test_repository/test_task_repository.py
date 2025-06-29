@@ -110,7 +110,7 @@ def test_add_task_submission_success(repo, collection_mock, logger_mock):
         "get_task_with_submission_for_student", 
         return_value=Task(title="Test", submissions={"student1": submission.to_dict()}, due_date="2025-10-10", course_id="c123", module_id="m123")
         ):
-        task = repo.add_task_submission("taskid", "student1", [{"file": "file1"}])
+        task = repo.add_task_submission("taskid", "student1", [{"file": "file1"}],True)
 
     assert "student1" in task.submissions
     logger_mock.info.assert_called()
@@ -120,7 +120,7 @@ def test_add_task_submission_task_not_found(repo, collection_mock):
     collection_mock.update_one.return_value.matched_count = 0
 
     with pytest.raises(ValueError):
-        repo.add_task_submission("taskid", "student1", [{"file": "file1"}])
+        repo.add_task_submission("taskid", "student1", [{"file": "file1"}],True)
 
 
 def test_get_tasks_by_course_ids_with_filters(repo, collection_mock):
