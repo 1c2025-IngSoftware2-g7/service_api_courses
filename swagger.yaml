@@ -20,7 +20,7 @@ tags:
     description: Operations related to assistant for a course
 
 servers:
-  - url: https://service-api-courses.onrender.com
+  - url: https://34.63.36.12
 
 paths:
   /courses/health:
@@ -1170,6 +1170,126 @@ paths:
           description: Invalid parameters
         '500':
           description: Internal server error
+          
+  /open/{course_id}:
+    put:
+      tags:
+        - Courses
+      
+      summary: open a task for course
+      
+      parameters:
+      
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        
+        - name: owner_id
+          in: query
+          required: true
+          schema:
+            type: string
+            
+        - name: start_date
+          in: query
+          required: true
+          schema:
+            type: string
+        
+        - name: end_date
+          in: query
+          required: true
+          schema:
+            type: string
+        
+      responses:
+        '403':
+          description: User not allowed to open a course
+        '404': 
+          description: Course not found nor status NOT closed
+        '200':
+          description: OK
+        '500':
+          description: Internal Server Error
+  
+  /close/{course_id}:
+    put:
+      tags:
+        - Courses
+      
+      summary: Closes a course
+      
+      parameters:
+      
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        
+        - name: owner_id
+          in: query
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '403':
+          description: User not allowed to open a course
+        '404': 
+          description: Course not found nor status NOT open
+        '200':
+          description: OK
+        '500':
+          description: Internal Server Error
+  
+  /get_student_feedback/{student_id}/{course_id}:
+    get:
+      tags:
+        - Feedback
+        
+      summary: Get feedback for a Student
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Feedback retrieved
+        '400':
+          description: Missing fields
+
+  /{course_id}/student/{student_id}/approve:
+    get:
+      tags:
+        - Courses
+        
+      summary: Check if a student approved the course
+      
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: string
+            
+      responses:
+        '200':
+          description: Operation done, its either true or false
 
 components:
   schemas:
